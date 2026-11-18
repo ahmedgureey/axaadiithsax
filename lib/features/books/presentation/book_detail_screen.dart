@@ -7,7 +7,7 @@ import '../../../core/routing/not_found_screen.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
 
-/// Book overview + chapter list. Invalid [bookId] → not-found state.
+/// Book overview + lazily built chapter list. Invalid [bookId] → not-found.
 class BookDetailScreen extends StatelessWidget {
   const BookDetailScreen({super.key, required this.bookId});
 
@@ -24,52 +24,96 @@ class BookDetailScreen extends StatelessWidget {
       );
     }
     final chapters = repo.chaptersOf(book.id);
+    final hadithCount = repo.hadithCountOfBook(book.id);
+
     return Scaffold(
       appBar: AppTopBar(title: book.nameSomali),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        children: [
-          AppPageBody(
-            child: AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ArabicText(book.nameArabic, variant: ArabicTextVariant.chapterHeading),
-                  Text(book.author, style: context.textStyles.titleSmall),
-                  AppSpacing.gapXs,
-                  Text(book.description, style: context.textStyles.bodyMedium),
-                  if (!book.isVerified) ...[
-                    AppSpacing.gapSm,
-                    const Align(alignment: Alignment.centerLeft, child: DemoContentBadge()),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          AppSpacing.gapXl,
-          const AppPageBody(child: SectionHeader(title: 'Cutubyada')),
-          AppSpacing.gapSm,
-          if (chapters.isEmpty)
-            const SizedBox(height: 280, child: EmptyStateWidget(title: 'Cutub lama helin'))
-          else
-            for (final chapter in chapters)
-              AppPageBody(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.only(top: AppSpacing.md),
+            sliver: SliverToBoxAdapter(
+              child: AppPageBody(
                 child: AppCard(
-                  padding: EdgeInsets.zero,
-                  onTap: () => context.go(AppRoutes.chapter(book.id, chapter.id)),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: context.appColors.goldSubtle,
-                      foregroundColor: context.appColors.goldText,
-                      child: Text('${chapter.number}'),
-                    ),
-                    title: Text(chapter.titleSomali),
-                    subtitle: ArabicText(chapter.titleArabic, variant: ArabicTextVariant.label, maxLines: 1),
-                    trailing: const Icon(Icons.chevron_right_rounded),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ArabicText(book.nameArabic, variant: ArabicTextVariant.chapterHeading),
+                      Text(book.author, style: context.textStyles.titleSmall),
+                      AppSpacing.gapXs,
+                      Text(book.description, style: context.textStyles.bodyMedium),
+                      AppSpacing.gapSm,
+                      Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          MetaChip(label: '${chapters.length} cutub (halkan)', icon: Icons.list_alt_rounded),
+                          MetaChip(label: '$hadithCount xadiis (halkan)', icon: Icons.menu_book_outlined),
+                          if (!book.isVerified) const DemoContentBadge(),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: AppSpacing.gapXl),
+          const SliverToBoxAdapter(
+            child: AppPageBody(child: SectionHeader(title: 'Cutubyada')),
+          ),
+          const SliverToBoxAdapter(child: AppSpacing.gapSm),
+          if (chapters.isEmpty)
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 320,
+                child: EmptyStateWidget(
+                  icon: Icons.list_alt_rounded,
+                  title: 'Cutub lama helin',
+                  message: 'Kitaabkan weli cutub ama xadiis laguma darin noocan tijaabada ah.',
+                  actionLabel: 'Ku noqo kutubta',
+                  onAction: () => context.go(AppRoutes.books),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+              sliver: SliverList.builder(
+                itemCount: chapters.length,
+                itemBuilder: (context, i) {
+                  final chapter = chapters[i];
+                  final count = repo.hadithCountOfChapter(chapter.id);
+                  return AppPageBody(
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
+                    child: AppCard(
+                      padding: EdgeInsets.zero,
+                      semanticLabel: 'Cutubka ${chapter.number}: ${chapter.titleSomali}, $count xadiis',
+                      onTap: () => context.go(AppRoutes.chapter(book.id, chapter.id)),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: context.appColors.goldSubtle,
+                          foregroundColor: context.appColors.goldText,
+                          child: Text('${chapter.number}'),
+                        ),
+                        title: Text(chapter.titleSomali),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ArabicText(chapter.titleArabic, variant: ArabicTextVariant.label, maxLines: 1),
+                            Text(
+                              'Cutubka ${chapter.number} · $count xadiis',
+                              style: context.textStyles.labelSmall,
+                            ),
+                          ],
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );

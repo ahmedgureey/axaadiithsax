@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../core/services/share_service.dart';
 import '../core/settings/app_settings_controller.dart';
 import '../data/repositories/hadith_repository.dart';
 import '../features/auth/auth_controller.dart';
@@ -20,6 +21,7 @@ class AppServices {
     required this.memorization,
     required this.history,
     required this.repository,
+    this.share = const PlatformShareService(),
   });
 
   final AppSettingsController settings;
@@ -29,8 +31,15 @@ class AppServices {
   final ReadingHistoryController history;
   final HadithRepository repository;
 
+  /// System share sheet (replaceable in tests).
+  final ShareService share;
+
   /// Creates and loads all services from [store].
-  static Future<AppServices> create(SettingsStore store, {HadithRepository? repository}) async {
+  static Future<AppServices> create(
+    SettingsStore store, {
+    HadithRepository? repository,
+    ShareService? share,
+  }) async {
     final repo = repository ?? HadithRepository();
     final services = AppServices(
       settings: AppSettingsController(store),
@@ -40,6 +49,7 @@ class AppServices {
       memorization: MemorizationController(planHadithIds: repo.allHadiths.take(5).map((h) => h.id).toList()),
       history: ReadingHistoryController(),
       repository: repo,
+      share: share ?? const PlatformShareService(),
     );
     await Future.wait([services.settings.load(), services.auth.load(), services.favorites.load()]);
     return services;

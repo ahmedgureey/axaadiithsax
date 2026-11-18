@@ -6,6 +6,7 @@ import '../../../core/routing/app_routes.dart';
 import '../../../core/routing/route_leading.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../hadith/hadith_actions.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -39,7 +40,7 @@ class FavoritesScreen extends StatelessWidget {
               return AppPageBody(
                 child: FavoriteHadithCard(
                   arabicText: h.arabicText,
-                  somaliText: h.somaliText,
+                  somaliText: h.somaliText ?? missingTranslationText,
                   source: repo.bookById(h.bookId)?.nameSomali ?? '—',
                   isVerified: h.isVerified,
                   onTap: () => context.push(AppRoutes.hadith(h.id)),

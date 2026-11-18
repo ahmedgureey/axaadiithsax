@@ -47,7 +47,7 @@ void main() {
   });
 
   test('search filters by book and category and matches Somali text', () {
-    expect(repo.search('tusaale'), hasLength(repo.allHadiths.length));
+    expect(repo.search('tusaale'), hasLength(repo.allHadiths.where((h) => h.hasTranslation).length));
     final bukhari = repo.search('', bookId: 'bukhari');
     expect(bukhari.every((h) => h.bookId == 'bukhari'), isTrue);
     final salah = repo.search('', categoryId: 'salah');
@@ -77,5 +77,46 @@ void main() {
   test('demo reference labels never look like official numbers', () {
     final h = repo.allHadiths.first;
     expect(repo.referenceLabel(h), contains('(tusaale)'));
+  });
+
+  test('chapter counts and reading order', () {
+    expect(repo.hadithCountOfChapter('bukhari-c1'), repo.hadithsOf('bukhari-c1').length);
+    expect(repo.hadithCountOfChapter('nope'), 0);
+    final order = repo.readingOrderOf('bukhari');
+    expect(order.length, repo.hadithCountOfBook('bukhari'));
+    expect(order.first.id, 'bukhari-c1-h1');
+    expect(repo.readingOrderOf('abudawud'), isEmpty);
+  });
+
+  test('neighbours cross chapters and stop at the ends', () {
+    final first = repo.hadithById('bukhari-c1-h1')!;
+    expect(repo.neighboursOf(first).previous, isNull);
+    expect(repo.neighboursOf(first).next!.id, 'bukhari-c1-h2');
+    final endOfChapter = repo.hadithById('bukhari-c1-h3')!;
+    expect(repo.neighboursOf(endOfChapter).next!.id, 'bukhari-c2-h1');
+    final last = repo.readingOrderOf('bukhari').last;
+    expect(repo.neighboursOf(last).next, isNull, reason: 'never jumps to another book');
+  });
+
+  test('related hadith share a topic and exclude the record itself', () {
+    final h = repo.hadithById('muslim-c2-h1')!;
+    final related = repo.relatedTo(h);
+    expect(related, isNotEmpty);
+    expect(related.length, lessThanOrEqualTo(3));
+    expect(related.any((r) => r.id == h.id), isFalse);
+    expect(related.every((r) => r.categoryIds.any(h.categoryIds.contains)), isTrue);
+  });
+
+  test('one demo record has no translation or narrator (missing-state demo)', () {
+    final incomplete = repo.allHadiths.where((h) => !h.hasTranslation).toList();
+    expect(incomplete, hasLength(1));
+    expect(incomplete.single.narrator, isNull);
+    expect(repo.search('tusaale').any((h) => h.id == incomplete.single.id), isFalse);
+  });
+
+  test('record IDs are unique even though numbers repeat', () {
+    final ids = repo.allHadiths.map((h) => h.id).toSet();
+    expect(ids.length, repo.allHadiths.length);
+    expect(repo.allHadiths.where((h) => h.number == 1).length, greaterThan(1));
   });
 }

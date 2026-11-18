@@ -57,6 +57,27 @@ class HadithRepository {
     return "${chapter?.titleSomali ?? 'Cutub'}, #${hadith.number} (tusaale)";
   }
 
+  int hadithCountOfChapter(String chapterId) => _hadiths.where((h) => h.chapterId == chapterId).length;
+
+  /// All hadith of a book in reading order (chapter number, then hadith
+  /// number). Used for previous / next navigation.
+  List<Hadith> readingOrderOf(String bookId) => [for (final c in chaptersOf(bookId)) ...hadithsOf(c.id)];
+
+  /// Previous and next records in the same book (crossing chapters), or null
+  /// at either end.
+  ({Hadith? previous, Hadith? next}) neighboursOf(Hadith hadith) {
+    final order = readingOrderOf(hadith.bookId);
+    final i = order.indexWhere((h) => h.id == hadith.id);
+    if (i < 0) return (previous: null, next: null);
+    return (previous: i > 0 ? order[i - 1] : null, next: i < order.length - 1 ? order[i + 1] : null);
+  }
+
+  /// Other records sharing a topic with [hadith] (deterministic order).
+  List<Hadith> relatedTo(Hadith hadith, {int limit = 3}) => _hadiths
+      .where((h) => h.id != hadith.id && h.categoryIds.any(hadith.categoryIds.contains))
+      .take(limit)
+      .toList();
+
   /// Deterministic "hadith of the day" from the local dataset.
   Hadith? dailyHadith(DateTime date) {
     if (_hadiths.isEmpty) return null;
@@ -73,7 +94,7 @@ class HadithRepository {
       if (categoryId != null && !h.categoryIds.contains(categoryId)) return false;
       if (q.isEmpty) return true;
       return ArabicNormalizer.normalize(h.arabicText).contains(q) ||
-          ArabicNormalizer.normalize(h.somaliText).contains(q) ||
+          ArabicNormalizer.normalize(h.somaliText ?? "").contains(q) ||
           ArabicNormalizer.normalize(h.narrator ?? '').contains(q);
     }).toList();
   }

@@ -149,12 +149,21 @@ abstract final class MockLibrary {
           ),
   ];
 
+  static const demoSource = 'Xog tusaale ah oo loo sameeyay horumarinta app-ka — ma aha qoraal xadiis.';
+
+  /// Chapter whose last record has no translation / narrator (demo of
+  /// missing-content states).
+  static const incompleteChapterId = 'nawawi40-c3';
+
   static final List<Hadith> hadiths = () {
     final result = <Hadith>[];
     var serial = 0;
     for (final chapter in chapters) {
       for (var h = 1; h <= 3; h++) {
         serial++;
+        // One record deliberately lacks translation and narrator so the
+        // "lama hayo" states are visible and testable.
+        final incomplete = chapter.id == incompleteChapterId && h == 3;
         result.add(
           Hadith(
             id: '${chapter.id}-h$h',
@@ -164,11 +173,13 @@ abstract final class MockLibrary {
             arabicText:
                 'نص تجريبي رقم ${_ar(serial)}، يُستبدل بنص الحديث '
                 'الموثّق من المصادر المعتمدة قبل نشر التطبيق',
-            somaliText:
-                'Qoraal tusaale ah (#$serial). Halkan waxaa geli doona '
-                'tarjumaadda Af-Soomaaliga ee xadiis la xaqiijiyay.',
-            narrator: 'اسم الراوي',
+            somaliText: incomplete
+                ? null
+                : 'Qoraal tusaale ah (#$serial). Halkan waxaa geli doona '
+                      'tarjumaadda Af-Soomaaliga ee xadiis la xaqiijiyay.',
+            narrator: incomplete ? null : 'اسم الراوي',
             categoryIds: [categories[serial % categories.length].id],
+            source: demoSource,
           ),
         );
       }

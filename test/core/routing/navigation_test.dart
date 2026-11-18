@@ -92,7 +92,7 @@ void main() {
   group('Five tabs', () {
     testWidgets('all five tabs are reachable and highlighted', (tester) async {
       await _pumpApp(tester);
-      const titles = ['Assalaamu Calaykum', 'Kutubta', 'Raadinta', 'Xifdinta', 'Aniga'];
+      const titles = ['Assalaamu Calaykum', 'Kutubta Xadiiska', 'Raadinta', 'Xifdinta', 'Aniga'];
       const labels = ['Guriga', 'Kutubta', 'Raadinta', 'Xifdinta', 'Aniga'];
       for (var i = labels.length - 1; i >= 0; i--) {
         await _tap(tester, _tab(labels[i]));
@@ -114,7 +114,7 @@ void main() {
 
       await _tap(tester, _tab('Kutubta'));
       expect(find.text('Cutubyada'), findsNothing, reason: 'reselect pops to root');
-      expect(_appBarTitle('Kutubta'), findsOneWidget);
+      expect(_appBarTitle('Kutubta Xadiiska'), findsOneWidget);
     });
 
     testWidgets('search state survives tab switches', (tester) async {
@@ -137,7 +137,7 @@ void main() {
       expect(_appBarTitle('Cutub tusaale 2'), findsOneWidget);
 
       await _tap(tester, find.byType(HadithCard).first);
-      expect(find.text('Tarjumaadda'), findsOneWidget);
+      expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing, reason: 'focused reading screen');
       // Arabic content is RTL inside the LTR screen.
       final arabic = tester.element(
@@ -153,7 +153,7 @@ void main() {
     testWidgets('daily hadith opens detail and records history', (tester) async {
       final services = await _pumpApp(tester);
       await _tap(tester, find.byType(DailyHadithCard));
-      expect(find.text('Tarjumaadda'), findsOneWidget);
+      expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
       expect(services.history.recentIds, hasLength(1));
       await _systemBack(tester);
       expect(_selectedTab(tester), 0);
@@ -181,7 +181,7 @@ void main() {
       await _tap(tester, find.text('Xadiisyada aan Kaydiyey'));
       expect(find.byType(FavoriteHadithCard), findsOneWidget);
       await _tap(tester, find.byType(FavoriteHadithCard));
-      expect(find.text('Tarjumaadda'), findsOneWidget);
+      expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
     });
 
     testWidgets('memorization → quiz → results → back to memorization', (tester) async {
@@ -231,7 +231,7 @@ void main() {
 
     testWidgets('deep-linked hadith detail offers a Home button', (tester) async {
       await _pumpApp(tester, initial: AppRoutes.hadith('bukhari-c1-h1'));
-      expect(find.text('Tarjumaadda'), findsOneWidget);
+      expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
       await _tap(tester, find.byTooltip('Guriga'));
       expect(_selectedTab(tester), 0);
     });

@@ -1,25 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/app_services.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../data/models/hadith.dart';
+import '../../../hadith/hadith_actions.dart';
 
 /// "Xadiiska Maalinta" — uses the shared favorites controller for bookmarks.
 class DailyHadithSection extends StatelessWidget {
   const DailyHadithSection({super.key, required this.hadith});
 
   final Hadith? hadith;
-
-  Future<void> _share(BuildContext context, Hadith h, String source) async {
-    // No share plugin yet: copy the text so it can be pasted anywhere.
-    await Clipboard.setData(ClipboardData(text: '${h.arabicText}\n\n${h.somaliText}\n— $source'));
-    if (context.mounted) {
-      AppSnackbar.show(context, 'Qoraalka waa la koobiyeeyay si aad u wadaagto.', type: AppSnackType.success);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +39,7 @@ class DailyHadithSection extends StatelessWidget {
         final saved = services.favorites.isFavorite(h.id);
         return DailyHadithCard(
           arabicText: h.arabicText,
-          somaliText: h.somaliText,
+          somaliText: h.somaliText ?? missingTranslationText,
           narrator: h.narrator,
           source: source,
           reference: repo.referenceLabel(h),
@@ -56,7 +48,7 @@ class DailyHadithSection extends StatelessWidget {
           isFavorite: saved,
           onTap: open,
           onRead: open,
-          onShare: () => _share(context, h, source),
+          onShare: () => shareHadith(context, h),
           onBookmark: () async {
             final added = await services.favorites.toggle(h.id);
             if (context.mounted) {

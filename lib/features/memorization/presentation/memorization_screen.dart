@@ -5,6 +5,7 @@ import '../../../app/app_services.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../hadith/hadith_actions.dart';
 
 /// Tab 4 — Xifdinta.
 class MemorizationScreen extends StatelessWidget {
@@ -73,7 +74,11 @@ class MemorizationScreen extends StatelessWidget {
                           semanticLabel: plan.isMemorized(h.id) ? 'La xifdiyay' : 'Lama xifdin',
                         ),
                         title: Text('Xadiis ${index + 1} · ${repo.bookById(h.bookId)?.nameSomali ?? ''}'),
-                        subtitle: Text(h.somaliText, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(
+                          h.somaliText ?? missingTranslationText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         trailing: const Icon(Icons.chevron_right_rounded),
                       ),
                     ),

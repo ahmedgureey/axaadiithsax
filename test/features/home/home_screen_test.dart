@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xadiithapp/app/app.dart';
 import 'package:xadiithapp/app/app_services.dart';
 import 'package:xadiithapp/core/routing/app_routes.dart';
+import 'package:xadiithapp/core/services/share_service.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/widgets/widgets.dart';
 import 'package:xadiithapp/data/models/hadith.dart';
@@ -28,10 +28,20 @@ class _FlakyRepository extends HadithRepository {
   }
 }
 
+class _RecordingShare implements ShareService {
+  final shared = <String>[];
+  @override
+  Future<ShareOutcome> shareText(String text, {String? subject}) async {
+    shared.add(text);
+    return ShareOutcome.shared;
+  }
+}
+
 Future<AppServices> _pumpHome(
   WidgetTester tester, {
   AuthStatus status = AuthStatus.guest,
   HadithRepository? repository,
+  ShareService? share,
   Size size = const Size(390, 844),
   String theme = 'light',
 }) async {
@@ -46,6 +56,7 @@ Future<AppServices> _pumpHome(
       'settings.themeMode': theme,
     }),
     repository: repository,
+    share: share,
   );
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: AppRoutes.home));
   await tester.pumpAndSettle();
@@ -134,7 +145,7 @@ void main() {
       final services = await _pumpHome(tester);
       final daily = services.repository.dailyHadith(DateTime.now())!;
       await _tap(tester, find.text('Akhri Xadiiska'));
-      expect(find.text('Tarjumaadda'), findsOneWidget);
+      expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
       expect(services.history.recentIds.first, daily.id);
     });
 
@@ -157,23 +168,16 @@ void main() {
       );
     });
 
-    testWidgets('share copies the text (no share plugin yet)', (tester) async {
-      String? copied;
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
-        if (call.method == 'Clipboard.setData') copied = (call.arguments as Map)['text'] as String;
-        return null;
-      });
-      addTearDown(
-        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null),
-      );
-      final services = await _pumpHome(tester);
+    testWidgets('share opens the system share sheet with the hadith text', (tester) async {
+      final share = _RecordingShare();
+      final services = await _pumpHome(tester, share: share);
       final daily = services.repository.dailyHadith(DateTime.now())!;
       await _tap(
         tester,
         find.descendant(of: find.byType(DailyHadithCard), matching: find.byTooltip('La wadaag')),
       );
-      expect(copied, contains(daily.somaliText));
-      expect(find.textContaining('waa la koobiyeeyay'), findsOneWidget);
+      expect(share.shared.single, contains(daily.arabicText));
+      expect(share.shared.single, contains('Xog tusaale ah'));
     });
   });
 

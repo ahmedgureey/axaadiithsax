@@ -473,6 +473,8 @@ class BookCard extends StatelessWidget {
     this.author,
     this.countLabel,
     this.onTap,
+    this.description,
+    this.badges = const [],
   });
 
   final String titleSomali;
@@ -482,6 +484,12 @@ class BookCard extends StatelessWidget {
   /// e.g. "97 kutub" — pass only verified counts.
   final String? countLabel;
   final VoidCallback? onTap;
+
+  /// Optional short description below the author.
+  final String? description;
+
+  /// Extra chips (e.g. hadith count, demo status).
+  final List<Widget> badges;
 
   @override
   Widget build(BuildContext context) {
@@ -512,7 +520,26 @@ class BookCard extends StatelessWidget {
                 if (titleArabic != null)
                   ArabicText(titleArabic!, variant: ArabicTextVariant.label, maxLines: 1),
                 if (author != null) Text(author!, style: context.textStyles.bodySmall),
-                if (countLabel != null) ...[AppSpacing.gapXxs, MetaChip(label: countLabel!)],
+                if (description != null) ...[
+                  AppSpacing.gapXxs,
+                  Text(
+                    description!,
+                    style: context.textStyles.bodySmall,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if (countLabel != null || badges.isNotEmpty) ...[
+                  AppSpacing.gapXs,
+                  Wrap(
+                    spacing: AppSpacing.xxs,
+                    runSpacing: AppSpacing.xxs,
+                    children: [
+                      if (countLabel != null) MetaChip(label: countLabel!),
+                      ...badges,
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
