@@ -18,7 +18,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = context.services.settings;
     return Scaffold(
-      appBar: AppTopBar(title: title, leading: backOrHomeLeading(context)),
+      appBar: AppTopBar(title: context.tr(AppText.titleAppearance), leading: backOrHomeLeading(context)),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [

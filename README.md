@@ -14,16 +14,16 @@ searching and memorising hadith with Somali translations.
 | Area | What works | Demo / limited |
 |---|---|---|
 | Onboarding & auth | Splash, onboarding, welcome, login, register, forgot/reset password, e-mail verification screens with full validation | Auth is a **local demo**: credentials `demo@xadiis.app` / `Demo1234`; no server, no password stored |
-| Home | Daily hadith (deterministic), quick actions, featured books, topics, recent reading | — |
-| Library | Books → chapters → hadith list → hadith reader (Arabic RTL, Somali translation, narrator/grade only when verified) | Audio player shows "Cod lama hayo" (no audio available) |
-| Search | Diacritic-insensitive Arabic + Somali search, filters (book, topic, translated only), recent searches, categories | — |
+| Home | Daily hadith (deterministic), Continue Reading (last opened hadith + position in its book), quick actions, today's memorisation progress, reading-reminder card, featured books, topics, recent reading | Reminder card reflects a saved preference; nothing is delivered |
+| Library | Books → chapters → hadith list → hadith reader: Arabic RTL, Somali translation (show/hide), narrator/grade only when verified, Arabic + translation size and line spacing (in-reader sheet), position in book, previous/next (RTL-aware), bookmark, copy, share | Audio player shows "Cod lama hayo" (no audio available) |
+| Search | Diacritic-insensitive Arabic + Somali search, clear button, filters (book, topic, saved / not saved) with reset, 4 sort orders, highlighted Somali matches, recent searches, categories | Arabic matches are not highlighted (matching ignores diacritics) |
 | Favourites | Bookmark/unbookmark everywhere, synced across screens, persisted | — |
 | Memorisation | Daily plan, "Waan Xifdiyey", spaced review (1/3/7/14/30 days), weekly chart, streak | — |
 | Quiz | Generated questions from local data, one answer per question, score + history | — |
-| Profile & settings | Demo profile (name edit), stats, theme (system/light/dark), language, Arabic/translation size and line height, help, privacy, about (version from pubspec), separate reset actions with confirmation | Language: Somali complete; Arabic/English translate tab labels + system strings only (Arabic switches to RTL). Notifications are **preferences only** — nothing is scheduled or delivered |
+| Profile & settings | Demo profile (name edit), stats, theme (system/light/dark), language, Arabic/translation size and line height, help, privacy, about (version from pubspec), separate reset actions with confirmation | Language: Somali complete; Arabic/English translate the essential labels (navigation, screen titles, Home sections, reader controls, settings) + system strings, Arabic switches to RTL; longer explanatory text stays Somali. Notifications are **preferences only** — nothing is scheduled or delivered |
 
 All user data (settings, favourites, memorisation, quiz history, recent
-searches, demo session) is stored **only on the device** with
+searches, reading history (ids only), demo session) is stored **only on the device** with
 `shared_preferences`. There is no sync and no backup.
 
 ## Tech stack
@@ -106,7 +106,7 @@ Xcode. iOS has not been built in this project's Windows environment.
 - No backend, no real accounts, no cloud sync or backup.
 - Notifications are not delivered; no notification permission is requested.
 - No hadith audio.
-- Arabic and English UI translations are partial.
+- Arabic and English UI translations cover essential labels only; explanatory copy is Somali.
 - On the web build Flutter may download CanvasKit and fallback fonts from
   Google's CDN; Android/iOS builds make no network requests from app code.
 - Release signing and application/bundle IDs are not configured (see above).

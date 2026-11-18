@@ -12,3 +12,4 @@ export 'islamic_ornament.dart';
 export 'honorific_text.dart';
 export 'offline_status_indicator.dart';
 export 'settings_widgets.dart';
+export '../l10n/app_strings.dart';

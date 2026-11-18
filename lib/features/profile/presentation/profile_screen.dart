@@ -19,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
     final services = context.services;
     final auth = services.auth;
     return Scaffold(
-      appBar: const AppTopBar(title: title, showOrnament: true),
+      appBar: AppTopBar(title: context.tr(AppText.titleProfile), showOrnament: true),
       body: ListenableBuilder(
         listenable: auth,
         builder: (context, _) {
@@ -57,12 +57,12 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     SettingsTile(
                       icon: Icons.bookmarks_outlined,
-                      title: 'Xadiisyada aan Kaydiyey',
+                      title: context.tr(AppText.titleFavorites),
                       onTap: () => context.push(AppRoutes.favorites),
                     ),
                     SettingsTile(
                       icon: Icons.text_fields_rounded,
-                      title: 'Doorbidyada akhriska',
+                      title: context.tr(AppText.titleReading),
                       onTap: () => context.push(AppRoutes.settingsReading),
                     ),
                   ],
@@ -75,22 +75,22 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     SettingsTile(
                       icon: Icons.settings_outlined,
-                      title: 'Dejinta oo dhan',
+                      title: context.tr(AppText.allSettings),
                       onTap: () => context.push(AppRoutes.settings),
                     ),
                     SettingsTile(
                       icon: Icons.shield_outlined,
-                      title: 'Arrimaha gaarka ah',
+                      title: context.tr(AppText.titlePrivacy),
                       onTap: () => context.push(AppRoutes.settingsPrivacy),
                     ),
                     SettingsTile(
                       icon: Icons.help_outline_rounded,
-                      title: 'Caawimaad',
+                      title: context.tr(AppText.titleHelp),
                       onTap: () => context.push(AppRoutes.help),
                     ),
                     SettingsTile(
                       icon: Icons.info_outline_rounded,
-                      title: 'Ku saabsan app-ka',
+                      title: context.tr(AppText.aboutApp),
                       onTap: () => context.push(AppRoutes.about),
                     ),
                   ],
@@ -99,7 +99,7 @@ class ProfileScreen extends StatelessWidget {
               AppSpacing.gapLg,
               AppPageBody(
                 child: AppTextButton(
-                  label: isGuest ? 'Ka bax habka martida' : 'Ka bax',
+                  label: isGuest ? 'Ka bax habka martida' : context.tr(AppText.signOut),
                   icon: Icons.logout_rounded,
                   color: context.colors.error,
                   onPressed: () async {

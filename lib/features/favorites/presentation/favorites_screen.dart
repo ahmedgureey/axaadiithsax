@@ -38,7 +38,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final favorites = services.favorites;
     final repo = services.repository;
     return Scaffold(
-      appBar: AppTopBar(title: FavoritesScreen.title, leading: backOrHomeLeading(context)),
+      appBar: AppTopBar(title: context.tr(AppText.titleFavorites), leading: backOrHomeLeading(context)),
       body: ListenableBuilder(
         listenable: favorites,
         builder: (context, _) {

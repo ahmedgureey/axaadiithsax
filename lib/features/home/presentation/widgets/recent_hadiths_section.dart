@@ -33,8 +33,8 @@ class RecentHadithsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SectionHeader(
-              title: hasHistory ? recentTitle : featuredTitle,
-              actionLabel: 'Eeg Dhammaan',
+              title: context.tr(hasHistory ? AppText.homeRecent : AppText.homeFeatured),
+              actionLabel: context.tr(AppText.seeAll),
               onAction: () => context.go(AppRoutes.books),
             ),
             if (!hasHistory)

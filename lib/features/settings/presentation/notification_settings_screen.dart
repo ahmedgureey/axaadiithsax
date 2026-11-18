@@ -20,7 +20,7 @@ class NotificationSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final prefs = context.services.notifications;
     return Scaffold(
-      appBar: AppTopBar(title: title, leading: backOrHomeLeading(context)),
+      appBar: AppTopBar(title: context.tr(AppText.titleNotifications), leading: backOrHomeLeading(context)),
       body: ListenableBuilder(
         listenable: prefs,
         builder: (context, _) => ListView(

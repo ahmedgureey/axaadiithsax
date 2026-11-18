@@ -71,7 +71,7 @@ class AppServices {
         exists: (id) => repo.hadithById(id) != null,
         clock: clock,
       ),
-      history: ReadingHistoryController(),
+      history: ReadingHistoryController(store),
       repository: repo,
       search: HadithSearchService(repo),
       searchHistory: SearchHistoryController(store),
@@ -85,7 +85,9 @@ class AppServices {
       services.searchHistory.load(),
       services.memorization.load(),
       services.notifications.load(),
+      services.history.load(),
     ]);
+    services.history.removeMissing((id) => repo.hadithById(id) != null);
     return services;
   }
 

@@ -30,7 +30,7 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppTopBar(title: title, leading: backOrHomeLeading(context)),
+      appBar: AppTopBar(title: context.tr(AppText.titleAbout), leading: backOrHomeLeading(context)),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
         children: [

@@ -18,7 +18,7 @@ class BooksScreen extends StatelessWidget {
     final repo = context.services.repository;
     final books = repo.books;
     return Scaffold(
-      appBar: const AppTopBar(title: title, showOrnament: true),
+      appBar: AppTopBar(title: context.tr(AppText.titleBooks), showOrnament: true),
       body: books.isEmpty
           ? const EmptyStateWidget(
               icon: Icons.auto_stories_outlined,

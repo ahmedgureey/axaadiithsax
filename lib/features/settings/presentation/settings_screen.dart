@@ -19,7 +19,7 @@ class SettingsScreen extends StatelessWidget {
     final services = context.services;
     final settings = services.settings;
     return Scaffold(
-      appBar: AppTopBar(title: title, leading: backOrHomeLeading(context)),
+      appBar: AppTopBar(title: context.tr(AppText.titleSettings), leading: backOrHomeLeading(context)),
       body: ListenableBuilder(
         listenable: Listenable.merge([settings, services.notifications]),
         builder: (context, _) => ListView(
@@ -29,29 +29,29 @@ class SettingsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SectionHeader(title: 'Muuqaalka'),
+                  SectionHeader(title: context.tr(AppText.settingsAppearance)),
                   AppSpacing.gapXs,
                   ThemeSelector(settings: settings),
                   AppSpacing.gapXl,
                   SettingsSection(
-                    title: 'Luqadda iyo akhriska',
+                    title: context.tr(AppText.settingsLanguageReading),
                     children: [
                       SettingsTile(
                         icon: Icons.language_rounded,
-                        title: 'Luqadda',
+                        title: context.tr(AppText.titleLanguage),
                         subtitle: settings.language.nativeName,
                         onTap: () => context.push(AppRoutes.settingsLanguage),
                       ),
                       SettingsTile(
                         icon: Icons.text_fields_rounded,
-                        title: 'Doorbidyada akhriska',
+                        title: context.tr(AppText.titleReading),
                         subtitle:
                             'Carabi ${settings.arabicFontSize.round()} · tarjumaad ${(settings.translationScale * 100).round()}%',
                         onTap: () => context.push(AppRoutes.settingsReading),
                       ),
                       SettingsTile(
                         icon: Icons.notifications_none_rounded,
-                        title: 'Ogeysiisyada',
+                        title: context.tr(AppText.titleNotifications),
                         subtitle: services.notifications.enabledCount == 0
                             ? 'Dhammaan way dansan yihiin (doorbid oo keliya)'
                             : '${services.notifications.enabledCount} shidan (doorbid oo keliya)',
@@ -61,28 +61,28 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   AppSpacing.gapXl,
                   SettingsSection(
-                    title: 'Macluumaad',
+                    title: context.tr(AppText.settingsInfo),
                     children: [
                       SettingsTile(
                         icon: Icons.shield_outlined,
-                        title: 'Arrimaha gaarka ah',
+                        title: context.tr(AppText.titlePrivacy),
                         onTap: () => context.push(AppRoutes.settingsPrivacy),
                       ),
                       SettingsTile(
                         icon: Icons.help_outline_rounded,
-                        title: 'Caawimaad',
+                        title: context.tr(AppText.titleHelp),
                         onTap: () => context.push(AppRoutes.help),
                       ),
                       SettingsTile(
                         icon: Icons.info_outline_rounded,
-                        title: 'Ku saabsan app-ka',
+                        title: context.tr(AppText.aboutApp),
                         onTap: () => context.push(AppRoutes.about),
                       ),
                     ],
                   ),
                   AppSpacing.gapXl,
                   SettingsSection(
-                    title: 'Dib-u-dejin',
+                    title: context.tr(AppText.settingsReset),
                     footer: 'Xogtan waxay ku kaydsan tahay qalabkan oo keliya; dib-u-dejintu lagama noqon karo.',
                     children: [
                       SettingsTile(
@@ -122,7 +122,7 @@ class SettingsScreen extends StatelessWidget {
                           title: 'Tirtir dhammaan xogta?',
                           message:
                               'Waxaa si joogto ah looga tirtirayaa qalabkan: xadiisyada la keydiyay, horumarka xifdinta, '
-                              'dib-u-eegista, taariikhda imtixaannada iyo raadinta, dejinta, iyo session-ka demo-ga. '
+                              'dib-u-eegista, taariikhda imtixaannada, raadinta iyo akhriska, dejinta, iyo session-ka demo-ga. '
                               'Waxaad dib ugu laaban doontaa bogga hordhaca. Lagama noqon karo.',
                           confirmLabel: 'Tirtir',
                           action: services.resetAllLocalData,

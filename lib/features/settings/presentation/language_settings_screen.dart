@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/app_services.dart';
-import '../../../core/l10n/app_strings.dart';
 import '../../../core/routing/route_leading.dart';
 import '../../../core/settings/app_settings_controller.dart';
 import '../../../core/theme/theme.dart';
@@ -18,7 +17,7 @@ class LanguageSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = context.services.settings;
     return Scaffold(
-      appBar: AppTopBar(title: title, leading: backOrHomeLeading(context)),
+      appBar: AppTopBar(title: context.tr(AppText.titleLanguage), leading: backOrHomeLeading(context)),
       body: ListenableBuilder(
         listenable: settings,
         builder: (context, _) => ListView(
@@ -41,10 +40,11 @@ class LanguageSettingsScreen extends StatelessWidget {
                     type: FormMessageType.info,
                     message: settings.language.isComplete
                         ? 'Af-Soomaaligu waa luqadda app-ka oo dhammaystiran.'
-                        : '${settings.language.nativeName}: qayb ahaan. Waxaa la turjumay magacyada tab-yada '
-                              '(${AppStrings.translatedCount(settings.language)}/${AppStrings.totalKeys}) iyo '
+                        : '${settings.language.nativeName}: qayb ahaan. Waxaa la turjumay qoraallada muhiimka ah '
+                              '(${AppStrings.translatedCount(settings.language)}/${AppStrings.totalKeys}): tab-yada, '
+                              'cinwaannada shaashadaha, qaybaha Guriga, badhamada akhriska iyo dejinta, iyo '
                               'qoraallada nidaamka (dialogs, waqtiga)${settings.language == AppLanguage.arabic ? ', jihaduna waa midig-ilaa-bidix' : ''}. '
-                              'Inta kale ee app-ka weli waa Af-Soomaali.',
+                              'Sharaxaadaha dhaadheer weli waa Af-Soomaali.',
                   ),
                   AppSpacing.gapSm,
                   Text(

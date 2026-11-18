@@ -33,7 +33,7 @@ class _QuizScreenState extends State<QuizScreen> {
         if (repo.hadithCountOfCategory(c.id) > 0) c,
     ];
     return Scaffold(
-      appBar: AppTopBar(title: QuizScreen.title, leading: backOrHomeLeading(context)),
+      appBar: AppTopBar(title: context.tr(AppText.titleQuiz), leading: backOrHomeLeading(context)),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [

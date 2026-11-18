@@ -85,12 +85,14 @@ class AppSettingsController extends ChangeNotifier {
   static const _languageKey = 'settings.language';
   static const _translationScaleKey = 'settings.translationScale';
   static const _lineHeightKey = 'settings.arabicLineHeight';
+  static const _showTranslationKey = 'settings.showTranslation';
 
   ThemeMode _themeMode = ThemeMode.system;
   double _arabicFontSize = ArabicFontSize.defaultSize;
   AppLanguage _language = AppLanguage.somali;
   double _translationScale = TranslationScale.defaultValue;
   double _arabicLineHeight = ArabicLineHeight.defaultValue;
+  bool _showTranslation = true;
 
   ThemeMode get themeMode => _themeMode;
   double get arabicFontSize => _arabicFontSize;
@@ -102,10 +104,14 @@ class AppSettingsController extends ChangeNotifier {
   /// Line height for Arabic hadith text.
   double get arabicLineHeight => _arabicLineHeight;
 
+  /// Whether the Somali translation is shown on the reading screen.
+  bool get showTranslation => _showTranslation;
+
   bool get readingIsDefault =>
       _arabicFontSize == ArabicFontSize.defaultSize &&
       _translationScale == TranslationScale.defaultValue &&
-      _arabicLineHeight == ArabicLineHeight.defaultValue;
+      _arabicLineHeight == ArabicLineHeight.defaultValue &&
+      _showTranslation;
 
   /// Loads saved values. Safe to call once at startup; falls back to defaults
   /// if storage is unavailable or contains unexpected / out-of-range data.
@@ -122,6 +128,7 @@ class AppSettingsController extends ChangeNotifier {
       if (scale != null) _translationScale = TranslationScale.clamp(scale);
       final line = await _store.getDouble(_lineHeightKey);
       if (line != null) _arabicLineHeight = ArabicLineHeight.clamp(line);
+      _showTranslation = await _store.getBool(_showTranslationKey) ?? true;
     } catch (_) {
       // Storage failure must never block app start — keep defaults.
     }
@@ -151,14 +158,23 @@ class AppSettingsController extends ChangeNotifier {
     await _safeWrite(() => _store.setDouble(_lineHeightKey, v));
   }
 
-  /// Restores reading preferences (Arabic size, translation size, spacing).
+  Future<void> setShowTranslation(bool value) async {
+    if (value == _showTranslation) return;
+    _showTranslation = value;
+    notifyListeners();
+    await _safeWrite(() => _store.setBool(_showTranslationKey, value));
+  }
+
+  /// Restores reading preferences (Arabic size, translation size, spacing,
+  /// translation visibility).
   Future<void> resetReading() async {
     _arabicFontSize = ArabicFontSize.defaultSize;
     _translationScale = TranslationScale.defaultValue;
     _arabicLineHeight = ArabicLineHeight.defaultValue;
+    _showTranslation = true;
     notifyListeners();
     await _safeWrite(() async {
-      for (final key in [_arabicSizeKey, _translationScaleKey, _lineHeightKey]) {
+      for (final key in [_arabicSizeKey, _translationScaleKey, _lineHeightKey, _showTranslationKey]) {
         await _store.remove(key);
       }
     });

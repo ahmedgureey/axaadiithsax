@@ -14,6 +14,7 @@ import 'widgets/arabic_font_controls.dart';
 import 'widgets/hadith_audio_player.dart';
 import 'widgets/hadith_reading_actions.dart';
 import 'widgets/hadith_reference_section.dart';
+import '../../settings/presentation/widgets/reading_preferences_card.dart';
 
 /// Focused reading screen (no bottom navigation).
 class HadithDetailScreen extends StatefulWidget {
@@ -77,10 +78,15 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
               ],
             ),
             actions: [
+              IconActionButton(
+                icon: Icons.text_fields_rounded,
+                tooltip: context.tr(AppText.readerSettings),
+                onPressed: () => showReadingSettingsSheet(context),
+              ),
               HadithBookmarkButton(hadithId: hadith.id),
               IconActionButton(
                 icon: Icons.share_rounded,
-                tooltip: 'La wadaag',
+                tooltip: context.tr(AppText.actionShare),
                 onPressed: () => shareHadith(context, hadith),
               ),
             ],
@@ -113,11 +119,12 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                       AppSpacing.gapXs,
                       // The demo text is bundled with the app, so it is readable offline.
                       const Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: AlignmentDirectional.centerStart,
                         child: OfflineStatusIndicator(status: OfflineAvailability.availableLocally),
                       ),
+                      _BookPosition(order: repo.readingOrderOf(hadith.bookId), current: hadith),
                       AppSpacing.gapLg,
-                      const _SectionLabel('Weriyaha'),
+                      _SectionLabel(context.tr(AppText.readerNarrator)),
                       if (hadith.narrator != null)
                         ArabicText(hadith.narrator!, variant: ArabicTextVariant.narrator)
                       else
@@ -125,28 +132,43 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                       AppSpacing.gapLg,
                       Row(
                         children: [
-                          const Expanded(child: _SectionLabel('Qoraalka Carabiga')),
+                          Expanded(child: _SectionLabel(context.tr(AppText.readerArabic))),
                           ArabicFontControls(settings: services.settings),
                         ],
                       ),
                       AppSpacing.gapXs,
                       ArabicText(hadith.arabicText, selectable: true),
                       Align(
-                        alignment: Alignment.centerRight,
+                        alignment: AlignmentDirectional.centerEnd,
                         child: AppTextButton(
-                          label: 'Koobiyee Carabiga',
+                          label: context.tr(AppText.actionCopyArabic),
                           icon: Icons.copy_rounded,
                           onPressed: () => copyText(context, hadith.arabicText, 'Qoraalka Carabiga waa la koobiyeeyay'),
                         ),
                       ),
                       const OrnamentDivider(verticalPadding: AppSpacing.md),
-                      const _SectionLabel('Tarjumaadda Af Soomaaliga'),
-                      if (hadith.hasTranslation) ...[
+                      Row(
+                        children: [
+                          Expanded(child: _SectionLabel(context.tr(AppText.readerTranslation))),
+                          Semantics(
+                            label: context.tr(AppText.readerShowTranslation),
+                            excludeSemantics: true,
+                            toggled: services.settings.showTranslation,
+                            child: Switch(
+                              value: services.settings.showTranslation,
+                              onChanged: services.settings.setShowTranslation,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!services.settings.showTranslation)
+                        _MissingText(context.tr(AppText.readerTranslationHidden))
+                      else if (hadith.hasTranslation) ...[
                         SelectableText(hadith.somaliText!, style: ArabicTextStyles.somaliTranslation(context)),
                         Align(
-                          alignment: Alignment.centerRight,
+                          alignment: AlignmentDirectional.centerEnd,
                           child: AppTextButton(
-                            label: 'Koobiyee tarjumaadda',
+                            label: context.tr(AppText.actionCopyTranslation),
                             icon: Icons.copy_rounded,
                             onPressed: () => copyText(context, hadith.somaliText!, 'Tarjumaadda waa la koobiyeeyay'),
                           ),
@@ -247,8 +269,77 @@ class _RelatedTile extends StatelessWidget {
   }
 }
 
+/// Position of this record in its book's reading order. It shows *where* the
+/// reader is, not how much has been read.
+class _BookPosition extends StatelessWidget {
+  const _BookPosition({required this.order, required this.current});
+
+  final List<Hadith> order;
+  final Hadith current;
+
+  @override
+  Widget build(BuildContext context) {
+    final index = order.indexWhere((h) => h.id == current.id);
+    if (index < 0 || order.length < 2) return const SizedBox.shrink();
+    final position = index + 1;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: AppRadius.pillAll,
+              child: LinearProgressIndicator(
+                value: position / order.length,
+                minHeight: 4,
+                semanticsLabel: '${context.tr(AppText.readerPosition)}: $position / ${order.length}',
+                semanticsValue: '${(position * 100 / order.length).round()}',
+              ),
+            ),
+          ),
+          AppSpacing.gapSm,
+          ExcludeSemantics(child: Text('$position / ${order.length}', style: context.textStyles.labelSmall)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Reading settings without leaving the hadith: translation visibility plus
+/// the same Arabic/translation size and spacing controls as Dejinta.
+Future<void> showReadingSettingsSheet(BuildContext context) {
+  final settings = context.services.settings;
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    useSafeArea: true,
+    builder: (sheetContext) => ListenableBuilder(
+      listenable: settings,
+      builder: (sheetContext, _) => SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(sheetContext.tr(AppText.readerSettings), style: sheetContext.textStyles.titleLarge),
+            AppSpacing.gapSm,
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(sheetContext.tr(AppText.readerShowTranslation)),
+              value: settings.showTranslation,
+              onChanged: settings.setShowTranslation,
+            ),
+            ReadingPreferencesCard(settings: settings),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 /// Previous / next record in the same book. Replaces the current page so the
-/// back stack doesn't grow while paging.
+/// back stack doesn't grow while paging. Directional icons follow the
+/// interface direction, so they point the right way in Arabic (RTL) too.
 class _PreviousNextBar extends StatelessWidget {
   const _PreviousNextBar({required this.previous, required this.next});
 
@@ -273,21 +364,18 @@ class _PreviousNextBar extends StatelessWidget {
               children: [
                 Expanded(
                   child: AppTextButton(
-                    label: 'Xadiiskii hore',
+                    label: context.tr(AppText.readerPrevious),
                     icon: Icons.chevron_left_rounded,
                     onPressed: previous == null ? null : () => open(previous!),
                   ),
                 ),
                 AppSpacing.gapXs,
                 Expanded(
-                  child: Directionality(
-                    // Icon after the label: "Xadiiska xiga ›".
-                    textDirection: TextDirection.rtl,
-                    child: AppTextButton(
-                      label: 'Xadiiska xiga',
-                      icon: Icons.chevron_left_rounded,
-                      onPressed: next == null ? null : () => open(next!),
-                    ),
+                  child: TextButton.icon(
+                    iconAlignment: IconAlignment.end,
+                    icon: const Icon(Icons.chevron_right_rounded),
+                    label: Text(context.tr(AppText.readerNext), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    onPressed: next == null ? null : () => open(next!),
                   ),
                 ),
               ],

@@ -20,7 +20,7 @@ class PrivacyScreen extends StatelessWidget {
       'Waxa qalabkan lagu kaydiyo',
       'Dejinta (theme, luqadda, cabbirrada qoraalka), doorbidyada ogeysiisyada, xadiisyada aad keydisay '
           '(lambarrada id-ga oo keliya), horumarka xifdinta iyo dib-u-eegista, natiijooyinka imtixaannada, '
-          'raadintii dhowayd, iyo session-ka demo-ga (magaca iyo email-ka aad gelisay). '
+          'raadintii dhowayd, xadiisyadii aad ugu dambeysay akhriska (id-ga oo keliya), iyo session-ka demo-ga (magaca iyo email-ka aad gelisay). '
           'Furaha sirta ah marnaba lama kaydiyo.',
     ),
     (
@@ -53,7 +53,7 @@ class PrivacyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppTopBar(title: title, leading: backOrHomeLeading(context)),
+      appBar: AppTopBar(title: context.tr(AppText.titlePrivacy), leading: backOrHomeLeading(context)),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [

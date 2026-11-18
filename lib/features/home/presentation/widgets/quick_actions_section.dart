@@ -30,7 +30,7 @@ class QuickActionsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: 'Si Degdeg ah u Gal'),
+        SectionHeader(title: context.tr(AppText.homeQuickAccess)),
         AppSpacing.gapSm,
         row(0),
         AppSpacing.gapSm,

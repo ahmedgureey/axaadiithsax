@@ -39,6 +39,8 @@ class DailyHadithSection extends StatelessWidget {
       builder: (context, _) {
         final saved = services.favorites.isFavorite(h.id);
         return DailyHadithCard(
+          title: context.tr(AppText.homeDailyHadith),
+          readLabel: context.tr(AppText.homeReadHadith),
           arabicText: h.arabicText,
           somaliText: h.somaliText ?? missingTranslationText,
           narrator: h.narrator,

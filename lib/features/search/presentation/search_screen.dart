@@ -127,7 +127,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final services = context.services;
     return Scaffold(
       appBar: AppTopBar(
-        title: SearchScreen.title,
+        title: context.tr(AppText.titleSearch),
         showOrnament: true,
         actions: [
           if (_hasCriteria)

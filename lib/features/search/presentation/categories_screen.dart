@@ -18,7 +18,7 @@ class CategoriesScreen extends StatelessWidget {
     final search = context.services.search;
     final categories = search.categories;
     return Scaffold(
-      appBar: const AppTopBar(title: title),
+      appBar: AppTopBar(title: context.tr(AppText.titleCategories)),
       body: categories.isEmpty
           ? const EmptyStateWidget(icon: Icons.label_outline_rounded, title: 'Mowduuc lama helin')
           : ListView.separated(

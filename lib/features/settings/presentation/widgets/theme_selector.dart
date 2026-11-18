@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/settings/app_settings_controller.dart';
+import '../../../../core/l10n/app_strings.dart';
 
 /// System / Light / Dark. Uses the app's single AppSettingsController, so the
 /// whole app updates immediately and the choice persists.
@@ -9,7 +10,11 @@ class ThemeSelector extends StatelessWidget {
 
   final AppSettingsController settings;
 
-  static const labels = {ThemeMode.system: 'Nidaamka', ThemeMode.light: 'Iftiin', ThemeMode.dark: 'Mugdi'};
+  static const labels = {
+    ThemeMode.system: AppText.themeSystem,
+    ThemeMode.light: AppText.themeLight,
+    ThemeMode.dark: AppText.themeDark,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +32,7 @@ class ThemeSelector extends StatelessWidget {
             ButtonSegment(
               value: mode,
               icon: Icon(icon),
-              label: Text(labels[mode]!, maxLines: 1, overflow: TextOverflow.ellipsis),
+              label: Text(context.tr(labels[mode]!), maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
         ],
         selected: {settings.themeMode},

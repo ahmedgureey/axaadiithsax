@@ -23,7 +23,7 @@ class MemorizationScreen extends StatelessWidget {
     final repo = services.repository;
 
     return Scaffold(
-      appBar: const AppTopBar(title: title, showOrnament: true),
+      appBar: AppTopBar(title: context.tr(AppText.titleMemorization), showOrnament: true),
       body: ListenableBuilder(
         listenable: m,
         builder: (context, _) {
