@@ -2,23 +2,47 @@ import 'package:flutter/foundation.dart';
 
 import '../../core/settings/app_settings_controller.dart';
 
-enum AuthStatus { signedOut, guest, signedIn }
+/// Session kinds. None of these are server-verified — see [AuthController].
+enum AuthStatus {
+  /// Not in the app yet (only onboarding / auth screens).
+  signedOut,
 
-/// DEMO-ONLY authentication state.
+  /// Uses the app without an account. Never shown as "logged in".
+  guest,
+
+  /// Simulated account session (demo login or demo registration).
+  signedIn,
+}
+
+/// DEMO-ONLY authentication state, separate from UI code.
 ///
-/// There is no backend, no password check and no security here: "signing in"
-/// only flips a local flag so the navigation flow can be exercised. Never
-/// treat this as real authentication.
+/// * No backend, no network, no real accounts.
+/// * Login only accepts the published demo credentials ([demoEmail] /
+///   [demoPassword]); any other input is rejected with a friendly error.
+/// * Passwords are compared in memory and NEVER persisted or logged.
+/// * "Verified" means the user tapped the simulated verification button.
+///
+/// Persisted locally: onboarding flag, session status (if "remember me"),
+/// display name, e-mail and the simulated verification flag.
 class AuthController extends ChangeNotifier {
   AuthController(this._store);
+
+  // Published demo account (shown on the login screen and in docs).
+  static const demoEmail = 'demo@xadiis.app';
+  static const demoPassword = 'Demo1234';
+  static const demoName = 'Isticmaale Demo';
+
+  /// Documented minimum password length for all demo forms.
+  static const minPasswordLength = 8;
+
+  /// Simulated network delay for demo actions (keeps loading states visible).
+  static const demoDelay = Duration(milliseconds: 600);
 
   static const _onboardingKey = 'auth.onboardingSeen';
   static const _statusKey = 'auth.status';
   static const _nameKey = 'auth.displayName';
   static const _emailKey = 'auth.email';
-
-  /// Simulated network delay for demo actions (keeps loading states visible).
-  static const demoDelay = Duration(milliseconds: 600);
+  static const _verifiedKey = 'auth.emailVerified';
 
   final SettingsStore _store;
 
@@ -26,18 +50,27 @@ class AuthController extends ChangeNotifier {
   AuthStatus _status = AuthStatus.signedOut;
   String? _displayName;
   String? _email;
-
-  /// Registration details waiting for the demo e-mail verification step.
-  String? _pendingName;
-  String? _pendingEmail;
+  bool _emailVerified = false;
 
   bool get onboardingSeen => _onboardingSeen;
   AuthStatus get status => _status;
+  bool get isGuest => _status == AuthStatus.guest;
   bool get isSignedIn => _status == AuthStatus.signedIn;
   bool get canUseApp => _status != AuthStatus.signedOut;
+
+  /// Simulated verification (only meaningful when [isSignedIn]).
+  bool get emailVerified => isSignedIn && _emailVerified;
   String? get displayName => _displayName;
   String? get email => _email;
-  String? get pendingEmail => _pendingEmail;
+
+  /// e.g. `d***@xadiis.app` — for display on the verification screen.
+  String? get maskedEmail {
+    final e = _email;
+    if (e == null || !e.contains('@')) return null;
+    final [local, domain] = e.split('@');
+    if (local.isEmpty) return '***@$domain';
+    return '${local[0]}${'*' * (local.length - 1).clamp(2, 6)}@$domain';
+  }
 
   Future<void> load() async {
     try {
@@ -46,8 +79,10 @@ class AuthController extends ChangeNotifier {
       _status = AuthStatus.values.firstWhere((s) => s.name == saved, orElse: () => AuthStatus.signedOut);
       _displayName = await _store.getString(_nameKey);
       _email = await _store.getString(_emailKey);
+      _emailVerified = await _store.getBool(_verifiedKey) ?? false;
     } catch (_) {
-      // Keep defaults if storage is unavailable.
+      // Storage unavailable: start signed out with onboarding.
+      _status = AuthStatus.signedOut;
     }
     notifyListeners();
   }
@@ -58,47 +93,92 @@ class AuthController extends ChangeNotifier {
     await _safe(() => _store.setBool(_onboardingKey, true));
   }
 
-  Future<void> continueAsGuest() => _setSession(AuthStatus.guest, name: null, email: null);
+  /// Guest access: the user is NOT authenticated.
+  Future<void> continueAsGuest() =>
+      _setSession(AuthStatus.guest, name: null, email: null, verified: false, persist: true);
 
-  /// Demo sign-in: accepts any form-valid input. No credential is checked
-  /// or stored (the password is never persisted).
-  Future<void> signInDemo({required String email}) =>
-      _setSession(AuthStatus.signedIn, name: _nameFromEmail(email), email: email);
+  /// Demo login. Returns `false` (and changes nothing) unless the input
+  /// matches the published demo account. The e-mail is trimmed and
+  /// case-insensitive; the password is compared exactly as typed.
+  Future<bool> signInDemo({required String email, required String password, bool rememberMe = true}) async {
+    final ok = email.trim().toLowerCase() == demoEmail && password == demoPassword;
+    if (!ok) return false;
+    await _setSession(
+      AuthStatus.signedIn,
+      name: demoName,
+      email: demoEmail,
+      verified: true, // the demo account is treated as already verified
+      persist: rememberMe,
+    );
+    return true;
+  }
 
-  /// Demo registration: remembers the details until verification completes.
-  void startRegistrationDemo({required String name, required String email}) {
-    _pendingName = name.trim();
-    _pendingEmail = email.trim();
+  /// "Tijaabi Demo-ga": signs in with the demo account in one tap.
+  Future<void> tryDemo({bool rememberMe = true}) =>
+      signInDemo(email: demoEmail, password: demoPassword, rememberMe: rememberMe);
+
+  /// Demo registration: starts a simulated, UNVERIFIED session. Only the name
+  /// and e-mail are kept; the password is discarded by the caller.
+  Future<void> registerDemo({required String name, required String email}) => _setSession(
+    AuthStatus.signedIn,
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    verified: false,
+    persist: true,
+  );
+
+  /// Simulated e-mail verification (user explicitly tapped the demo button).
+  Future<void> verifyEmailDemo() async {
+    if (!isSignedIn) return;
+    _emailVerified = true;
     notifyListeners();
+    await _safe(() => _store.setBool(_verifiedKey, true));
   }
 
-  /// Demo e-mail verification: completes the pending registration.
-  Future<void> completeVerificationDemo() {
-    final email = _pendingEmail ?? 'demo@xadiis.app';
-    final name = _pendingName ?? _nameFromEmail(email);
-    _pendingName = null;
-    _pendingEmail = null;
-    return _setSession(AuthStatus.signedIn, name: name, email: email);
-  }
+  Future<void> signOut() =>
+      _setSession(AuthStatus.signedOut, name: null, email: null, verified: false, persist: true);
 
-  Future<void> signOut() => _setSession(AuthStatus.signedOut, name: null, email: null);
-
-  Future<void> _setSession(AuthStatus status, {required String? name, required String? email}) async {
-    _status = status;
-    _displayName = name;
-    _email = email;
+  /// Clears ALL demo auth state, including onboarding (for testing).
+  Future<void> resetDemo() async {
+    _onboardingSeen = false;
+    _status = AuthStatus.signedOut;
+    _displayName = null;
+    _email = null;
+    _emailVerified = false;
     notifyListeners();
     await _safe(() async {
-      await _store.setString(_statusKey, status.name);
-      name == null ? await _store.remove(_nameKey) : await _store.setString(_nameKey, name);
-      email == null ? await _store.remove(_emailKey) : await _store.setString(_emailKey, email);
+      for (final key in [_onboardingKey, _statusKey, _nameKey, _emailKey, _verifiedKey]) {
+        await _store.remove(key);
+      }
     });
   }
 
-  static String _nameFromEmail(String email) {
-    final local = email.split('@').first.trim();
-    if (local.isEmpty) return 'Isticmaale';
-    return local[0].toUpperCase() + local.substring(1);
+  Future<void> _setSession(
+    AuthStatus status, {
+    required String? name,
+    required String? email,
+    required bool verified,
+    required bool persist,
+  }) async {
+    _status = status;
+    _displayName = name;
+    _email = email;
+    _emailVerified = verified;
+    notifyListeners();
+    await _safe(() async {
+      if (!persist) {
+        // "Remember me" off: session lives in memory only.
+        await _store.setString(_statusKey, AuthStatus.signedOut.name);
+        for (final key in [_nameKey, _emailKey, _verifiedKey]) {
+          await _store.remove(key);
+        }
+        return;
+      }
+      await _store.setString(_statusKey, status.name);
+      name == null ? await _store.remove(_nameKey) : await _store.setString(_nameKey, name);
+      email == null ? await _store.remove(_emailKey) : await _store.setString(_emailKey, email);
+      await _store.setBool(_verifiedKey, verified);
+    });
   }
 
   Future<void> _safe(Future<void> Function() write) async {

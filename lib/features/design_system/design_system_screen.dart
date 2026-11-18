@@ -47,7 +47,7 @@ class _DesignSystemScreenState extends State<DesignSystemScreen> {
     final settings = AppSettingsScope.of(context);
     return Scaffold(
       appBar: AppTopBar(
-        title: 'Xadiis App',
+        title: 'Xadiith App',
         subtitle: 'Design system',
         showOrnament: true,
         actions: [

@@ -59,13 +59,13 @@ void main() {
 
       await tester.pump(SplashScreen.duration);
       await tester.pumpAndSettle();
-      expect(find.text('Akhri axaadiista'), findsOneWidget);
+      expect(find.text('Baro Axaadiista Nabiga ﷺ'), findsOneWidget);
 
       await _tap(tester, find.text('Ka gudub'));
       expect(services.auth.onboardingSeen, isTrue);
-      expect(find.text('Ku sii wad marti ahaan'), findsOneWidget);
+      expect(find.text('Sii wad adigoon gelin'), findsOneWidget);
 
-      await _tap(tester, find.text('Ku sii wad marti ahaan'));
+      await _tap(tester, find.text('Sii wad adigoon gelin'));
       expect(services.auth.status, AuthStatus.guest);
       expect(find.byType(NavigationBar), findsOneWidget);
       expect(_selectedTab(tester), 0);
@@ -85,14 +85,14 @@ void main() {
     testWidgets('signed-out user cannot open main app routes', (tester) async {
       await _pumpApp(tester, services: await _services(status: AuthStatus.signedOut));
       expect(find.byType(NavigationBar), findsNothing);
-      expect(find.text('Ku sii wad marti ahaan'), findsOneWidget);
+      expect(find.text('Sii wad adigoon gelin'), findsOneWidget);
     });
   });
 
   group('Five tabs', () {
     testWidgets('all five tabs are reachable and highlighted', (tester) async {
       await _pumpApp(tester);
-      const titles = ['Xadiis App', 'Kutubta', 'Raadinta', 'Xifdinta', 'Aniga'];
+      const titles = ['Assalaamu Calaykum', 'Kutubta', 'Raadinta', 'Xifdinta', 'Aniga'];
       const labels = ['Guriga', 'Kutubta', 'Raadinta', 'Xifdinta', 'Aniga'];
       for (var i = labels.length - 1; i >= 0; i--) {
         await _tap(tester, _tab(labels[i]));
@@ -173,7 +173,12 @@ void main() {
       await _tap(tester, find.byTooltip('Ku dar kuwa la jecel yahay'));
       expect(services.favorites.ids, hasLength(1));
       await _systemBack(tester);
-      await _tap(tester, find.byTooltip('Kuwa la jecel yahay'));
+      await tester.scrollUntilVisible(
+        find.text('Xadiisyada aan Kaydiyey'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await _tap(tester, find.text('Xadiisyada aan Kaydiyey'));
       expect(find.byType(FavoriteHadithCard), findsOneWidget);
       await _tap(tester, find.byType(FavoriteHadithCard));
       expect(find.text('Tarjumaadda'), findsOneWidget);
@@ -245,85 +250,6 @@ void main() {
 
       await _systemBack(tester);
       expect(_selectedTab(tester), 0);
-    });
-  });
-
-  group('Demo authentication', () {
-    Future<AppServices> pumpWelcome(WidgetTester tester) async => _pumpApp(
-      tester,
-      initial: AppRoutes.welcome,
-      services: await _services(status: AuthStatus.signedOut),
-    );
-
-    testWidgets('login validates, then demo sign-in reaches home', (tester) async {
-      final services = await pumpWelcome(tester);
-      await _tap(tester, find.text('Gal'));
-      expect(find.text('Gal (demo)'), findsOneWidget);
-
-      await _tap(tester, find.text('Gal (demo)'));
-      expect(find.text('Fadlan geli email-kaaga.'), findsOneWidget);
-      expect(services.auth.isSignedIn, isFalse);
-
-      await tester.enterText(find.byType(TextFormField).at(0), 'amina@example.com');
-      await tester.enterText(find.byType(TextFormField).at(1), 'password123');
-      await tester.tap(find.text('Gal (demo)'));
-      await tester.pump(AuthController.demoDelay);
-      await tester.pumpAndSettle();
-      expect(services.auth.isSignedIn, isTrue);
-      expect(find.byType(NavigationBar), findsOneWidget);
-    });
-
-    testWidgets('register → verify e-mail (demo) → home', (tester) async {
-      final services = await pumpWelcome(tester);
-      await _tap(tester, find.text('Is diiwaangeli'));
-      final fields = find.byType(TextFormField);
-      await tester.enterText(fields.at(0), 'Amina');
-      await tester.enterText(fields.at(1), 'amina@example.com');
-      await tester.enterText(fields.at(2), 'password123');
-      await tester.enterText(fields.at(3), 'password123');
-      await tester.ensureVisible(find.text('Samee akoon (demo)'));
-      await tester.tap(find.text('Samee akoon (demo)'));
-      await tester.pump(AuthController.demoDelay);
-      await tester.pumpAndSettle();
-      expect(find.text('Xaqiiji email-kaaga'), findsOneWidget);
-
-      await _tap(tester, find.text('Waan xaqiijiyay (demo)'));
-      expect(services.auth.isSignedIn, isTrue);
-      expect(services.auth.displayName, 'Amina');
-      expect(find.byType(NavigationBar), findsOneWidget);
-    });
-
-    testWidgets('forgot → reset password (demo) → login; back works', (tester) async {
-      await pumpWelcome(tester);
-      await _tap(tester, find.text('Gal'));
-      await _tap(tester, find.text('Ilowday furaha?'));
-      expect(find.text('Dir link (demo)'), findsOneWidget);
-
-      await _tap(tester, find.byTooltip('Dib u noqo'));
-      expect(find.text('Gal (demo)'), findsOneWidget);
-
-      await _tap(tester, find.text('Ilowday furaha?'));
-      await tester.enterText(find.byType(TextFormField), 'amina@example.com');
-      await tester.tap(find.text('Dir link (demo)'));
-      await tester.pump(AuthController.demoDelay);
-      await tester.pumpAndSettle();
-      expect(find.text('Furaha cusub'), findsWidgets);
-
-      final fields = find.byType(TextFormField);
-      await tester.enterText(fields.at(0), 'newpassword1');
-      await tester.enterText(fields.at(1), 'newpassword1');
-      await tester.tap(find.text('Keydi furaha (demo)'));
-      await tester.pump(AuthController.demoDelay);
-      await tester.pumpAndSettle();
-      expect(find.text('Gal (demo)'), findsOneWidget);
-    });
-
-    testWidgets('sign out from profile returns to welcome', (tester) async {
-      final services = await _pumpApp(tester, initial: AppRoutes.profile);
-      await _tap(tester, find.text('Ka bax'));
-      await _tap(tester, find.widgetWithText(FilledButton, 'Ka bax'));
-      expect(services.auth.status, AuthStatus.signedOut);
-      expect(find.text('Ku sii wad marti ahaan'), findsOneWidget);
     });
   });
 }

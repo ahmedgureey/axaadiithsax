@@ -131,18 +131,28 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       header: true,
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 20,
-            decoration: BoxDecoration(color: context.appColors.gold, borderRadius: AppRadius.pillAll),
-          ),
-          AppSpacing.gapXs,
-          Expanded(child: Text(title, style: context.textStyles.titleLarge)),
-          if (actionLabel != null && onAction != null)
-            TextButton(onPressed: onAction, child: Text(actionLabel!)),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) => Row(
+          children: [
+            Container(
+              width: 4,
+              height: 20,
+              decoration: BoxDecoration(color: context.appColors.gold, borderRadius: AppRadius.pillAll),
+            ),
+            AppSpacing.gapXs,
+            Expanded(child: Text(title, style: context.textStyles.titleLarge)),
+            // The action keeps its natural width, capped at 45% of the row,
+            // so it only ellipsizes on very narrow screens / very large text.
+            if (actionLabel != null && onAction != null)
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.45),
+                child: TextButton(
+                  onPressed: onAction,
+                  child: Text(actionLabel!, maxLines: 1, overflow: TextOverflow.ellipsis),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

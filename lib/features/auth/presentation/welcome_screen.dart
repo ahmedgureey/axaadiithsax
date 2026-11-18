@@ -22,24 +22,32 @@ class WelcomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const AppLogo(),
-                  AppSpacing.gapLg,
-                  Text(
-                    'Ku soo dhowow! Akhri, raadi oo xifdi axaadiista Nabiga ﷺ.',
-                    style: context.textStyles.bodyLarge,
+                  AppSpacing.gapXl,
+                  Text('Ku soo dhowow', style: context.textStyles.headlineSmall, textAlign: TextAlign.center),
+                  AppSpacing.gapXs,
+                  HonorificText(
+                    'Akhri, raadi oo xifdi axaadiista Nabiga ﷺ — qoraalka Carabiga iyo '
+                    'tarjumaad Af-Soomaali ah, meel kasta oo aad joogto.',
+                    style: context.textStyles.bodyLarge?.copyWith(color: context.appColors.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   AppSpacing.gapXxl,
                   PrimaryButton(
-                    label: 'Gal',
+                    label: 'Gal Akoonka',
                     icon: Icons.login_rounded,
                     onPressed: () => context.push(AppRoutes.login),
                   ),
                   AppSpacing.gapSm,
-                  SecondaryButton(label: 'Is diiwaangeli', onPressed: () => context.push(AppRoutes.register)),
-                  AppSpacing.gapSm,
+                  SecondaryButton(
+                    label: 'Samee Akoon',
+                    icon: Icons.person_add_alt_rounded,
+                    onPressed: () => context.push(AppRoutes.register),
+                  ),
+                  AppSpacing.gapMd,
                   AppTextButton(
-                    label: 'Ku sii wad marti ahaan',
+                    label: 'Sii wad adigoon gelin',
                     onPressed: () async {
+                      // Guest mode: the user is NOT authenticated.
                       await context.services.auth.continueAsGuest();
                       if (context.mounted) context.go(AppRoutes.home);
                     },

@@ -45,9 +45,19 @@ class ProfileScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(name, style: context.textStyles.titleMedium),
-                            Text(auth.email ?? 'Akoon la\'aan (marti)', style: context.textStyles.bodySmall),
+                            Text(auth.email ?? 'Ma gelin (marti)', style: context.textStyles.bodySmall),
                             AppSpacing.gapXxs,
-                            const DemoContentBadge(label: 'Akoon tusaale ah'),
+                            // Three clearly different demo states — never "server verified".
+                            if (isGuest)
+                              const DemoContentBadge(label: 'Marti — akoon ma jiro')
+                            else if (auth.emailVerified)
+                              MetaChip(
+                                label: 'Email la xaqiijiyay (demo)',
+                                icon: Icons.verified_outlined,
+                                color: context.appColors.success,
+                              )
+                            else
+                              const DemoContentBadge(label: 'Akoon demo · email lama xaqiijin'),
                           ],
                         ),
                       ),
@@ -55,6 +65,16 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              if (auth.isSignedIn && !auth.emailVerified) ...[
+                AppSpacing.gapMd,
+                AppPageBody(
+                  child: SecondaryButton(
+                    label: 'Xaqiiji email-ka (demo)',
+                    icon: Icons.mark_email_unread_outlined,
+                    onPressed: () => context.push(AppRoutes.verifyEmail),
+                  ),
+                ),
+              ],
               if (isGuest) ...[
                 AppSpacing.gapMd,
                 AppPageBody(

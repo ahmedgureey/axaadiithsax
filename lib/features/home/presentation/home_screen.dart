@@ -1,136 +1,75 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../app/app_services.dart';
-import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/theme.dart';
-import '../../../core/utils/category_icons.dart';
 import '../../../core/widgets/widgets.dart';
-import '../../hadith/presentation/hadith_preview_card.dart';
+import '../home_feed.dart';
+import 'widgets/daily_hadith_section.dart';
+import 'widgets/featured_books_section.dart';
+import 'widgets/hadith_categories_section.dart';
+import 'widgets/home_app_bar.dart';
+import 'widgets/home_search_shortcut.dart';
+import 'widgets/quick_actions_section.dart';
+import 'widgets/recent_hadiths_section.dart';
 
-/// Tab 1 — Guriga.
-class HomeScreen extends StatelessWidget {
+/// Tab 1 — Guriga. The bottom navigation comes from the main shell.
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final services = context.services;
-    final repo = services.repository;
-    final daily = repo.dailyHadith(DateTime.now());
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  HomeFeed? _feed;
+  bool _failed = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_feed == null && !_failed) _load();
+  }
+
+  /// Local data is synchronous; a failure (e.g. a corrupt dataset) shows a
+  /// friendly error with retry instead of a raw exception.
+  void _load() {
+    try {
+      _feed = HomeFeed.build(context.services.repository, DateTime.now());
+      _failed = false;
+    } catch (error) {
+      debugPrint('Home feed failed to load: $error');
+      _feed = null;
+      _failed = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final feed = _feed;
     return Scaffold(
-      appBar: AppTopBar(
-        title: 'Xadiis App',
-        subtitle: services.auth.displayName == null
-            ? 'Assalaamu calaykum'
-            : 'Assalaamu calaykum, ${services.auth.displayName}',
-        showOrnament: true,
-        actions: [
-          IconActionButton(
-            icon: Icons.bookmarks_outlined,
-            tooltip: 'Kuwa la jecel yahay',
-            onPressed: () => context.push(AppRoutes.favorites),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        children: [
-          if (daily != null)
-            AppPageBody(
-              child: DailyHadithCard(
-                arabicText: daily.arabicText,
-                somaliText: daily.somaliText,
-                source: repo.bookById(daily.bookId)?.nameSomali ?? '',
-                isVerified: daily.isVerified,
-                onTap: () => context.push(AppRoutes.hadith(daily.id)),
-              ),
-            ),
-          AppSpacing.gapLg,
-          AppPageBody(
-            child: Row(
+      appBar: const HomeAppBar(),
+      body: feed == null
+          ? ErrorStateWidget(
+              title: 'Xogta lama soo rari karin',
+              message: 'Fadlan isku day mar kale.',
+              onRetry: () => setState(_load),
+            )
+          : ListView(
+              padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.xxl),
               children: [
-                Expanded(
-                  child: CategoryCard(
-                    title: 'Kuwa la jecel',
-                    icon: Icons.bookmark_outline_rounded,
-                    onTap: () => context.push(AppRoutes.favorites),
-                  ),
-                ),
-                AppSpacing.gapSm,
-                Expanded(
-                  child: CategoryCard(
-                    title: 'Xifdinta',
-                    icon: Icons.psychology_outlined,
-                    onTap: () => context.go(AppRoutes.memorization),
-                  ),
-                ),
+                const AppPageBody(child: HomeSearchShortcut()),
+                AppSpacing.gapLg,
+                AppPageBody(child: DailyHadithSection(hadith: feed.daily)),
+                AppSpacing.gapXl,
+                const AppPageBody(child: QuickActionsSection()),
+                AppSpacing.gapXl,
+                FeaturedBooksSection(books: feed.books),
+                AppSpacing.gapXl,
+                AppPageBody(child: HadithCategoriesSection(categories: feed.categories)),
+                AppSpacing.gapXl,
+                AppPageBody(child: RecentHadithsSection(featured: feed.featuredHadiths)),
               ],
             ),
-          ),
-          AppSpacing.gapXl,
-          AppPageBody(
-            child: SectionHeader(
-              title: 'Kutubta',
-              actionLabel: 'Dhammaan',
-              onAction: () => context.go(AppRoutes.books),
-            ),
-          ),
-          AppSpacing.gapSm,
-          for (final book in repo.books.take(2))
-            AppPageBody(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
-              child: BookCard(
-                titleSomali: book.nameSomali,
-                titleArabic: book.nameArabic,
-                author: book.author,
-                onTap: () => context.go(AppRoutes.book(book.id)),
-              ),
-            ),
-          AppSpacing.gapLg,
-          const AppPageBody(child: SectionHeader(title: 'Mawduucyada')),
-          AppSpacing.gapSm,
-          AppPageBody(
-            child: Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              children: [
-                for (final c in repo.categories)
-                  ActionChip(
-                    avatar: Icon(categoryIcon(c.iconKey), size: 18),
-                    label: Text(c.nameSomali),
-                    onPressed: () => context.go(AppRoutes.searchCategory(c.id)),
-                  ),
-              ],
-            ),
-          ),
-          AppSpacing.gapXl,
-          const AppPageBody(child: SectionHeader(title: 'Dhowaan la akhriyay')),
-          AppSpacing.gapSm,
-          ListenableBuilder(
-            listenable: services.history,
-            builder: (context, _) {
-              final recent = [for (final id in services.history.recentIds) ?repo.hadithById(id)]
-                  .take(3)
-                  .toList();
-              if (recent.isEmpty) {
-                return AppPageBody(
-                  child: Text('Weli wax xadiis ah ma aadan akhrin.', style: context.textStyles.bodySmall),
-                );
-              }
-              return Column(
-                children: [
-                  for (final h in recent)
-                    AppPageBody(
-                      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
-                      child: HadithPreviewCard(hadith: h),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
     );
   }
 }

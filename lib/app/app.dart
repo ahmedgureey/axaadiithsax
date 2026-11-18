@@ -40,7 +40,7 @@ class _XadiisAppState extends State<XadiisApp> {
         child: ListenableBuilder(
           listenable: settings,
           builder: (context, _) => MaterialApp.router(
-            title: 'Xadiis App',
+            title: 'Xadiith App',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,

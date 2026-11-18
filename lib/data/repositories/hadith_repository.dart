@@ -43,6 +43,20 @@ class HadithRepository {
   List<Hadith> hadithsOf(String chapterId) =>
       _hadiths.where((h) => h.chapterId == chapterId).toList()..sort((a, b) => a.number.compareTo(b.number));
 
+  int hadithCountOfBook(String bookId) => _hadiths.where((h) => h.bookId == bookId).length;
+
+  int hadithCountOfCategory(String categoryId) =>
+      _hadiths.where((h) => h.categoryIds.contains(categoryId)).length;
+
+  /// Reference shown to users. Verified hadith use their real reference;
+  /// demo hadith only get their position in the demo dataset, labelled as
+  /// such, so nothing looks like an official hadith number.
+  String referenceLabel(Hadith hadith) {
+    if (hadith.isVerified && hadith.reference != null) return hadith.reference!;
+    final chapter = chapterById(hadith.chapterId);
+    return "${chapter?.titleSomali ?? 'Cutub'}, #${hadith.number} (tusaale)";
+  }
+
   /// Deterministic "hadith of the day" from the local dataset.
   Hadith? dailyHadith(DateTime date) {
     if (_hadiths.isEmpty) return null;

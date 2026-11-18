@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_services.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/routing/route_leading.dart';
 import '../../../core/theme/theme.dart';
@@ -34,8 +35,8 @@ class AboutScreen extends StatelessWidget {
           ),
           AppSpacing.gapLg,
           AppPageBody(
-            child: Text(
-              'Xadiis App waxay kaa caawinaysaa inaad akhrido, raadiso oo xifdiso axaadiista Nabiga ﷺ, '
+            child: HonorificText(
+              'Xadiith App waxay kaa caawinaysaa inaad akhrido, raadiso oo xifdiso axaadiista Nabiga ﷺ, '
               'adigoo helaya tarjumaad Af-Soomaali ah.',
               style: context.textStyles.bodyLarge,
             ),
@@ -47,7 +48,7 @@ class AboutScreen extends StatelessWidget {
               icon: Icons.description_outlined,
               onPressed: () => showLicensePage(
                 context: context,
-                applicationName: 'Xadiis App',
+                applicationName: 'Xadiith App',
                 applicationVersion: version,
               ),
             ),
@@ -59,6 +60,24 @@ class AboutScreen extends StatelessWidget {
                 label: 'Design system (dev)',
                 icon: Icons.palette_outlined,
                 onPressed: () => context.push(AppRoutes.designSystem),
+              ),
+            ),
+            AppPageBody(
+              child: AppTextButton(
+                label: 'Dib u deji demo-ga (dev)',
+                icon: Icons.restart_alt_rounded,
+                onPressed: () async {
+                  final ok = await showConfirmDialog(
+                    context,
+                    title: 'Dib u deji demo-ga?',
+                    message: 'Session-ka demo-ga iyo onboarding-ka waa la tirtirayaa.',
+                    confirmLabel: 'Dib u deji',
+                    isDestructive: true,
+                  );
+                  if (!ok || !context.mounted) return;
+                  await context.services.auth.resetDemo();
+                  if (context.mounted) context.go(AppRoutes.onboarding);
+                },
               ),
             ),
           ],

@@ -22,6 +22,7 @@ abstract final class AppRoutes {
 
   // ── Full-screen feature routes (no bottom navigation) ───────────────────
   static const favorites = '/favorites';
+  static const notifications = '/notifications';
   static const quiz = '/quiz';
   static const quizResults = '/quiz/results';
   static const settings = '/settings';
@@ -53,6 +54,9 @@ abstract final class AppRoutes {
 
   /// Screens reachable while signed out.
   static const authFlow = {welcome, login, register, forgotPassword, resetPassword, verifyEmail};
+
+  /// Informational pages readable before signing in (linked from registration).
+  static const publicRoutes = {settingsPrivacy, about};
 
   /// Branch index for each main tab path (used by tests and the shell).
   static const tabs = [home, books, search, memorization, profile];

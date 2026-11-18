@@ -59,9 +59,13 @@ flows through the shared `HadithRepository`, so empty layers would add nothing.
 
 1. `/splash` is never redirected.
 2. Onboarding not completed → `/onboarding`.
-3. Signed out → only the auth flow is reachable (everything else → `/welcome`).
-4. Signed in (demo) → auth flow redirects to `/home`.
-5. Guest → may use the app **and** open login/register.
+3. `/settings/privacy` and `/about` are public (linked from registration).
+4. `/verify-email` only for a simulated, unverified session (else → home / welcome).
+5. Signed out → only the auth flow is reachable (everything else → `/welcome`).
+6. Signed in (demo) → auth flow redirects to `/home`.
+7. Guest → may use the app **and** open login/register.
+
+See [AUTH_DEMO.md](AUTH_DEMO.md) for the demo account, states and limitations.
 
 `refreshListenable: auth` re-runs the guard on sign-in/out.
 

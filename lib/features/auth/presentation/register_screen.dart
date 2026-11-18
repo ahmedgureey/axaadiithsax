@@ -20,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirm = TextEditingController();
   bool _loading = false;
 
   @override
@@ -27,24 +28,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _name.dispose();
     _email.dispose();
     _password.dispose();
+    _confirm.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _loading = true);
     await Future<void>.delayed(AuthController.demoDelay);
     if (!mounted) return;
-    context.services.auth.startRegistrationDemo(name: _name.text, email: _email.text);
-    setState(() => _loading = false);
-    context.push(AppRoutes.verifyEmail);
+    // Only name + e-mail are kept; the password is discarded here.
+    // Capture the router first: the auth change triggers a redirect that may
+    // dispose this screen before we navigate.
+    final router = GoRouter.of(context);
+    await context.services.auth.registerDemo(name: _name.text, email: _email.text);
+    router.go(AppRoutes.verifyEmail);
   }
 
   @override
   Widget build(BuildContext context) {
+    const min = AuthController.minPasswordLength;
     return AuthScaffold(
-      title: 'Is diiwaangeli',
-      subtitle: 'Samee akoon si aad u keydsato kuwa aad jeceshahay iyo xifdintaada.',
+      icon: Icons.person_add_alt_rounded,
+      title: 'Samee Akoon',
+      subtitle: 'Akoon tijaabo ah oo ku kaydsan qalabkan oo keliya — ma jiro server.',
       children: [
         Form(
           key: _formKey,
@@ -53,12 +61,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AppTextField(
-                  label: 'Magaca',
+                  label: 'Magaca oo buuxa',
                   controller: _name,
                   prefixIcon: Icons.person_outline_rounded,
+                  keyboardType: TextInputType.name,
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.name],
                   validator: (v) => AppValidators.required(v, field: 'Magacu'),
+                  enabled: !_loading,
                 ),
                 AppSpacing.gapMd,
                 AppTextField(
@@ -70,29 +80,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.email],
                   validator: AppValidators.email,
+                  enabled: !_loading,
                 ),
                 AppSpacing.gapMd,
                 PasswordTextField(
                   controller: _password,
                   isNewPassword: true,
-                  helperText: 'Ugu yaraan 8 xaraf',
+                  helperText: 'Ugu yaraan $min xaraf',
                   textInputAction: TextInputAction.next,
-                  validator: AppValidators.password,
+                  validator: (v) => AppValidators.password(v, minLength: min),
                 ),
                 AppSpacing.gapMd,
                 PasswordTextField(
-                  label: 'Ku celi furaha',
+                  label: 'Xaqiiji furaha',
+                  controller: _confirm,
                   isNewPassword: true,
                   textInputAction: TextInputAction.done,
-                  validator: (v) => v != _password.text ? 'Furayaashu isma laha.' : null,
-                  onFieldSubmitted: (_) => _submit(),
+                  validator: (v) => AppValidators.confirmPassword(v, _password.text),
                 ),
-                AppSpacing.gapXl,
-                PrimaryButton(label: 'Samee akoon (demo)', onPressed: _submit, isLoading: _loading),
+                AppSpacing.gapSm,
+                CheckboxFormField(
+                  label: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      const Text('Waan aqbalay shuruudaha iyo '),
+                      InkWell(
+                        onTap: () => context.push(AppRoutes.settingsPrivacy),
+                        child: Text(
+                          'arrimaha gaarka ah',
+                          style: TextStyle(
+                            color: context.colors.primary,
+                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  requiredMessage: 'Fadlan aqbal shuruudaha si aad u sii wadato.',
+                ),
+                AppSpacing.gapLg,
+                PrimaryButton(label: 'Samee Akoon', onPressed: _submit, isLoading: _loading),
                 AppSpacing.gapMd,
                 AppTextButton(
                   label: 'Akoon ma leedahay? Gal',
-                  onPressed: () => context.pushReplacement(AppRoutes.login),
+                  onPressed: _loading ? null : () => context.pushReplacement(AppRoutes.login),
                 ),
               ],
             ),

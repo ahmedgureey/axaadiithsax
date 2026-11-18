@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Raw brand palette for Xadiis App.
+/// Raw brand palette for Xadiith App.
 ///
 /// This is the ONLY file in the app that may contain hexadecimal colour
 /// literals. Widgets must never read these directly — use

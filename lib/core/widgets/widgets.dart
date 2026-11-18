@@ -1,4 +1,4 @@
-/// Barrel file for the Xadiis App design-system widgets.
+/// Barrel file for the Xadiith App design-system widgets.
 library;
 
 export 'app_buttons.dart';
@@ -9,3 +9,4 @@ export 'app_navigation.dart';
 export 'app_search.dart';
 export 'arabic_text.dart';
 export 'islamic_ornament.dart';
+export 'honorific_text.dart';

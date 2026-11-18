@@ -216,7 +216,7 @@ class HadithCard extends StatelessWidget {
   }
 }
 
-/// Hero card for "Xadiiska Maanta" on the home screen.
+/// Hero card for "Xadiiska Maalinta" on the home screen.
 class DailyHadithCard extends StatelessWidget {
   const DailyHadithCard({
     super.key,
@@ -224,9 +224,16 @@ class DailyHadithCard extends StatelessWidget {
     required this.somaliText,
     required this.source,
     this.isVerified = false,
-    this.title = 'Xadiiska Maanta',
+    this.title = 'Xadiiska Maalinta',
+    this.narrator,
+    this.reference,
+    this.grade,
+    this.isFavorite = false,
+    this.readLabel = 'Akhri Xadiiska',
     this.onTap,
+    this.onRead,
     this.onShare,
+    this.onBookmark,
   });
 
   final String arabicText;
@@ -234,15 +241,32 @@ class DailyHadithCard extends StatelessWidget {
   final String source;
   final bool isVerified;
   final String title;
+
+  /// Arabic narrator line, when available.
+  final String? narrator;
+
+  /// Reference label (book position or verified reference).
+  final String? reference;
+
+  /// Shown only when [isVerified] is true.
+  final String? grade;
+  final bool isFavorite;
+  final String readLabel;
   final VoidCallback? onTap;
+  final VoidCallback? onRead;
   final VoidCallback? onShare;
+  final VoidCallback? onBookmark;
 
   @override
   Widget build(BuildContext context) {
     final scheme = context.colors;
     final c = context.appColors;
-    final onHero = scheme.brightness == Brightness.dark ? scheme.onSurface : scheme.onPrimary;
-    final heroColor = scheme.brightness == Brightness.dark ? scheme.primaryContainer : scheme.tertiary;
+    final isDark = scheme.brightness == Brightness.dark;
+    final onHero = isDark ? scheme.onSurface : scheme.onPrimary;
+    final heroColor = isDark ? scheme.primaryContainer : scheme.tertiary;
+    final muted = onHero.withValues(alpha: 0.78);
+    final hasActions = onRead != null || onBookmark != null || onShare != null;
+
     return Card(
       color: heroColor,
       clipBehavior: Clip.antiAlias,
@@ -264,41 +288,97 @@ class DailyHadithCard extends StatelessWidget {
                     IslamicStar(size: 16, color: c.gold),
                     AppSpacing.gapXs,
                     Expanded(
-                      child: Text(title, style: context.textStyles.titleMedium?.copyWith(color: onHero)),
-                    ),
-                    if (onShare != null)
-                      IconButton(
-                        onPressed: onShare,
-                        tooltip: 'La wadaag',
-                        color: onHero,
-                        icon: const Icon(Icons.share_rounded),
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          title.toUpperCase(),
+                          style: context.textStyles.labelMedium?.copyWith(
+                            color: c.gold,
+                            letterSpacing: 1.2,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
+                    ),
                   ],
                 ),
-                AppSpacing.gapSm,
-                ArabicText(arabicText, color: onHero, maxLines: 4),
-                AppSpacing.gapSm,
+                if (narrator != null) ...[
+                  AppSpacing.gapSm,
+                  ArabicText(narrator!, variant: ArabicTextVariant.narrator, color: c.gold),
+                ],
+                AppSpacing.gapXs,
+                ArabicText(arabicText, color: onHero, maxLines: 5),
+                AppSpacing.gapMd,
+                Text(
+                  'Tarjumaadda Af Soomaaliga:',
+                  style: context.textStyles.labelMedium?.copyWith(color: muted),
+                ),
+                AppSpacing.gapXxs,
                 Text(
                   somaliText,
-                  maxLines: 3,
+                  maxLines: 4,
                   overflow: TextOverflow.ellipsis,
-                  style: context.textStyles.bodyMedium?.copyWith(color: onHero.withValues(alpha: 0.9)),
+                  style: context.textStyles.bodyMedium?.copyWith(color: onHero.withValues(alpha: 0.92)),
                 ),
                 AppSpacing.gapMd,
-                Wrap(
-                  spacing: AppSpacing.xs,
-                  runSpacing: AppSpacing.xs,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(source, style: context.textStyles.labelMedium?.copyWith(color: c.gold)),
-                    if (!isVerified)
-                      // High-contrast badge variant on the dark green hero.
-                      DecoratedBox(
-                        decoration: BoxDecoration(color: scheme.surface, borderRadius: AppRadius.pillAll),
-                        child: const DemoContentBadge(),
-                      ),
-                  ],
+                Text(
+                  reference == null ? 'Tixraac: $source' : 'Tixraac: $source · $reference',
+                  style: context.textStyles.labelMedium?.copyWith(color: c.gold),
                 ),
+                if (isVerified && grade != null) ...[
+                  AppSpacing.gapXs,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: MetaChip(label: grade!, icon: Icons.verified_rounded, color: onHero),
+                  ),
+                ],
+                if (!isVerified) ...[
+                  AppSpacing.gapXs,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    // High-contrast badge variant on the dark green hero.
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(color: scheme.surface, borderRadius: AppRadius.pillAll),
+                      child: const DemoContentBadge(),
+                    ),
+                  ),
+                ],
+                if (hasActions) ...[
+                  AppSpacing.gapLg,
+                  Row(
+                    children: [
+                      if (onRead != null)
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: onRead,
+                            icon: const Icon(Icons.menu_book_rounded, size: AppSizes.iconSm),
+                            label: Text(readLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: c.gold,
+                              foregroundColor: isDark ? scheme.onSecondary : scheme.tertiary,
+                            ),
+                          ),
+                        )
+                      else
+                        const Spacer(),
+                      if (onBookmark != null)
+                        IconButton(
+                          onPressed: onBookmark,
+                          tooltip: isFavorite ? 'Ka saar kuwa la jecel yahay' : 'Ku dar kuwa la jecel yahay',
+                          isSelected: isFavorite,
+                          color: isFavorite ? c.gold : onHero,
+                          icon: Icon(isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded),
+                        ),
+                      if (onShare != null)
+                        IconButton(
+                          onPressed: onShare,
+                          tooltip: 'La wadaag',
+                          color: onHero,
+                          icon: const Icon(Icons.share_rounded),
+                        ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

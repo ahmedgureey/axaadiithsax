@@ -6,24 +6,37 @@ import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
 
-class _Page {
-  const _Page(this.icon, this.title, this.body);
+class OnboardingPage {
+  const OnboardingPage({required this.icon, required this.tag, required this.title, required this.body});
   final IconData icon;
+  final String tag;
   final String title;
   final String body;
 }
 
-const _pages = [
-  _Page(
-    Icons.auto_stories_rounded,
-    'Akhri axaadiista',
-    'Ka akhri axaadiista Nabiga ﷺ qoraalka Carabiga iyo tarjumaad Af-Soomaali ah.',
+/// The three onboarding pages (texts as specified for the product).
+const onboardingPages = [
+  OnboardingPage(
+    icon: Icons.auto_stories_rounded,
+    tag: 'Baro Xadiiska',
+    title: 'Baro Axaadiista Nabiga ﷺ',
+    body:
+        'Hel axaadiis aad ku baran karto sunnada Nabiga ﷺ, adigoo akhrinaya qoraalka Carabiga '
+        'iyo tarjumaadda Af Soomaaliga.',
   ),
-  _Page(Icons.search_rounded, 'Raadi si fudud', 'Ku raadi eray Carabi ama Soomaali ah, kitaab ama mawduuc.'),
-  _Page(
-    Icons.psychology_rounded,
-    'Xifdi oo is tijaabi',
-    'Samee qorshe xifdin, la soco horumarkaaga, oo ku celceli imtixaanno.',
+  OnboardingPage(
+    icon: Icons.menu_book_rounded,
+    tag: 'Akhri oo Faham',
+    title: 'Akhri oo Faham',
+    body:
+        'Akhri axaadiista, faham macnahooda, oo eeg tixraacyada kutubta si aad aqoontaada '
+        'u kobciso.',
+  ),
+  OnboardingPage(
+    icon: Icons.psychology_rounded,
+    tag: 'Xifdi oo Dib-u-eeg',
+    title: 'Xifdi oo Dib-u-eeg',
+    body: 'Samee qorshe xifdin, la soco horumarkaaga, kuna tijaabi aqoontaada su\'aalo gaagaaban.',
   ),
 ];
 
@@ -37,10 +50,14 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _index = 0;
+  bool _finishing = false;
 
-  bool get _isLast => _index == _pages.length - 1;
+  bool get _isLast => _index == onboardingPages.length - 1;
 
+  /// Persists completion locally, then opens Welcome.
   Future<void> _finish() async {
+    if (_finishing) return;
+    _finishing = true;
     await context.services.auth.completeOnboarding();
     if (mounted) context.go(AppRoutes.welcome);
   }
@@ -67,52 +84,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             Align(
               alignment: Alignment.centerRight,
-              child: AppTextButton(label: 'Ka gudub', onPressed: _finish),
+              child: Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.xs),
+                child: AppTextButton(label: 'Ka gudub', onPressed: _finish),
+              ),
             ),
             Expanded(
               child: PageView.builder(
                 controller: _controller,
-                itemCount: _pages.length,
+                itemCount: onboardingPages.length,
                 onPageChanged: (i) => setState(() => _index = i),
-                itemBuilder: (context, i) {
-                  final page = _pages[i];
-                  return AppPageBody(
-                    child: Center(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(AppSpacing.xl),
-                              decoration: BoxDecoration(
-                                color: context.colors.primaryContainer,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(page.icon, size: 56, color: context.colors.onPrimaryContainer),
-                            ),
-                            AppSpacing.gapXl,
-                            Text(
-                              page.title,
-                              style: context.textStyles.headlineMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                            AppSpacing.gapSm,
-                            Text(page.body, style: context.textStyles.bodyLarge, textAlign: TextAlign.center),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                itemBuilder: (context, i) => _PageContent(page: onboardingPages[i]),
               ),
             ),
             Semantics(
-              label: 'Bogga ${_index + 1} ee ${_pages.length}',
+              label: 'Bogga ${_index + 1} ee ${onboardingPages.length}',
               excludeSemantics: true,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  for (var i = 0; i < _pages.length; i++)
+                  for (var i = 0; i < onboardingPages.length; i++)
                     AnimatedContainer(
                       duration: AppDurations.fast,
                       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
@@ -128,9 +119,73 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             AppPageBody(
               padding: const EdgeInsets.all(AppSpacing.md),
-              child: PrimaryButton(label: _isLast ? 'Bilow' : 'Xiga', onPressed: _next),
+              child: PrimaryButton(
+                label: _isLast ? 'Bilow' : 'Xiga',
+                icon: _isLast ? null : Icons.arrow_forward_rounded,
+                onPressed: _next,
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PageContent extends StatelessWidget {
+  const _PageContent({required this.page});
+
+  final OnboardingPage page;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = context.colors;
+    return AppPageBody(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Widget-based illustration: no image assets required.
+              Container(
+                width: 168,
+                height: 168,
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: context.appColors.gold.withValues(alpha: 0.5)),
+                ),
+                child: ClipOval(
+                  child: IslamicPatternBackground(
+                    tile: 28,
+                    child: Center(child: Icon(page.icon, size: 64, color: scheme.onPrimaryContainer)),
+                  ),
+                ),
+              ),
+              AppSpacing.gapXl,
+              Text(
+                page.tag.toUpperCase(),
+                style: context.textStyles.labelMedium?.copyWith(
+                  color: context.appColors.goldText,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              AppSpacing.gapXs,
+              Semantics(
+                header: true,
+                child: HonorificText(
+                  page.title,
+                  style: context.textStyles.headlineMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              AppSpacing.gapSm,
+              HonorificText(page.body, style: context.textStyles.bodyLarge, textAlign: TextAlign.center),
+            ],
+          ),
         ),
       ),
     );

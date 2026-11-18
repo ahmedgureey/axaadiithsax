@@ -15,6 +15,10 @@ void main() {
   test('chapters and hadith are linked and ordered', () {
     for (final book in repo.books) {
       final chapters = repo.chaptersOf(book.id);
+      if (repo.hadithCountOfBook(book.id) == 0) {
+        expect(chapters, isEmpty, reason: "${book.id} is listed without content");
+        continue;
+      }
       expect(chapters, isNotEmpty);
       expect(chapters.every((c) => c.bookId == book.id), isTrue);
       for (final c in chapters) {
@@ -57,5 +61,21 @@ void main() {
     expect(ArabicNormalizer.normalize('إِيمَان'), 'ايمان');
     // Placeholder Arabic text is searchable with tashkeel added.
     expect(repo.search('تَجْرِيبِي'), isNotEmpty);
+  });
+
+  test('books without content are clearly empty; counts match data', () {
+    for (final id in ['abudawud', 'tirmidhi', 'nasai', 'ibnmajah']) {
+      expect(repo.bookById(id), isNotNull);
+      expect(repo.hadithCountOfBook(id), 0);
+    }
+    expect(repo.hadithCountOfBook('bukhari'), repo.search('', bookId: 'bukhari').length);
+    for (final c in repo.categories) {
+      expect(repo.hadithCountOfCategory(c.id), repo.search('', categoryId: c.id).length);
+    }
+  });
+
+  test('demo reference labels never look like official numbers', () {
+    final h = repo.allHadiths.first;
+    expect(repo.referenceLabel(h), contains('(tusaale)'));
   });
 }

@@ -23,7 +23,7 @@ class HadithPreviewCard extends StatelessWidget {
         arabicText: hadith.arabicText,
         somaliText: hadith.somaliText,
         source: book?.nameSomali ?? '—',
-        reference: hadith.isVerified ? hadith.reference : null,
+        reference: services.repository.referenceLabel(hadith),
         grade: hadith.grade,
         isVerified: hadith.isVerified,
         previewLines: 3,

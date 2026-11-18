@@ -20,6 +20,20 @@ Widget _wrap(Widget child, {ThemeData? theme, double textScale = 1}) {
 }
 
 void main() {
+  group('HonorificText', () {
+    testWidgets('renders only ﷺ with Amiri, keeps the rest in the UI font', (tester) async {
+      await tester.pumpWidget(_wrap(const HonorificText('Nabiga ﷺ iyo asxaabtiisa')));
+      final rich = tester.widget<Text>(find.text('Nabiga ﷺ iyo asxaabtiisa')).textSpan! as TextSpan;
+      final spans = rich.children!.cast<TextSpan>();
+      expect(spans.map((s) => s.text), ['Nabiga ', 'ﷺ', ' iyo asxaabtiisa']);
+      expect(spans[1].style!.fontFamily, 'Amiri');
+      expect(spans[0].style, isNull);
+    });
+    testWidgets('plain text without ﷺ stays a simple Text', (tester) async {
+      await tester.pumpWidget(_wrap(const HonorificText('Xadiith App')));
+      expect(tester.widget<Text>(find.text('Xadiith App')).data, 'Xadiith App');
+    });
+  });
   group('ArabicText', () {
     testWidgets('renders in an RTL region inside an LTR screen', (tester) async {
       await tester.pumpWidget(_wrap(const ArabicText('نص تجريبي')));

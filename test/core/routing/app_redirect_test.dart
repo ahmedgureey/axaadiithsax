@@ -29,7 +29,7 @@ void main() {
     final a = await _auth(onboarded: true, status: AuthStatus.signedOut);
     expect(appRedirect(a, AppRoutes.home), AppRoutes.welcome);
     expect(appRedirect(a, AppRoutes.hadith('x')), AppRoutes.welcome);
-    for (final r in AppRoutes.authFlow) {
+    for (final r in AppRoutes.authFlow.difference({AppRoutes.verifyEmail})) {
       expect(appRedirect(a, r), isNull, reason: r);
     }
     expect(appRedirect(a, AppRoutes.onboarding), AppRoutes.welcome);
@@ -67,10 +67,35 @@ void main() {
   test('auth controller never stores a password', () async {
     final store = InMemorySettingsStore();
     final a = AuthController(store);
-    await a.signInDemo(email: 'amina@example.com');
-    expect(a.displayName, 'Amina');
+    expect(await a.signInDemo(email: 'amina@example.com', password: 'whatever1'), isFalse);
+    await a.signInDemo(email: AuthController.demoEmail, password: AuthController.demoPassword);
+    expect(a.displayName, AuthController.demoName);
     for (final key in ['auth.status', 'auth.displayName', 'auth.email']) {
       expect(await store.getString(key), isNot(contains('password')));
     }
+  });
+
+  test('verify-email only for a simulated, unverified session', () async {
+    final store = InMemorySettingsStore({'auth.onboardingSeen': true});
+    final a = AuthController(store);
+    await a.load();
+    expect(appRedirect(a, AppRoutes.verifyEmail), AppRoutes.welcome);
+
+    await a.continueAsGuest();
+    expect(appRedirect(a, AppRoutes.verifyEmail), AppRoutes.home);
+
+    await a.registerDemo(name: 'Amina', email: 'amina@example.com');
+    expect(appRedirect(a, AppRoutes.verifyEmail), isNull);
+    expect(appRedirect(a, AppRoutes.login), AppRoutes.home);
+
+    await a.verifyEmailDemo();
+    expect(appRedirect(a, AppRoutes.verifyEmail), AppRoutes.home);
+  });
+
+  test('privacy and about are readable while signed out', () async {
+    final a = await _auth(onboarded: true, status: AuthStatus.signedOut);
+    expect(appRedirect(a, AppRoutes.settingsPrivacy), isNull);
+    expect(appRedirect(a, AppRoutes.about), isNull);
+    expect(appRedirect(a, AppRoutes.settings), AppRoutes.welcome);
   });
 }

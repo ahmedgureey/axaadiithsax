@@ -29,7 +29,9 @@ class BooksScreen extends StatelessWidget {
                     titleSomali: book.nameSomali,
                     titleArabic: book.nameArabic,
                     author: book.author,
-                    countLabel: '${repo.chaptersOf(book.id).length} cutub (tusaale)',
+                    countLabel: repo.chaptersOf(book.id).isEmpty
+                        ? 'Weli lama darin'
+                        : '${repo.chaptersOf(book.id).length} cutub (tusaale)',
                     onTap: () => context.go(AppRoutes.book(book.id)),
                   ),
                 );

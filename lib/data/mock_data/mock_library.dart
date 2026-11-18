@@ -30,6 +30,36 @@ abstract final class MockLibrary {
           'Mid ka mid ah kutubta xadiiska ee ugu caansan. '
           'Xogta halkan ku jirta waa tusaale.',
     ),
+    // The four Sunan collections are listed so users can browse them, but no
+    // content has been added yet — the UI shows "weli lama darin".
+    HadithBook(
+      id: 'abudawud',
+      nameSomali: 'Sunan Abi Daawuud',
+      nameArabic: 'سنن أبي داود',
+      author: 'Imaam Abu Daawuud',
+      description: 'Mid ka mid ah kutubta Sunanka. Noocan tijaabada ah weli xadiis lagu ma darin.',
+    ),
+    HadithBook(
+      id: 'tirmidhi',
+      nameSomali: 'Jaamic at-Tirmidhi',
+      nameArabic: 'جامع الترمذي',
+      author: 'Imaam at-Tirmidhi',
+      description: 'Mid ka mid ah kutubta Sunanka. Noocan tijaabada ah weli xadiis lagu ma darin.',
+    ),
+    HadithBook(
+      id: 'nasai',
+      nameSomali: 'Sunan an-Nasaa\'i',
+      nameArabic: 'سنن النسائي',
+      author: 'Imaam an-Nasaa\'i',
+      description: 'Mid ka mid ah kutubta Sunanka. Noocan tijaabada ah weli xadiis lagu ma darin.',
+    ),
+    HadithBook(
+      id: 'ibnmajah',
+      nameSomali: 'Sunan Ibn Maajah',
+      nameArabic: 'سنن ابن ماجه',
+      author: 'Imaam Ibn Maajah',
+      description: 'Mid ka mid ah kutubta Sunanka. Noocan tijaabada ah weli xadiis lagu ma darin.',
+    ),
     HadithBook(
       id: 'nawawi40',
       nameSomali: 'Al-Arbaciin an-Nawawiyya',
@@ -41,12 +71,66 @@ abstract final class MockLibrary {
     ),
   ];
 
+  /// Books that have (demo) chapters and hadith in this dataset.
+  static const _booksWithContent = {'bukhari', 'muslim', 'nawawi40'};
+
   static const List<HadithCategory> categories = [
-    HadithCategory(id: 'salah', nameSomali: 'Salaadda', nameArabic: 'الصلاة', iconKey: 'mosque'),
-    HadithCategory(id: 'akhlaq', nameSomali: 'Akhlaaqda', nameArabic: 'الأخلاق', iconKey: 'heart'),
-    HadithCategory(id: 'ilm', nameSomali: 'Cilmiga', nameArabic: 'العلم', iconKey: 'school'),
-    HadithCategory(id: 'niyyah', nameSomali: 'Niyadda', nameArabic: 'النية', iconKey: 'spark'),
-    HadithCategory(id: 'family', nameSomali: 'Qoyska', nameArabic: 'الأسرة', iconKey: 'family'),
+    HadithCategory(
+      id: 'iman',
+      nameSomali: 'Iimaanka',
+      nameArabic: 'الإيمان',
+      iconKey: 'spark',
+      description: 'Rukummada iimaanka',
+    ),
+    HadithCategory(
+      id: 'salah',
+      nameSomali: 'Salaadda',
+      nameArabic: 'الصلاة',
+      iconKey: 'mosque',
+      description: 'Tukashada iyo waqtiyadeeda',
+    ),
+    HadithCategory(
+      id: 'akhlaq',
+      nameSomali: 'Akhlaaqda',
+      nameArabic: 'الأخلاق',
+      iconKey: 'heart',
+      description: 'Dabeecadda wanaagsan',
+    ),
+    HadithCategory(
+      id: 'sabr',
+      nameSomali: 'Dulqaadka',
+      nameArabic: 'الصبر',
+      iconKey: 'hourglass',
+      description: 'Samirka iyo adkaysiga',
+    ),
+    HadithCategory(
+      id: 'parents',
+      nameSomali: 'Waalidka',
+      nameArabic: 'بر الوالدين',
+      iconKey: 'family',
+      description: 'U wanaagsanaanta waalidka',
+    ),
+    HadithCategory(
+      id: 'sadaqah',
+      nameSomali: 'Sadaqada',
+      nameArabic: 'الصدقة',
+      iconKey: 'giving',
+      description: 'Bixinta iyo deeqda',
+    ),
+    HadithCategory(
+      id: 'ilm',
+      nameSomali: 'Cilmiga',
+      nameArabic: 'العلم',
+      iconKey: 'school',
+      description: 'Barashada iyo aqoonta',
+    ),
+    HadithCategory(
+      id: 'dua',
+      nameSomali: 'Ducada',
+      nameArabic: 'الدعاء',
+      iconKey: 'night',
+      description: 'Baryada Alle',
+    ),
   ];
 
   static const _arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -54,14 +138,15 @@ abstract final class MockLibrary {
 
   static final List<Chapter> chapters = [
     for (final book in books)
-      for (var c = 1; c <= 3; c++)
-        Chapter(
-          id: '${book.id}-c$c',
-          bookId: book.id,
-          number: c,
-          titleSomali: 'Cutub tusaale $c',
-          titleArabic: 'باب تجريبي ${_ar(c)}',
-        ),
+      if (_booksWithContent.contains(book.id))
+        for (var c = 1; c <= 3; c++)
+          Chapter(
+            id: '${book.id}-c$c',
+            bookId: book.id,
+            number: c,
+            titleSomali: 'Cutub tusaale $c',
+            titleArabic: 'باب تجريبي ${_ar(c)}',
+          ),
   ];
 
   static final List<Hadith> hadiths = () {

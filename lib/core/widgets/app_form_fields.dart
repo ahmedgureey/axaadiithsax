@@ -204,4 +204,11 @@ abstract final class AppValidators {
     if (value.length < minLength) return 'Furuhu waa inuu ahaadaa ugu yaraan $minLength xaraf.';
     return null;
   }
+
+  /// Confirmation must be present and identical (compared exactly — never trimmed).
+  static String? confirmPassword(String? value, String original) {
+    if (value == null || value.isEmpty) return 'Fadlan ku celi furaha sirta ah.';
+    if (value != original) return 'Furayaashu isma laha.';
+    return null;
+  }
 }

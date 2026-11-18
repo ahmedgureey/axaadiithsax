@@ -19,6 +19,7 @@ import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/hadith/presentation/hadith_detail_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/memorization/presentation/memorization_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/quiz/presentation/quiz_results_screen.dart';
@@ -38,6 +39,8 @@ import 'not_found_screen.dart';
 ///
 /// * `/splash` decides where to go itself.
 /// * Onboarding is shown until completed.
+/// * Privacy / About are readable by everyone (linked from registration).
+/// * `/verify-email` only exists for a simulated, not-yet-verified session.
 /// * Signed-out users may only see the auth flow.
 /// * Signed-in users skip the auth flow. Guests may still open it (to log in).
 String? appRedirect(AuthController auth, String location) {
@@ -47,6 +50,12 @@ String? appRedirect(AuthController auth, String location) {
     return location == AppRoutes.onboarding ? null : AppRoutes.onboarding;
   }
   if (location == AppRoutes.onboarding) {
+    return auth.canUseApp ? AppRoutes.home : AppRoutes.welcome;
+  }
+  if (AppRoutes.publicRoutes.contains(location)) return null;
+
+  if (location == AppRoutes.verifyEmail) {
+    if (auth.isSignedIn && !auth.emailVerified) return null;
     return auth.canUseApp ? AppRoutes.home : AppRoutes.welcome;
   }
 
@@ -136,6 +145,7 @@ GoRouter buildAppRouter(AppServices services, {String initialLocation = AppRoute
             HadithDetailScreen(hadithId: state.pathParameters[AppRoutes.hadithIdParam] ?? ''),
       ),
       simple(AppRoutes.favorites, (_) => const FavoritesScreen()),
+      simple(AppRoutes.notifications, (_) => const NotificationsScreen()),
       GoRoute(
         path: AppRoutes.quiz,
         builder: (_, _) => const QuizScreen(),

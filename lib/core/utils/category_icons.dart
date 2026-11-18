@@ -7,5 +7,8 @@ IconData categoryIcon(String iconKey) => switch (iconKey) {
   'school' => Icons.school_outlined,
   'spark' => Icons.auto_awesome_outlined,
   'family' => Icons.family_restroom_rounded,
+  'hourglass' => Icons.hourglass_bottom_rounded,
+  'giving' => Icons.volunteer_activism_outlined,
+  'night' => Icons.nights_stay_outlined,
   _ => Icons.label_outline_rounded,
 };
