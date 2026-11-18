@@ -80,11 +80,7 @@ class _AppSearchFieldState extends State<AppSearchField> {
         child: SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2)),
       );
     } else if (_controller.text.isNotEmpty) {
-      suffix = IconButton(
-        tooltip: 'Tirtir raadinta',
-        icon: const Icon(Icons.close_rounded),
-        onPressed: _clear,
-      );
+      suffix = IconButton(tooltip: 'Tirtir raadinta', icon: const Icon(Icons.close_rounded), onPressed: _clear);
     }
 
     return TextField(

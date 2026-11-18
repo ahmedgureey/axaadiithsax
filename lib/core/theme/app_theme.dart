@@ -157,10 +157,7 @@ abstract final class AppTheme {
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          minimumSize: const Size.square(AppSizes.minTouchTarget),
-          iconSize: AppSizes.icon,
-        ),
+        style: IconButton.styleFrom(minimumSize: const Size.square(AppSizes.minTouchTarget), iconSize: AppSizes.icon),
       ),
 
       inputDecorationTheme: InputDecorationTheme(
@@ -205,10 +202,7 @@ abstract final class AppTheme {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return IconThemeData(
-            size: AppSizes.icon,
-            color: selected ? scheme.onPrimaryContainer : c.textSecondary,
-          );
+          return IconThemeData(size: AppSizes.icon, color: selected ? scheme.onPrimaryContainer : c.textSecondary);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
@@ -231,9 +225,7 @@ abstract final class AppTheme {
         backgroundColor: isDark ? scheme.surfaceContainerHigh : scheme.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.large))),
       ),
 
       snackBarTheme: SnackBarThemeData(

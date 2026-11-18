@@ -45,8 +45,7 @@ class HadithRepository {
 
   int hadithCountOfBook(String bookId) => _hadiths.where((h) => h.bookId == bookId).length;
 
-  int hadithCountOfCategory(String categoryId) =>
-      _hadiths.where((h) => h.categoryIds.contains(categoryId)).length;
+  int hadithCountOfCategory(String categoryId) => _hadiths.where((h) => h.categoryIds.contains(categoryId)).length;
 
   /// Reference shown to users. Verified hadith use their real reference;
   /// demo hadith only get their position in the demo dataset, labelled as
@@ -73,10 +72,8 @@ class HadithRepository {
   }
 
   /// Other records sharing a topic with [hadith] (deterministic order).
-  List<Hadith> relatedTo(Hadith hadith, {int limit = 3}) => _hadiths
-      .where((h) => h.id != hadith.id && h.categoryIds.any(hadith.categoryIds.contains))
-      .take(limit)
-      .toList();
+  List<Hadith> relatedTo(Hadith hadith, {int limit = 3}) =>
+      _hadiths.where((h) => h.id != hadith.id && h.categoryIds.any(hadith.categoryIds.contains)).take(limit).toList();
 
   /// Deterministic "hadith of the day" from the local dataset.
   Hadith? dailyHadith(DateTime date) {

@@ -5,9 +5,7 @@ import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/features/auth/auth_controller.dart';
 
 Future<AuthController> _auth({required bool onboarded, required AuthStatus status}) async {
-  final c = AuthController(
-    InMemorySettingsStore({'auth.onboardingSeen': onboarded, 'auth.status': status.name}),
-  );
+  final c = AuthController(InMemorySettingsStore({'auth.onboardingSeen': onboarded, 'auth.status': status.name}));
   await c.load();
   return c;
 }
@@ -49,10 +47,7 @@ void main() {
   });
 
   test('splash destination', () async {
-    expect(
-      splashDestination(await _auth(onboarded: false, status: AuthStatus.signedOut)),
-      AppRoutes.onboarding,
-    );
+    expect(splashDestination(await _auth(onboarded: false, status: AuthStatus.signedOut)), AppRoutes.onboarding);
     expect(splashDestination(await _auth(onboarded: true, status: AuthStatus.signedOut)), AppRoutes.welcome);
     expect(splashDestination(await _auth(onboarded: true, status: AuthStatus.guest)), AppRoutes.home);
   });

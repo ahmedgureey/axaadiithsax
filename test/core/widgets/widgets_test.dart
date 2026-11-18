@@ -221,9 +221,7 @@ void main() {
 
     testWidgets('error state retry fires', (tester) async {
       var retried = false;
-      await tester.pumpWidget(
-        _wrap(SizedBox(height: 500, child: ErrorStateWidget(onRetry: () => retried = true))),
-      );
+      await tester.pumpWidget(_wrap(SizedBox(height: 500, child: ErrorStateWidget(onRetry: () => retried = true))));
       await tester.tap(find.text('Isku day mar kale'));
       expect(retried, isTrue);
     });

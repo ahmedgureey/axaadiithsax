@@ -9,7 +9,10 @@ import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/hadith.dart';
 import '../hadith_actions.dart';
+import '../../favorites/presentation/widgets/hadith_bookmark_button.dart';
 import 'widgets/arabic_font_controls.dart';
+import 'widgets/hadith_audio_player.dart';
+import 'widgets/hadith_reading_actions.dart';
 import 'widgets/hadith_reference_section.dart';
 
 /// Focused reading screen (no bottom navigation).
@@ -53,10 +56,9 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
     final related = repo.relatedTo(hadith);
 
     return ListenableBuilder(
-      listenable: Listenable.merge([services.favorites, services.memorization, services.settings]),
+      // Favourites are handled by HadithBookmarkButton / HadithReadingActions.
+      listenable: Listenable.merge([services.memorization, services.settings]),
       builder: (context, _) {
-        final isFavorite = services.favorites.isFavorite(hadith.id);
-        final inPlan = services.memorization.planHadithIds.contains(hadith.id);
         final memorized = services.memorization.isMemorized(hadith.id);
         return Scaffold(
           appBar: AppBar(
@@ -75,13 +77,7 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
               ],
             ),
             actions: [
-              IconActionButton(
-                icon: Icons.bookmark_border_rounded,
-                selectedIcon: Icons.bookmark_rounded,
-                isSelected: isFavorite,
-                tooltip: isFavorite ? 'Ka saar kuwa la jecel yahay' : 'Ku dar kuwa la jecel yahay',
-                onPressed: () => services.favorites.toggle(hadith.id),
-              ),
+              HadithBookmarkButton(hadithId: hadith.id),
               IconActionButton(
                 icon: Icons.share_rounded,
                 tooltip: 'La wadaag',
@@ -104,8 +100,7 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                         runSpacing: AppSpacing.xs,
                         children: [
                           MetaChip(label: book?.nameSomali ?? '—', icon: Icons.menu_book_rounded),
-                          if (chapter != null)
-                            MetaChip(label: chapter.titleSomali, color: context.appColors.goldText),
+                          if (chapter != null) MetaChip(label: chapter.titleSomali, color: context.appColors.goldText),
                           if (hadith.isVerified && hadith.grade != null)
                             MetaChip(
                               label: hadith.grade!,
@@ -114,6 +109,12 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                             ),
                           if (!hadith.isVerified) const DemoContentBadge(),
                         ],
+                      ),
+                      AppSpacing.gapXs,
+                      // The demo text is bundled with the app, so it is readable offline.
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: OfflineStatusIndicator(status: OfflineAvailability.availableLocally),
                       ),
                       AppSpacing.gapLg,
                       const _SectionLabel('Weriyaha'),
@@ -135,36 +136,36 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                         child: AppTextButton(
                           label: 'Koobiyee Carabiga',
                           icon: Icons.copy_rounded,
-                          onPressed: () =>
-                              copyText(context, hadith.arabicText, 'Qoraalka Carabiga waa la koobiyeeyay'),
+                          onPressed: () => copyText(context, hadith.arabicText, 'Qoraalka Carabiga waa la koobiyeeyay'),
                         ),
                       ),
                       const OrnamentDivider(verticalPadding: AppSpacing.md),
                       const _SectionLabel('Tarjumaadda Af Soomaaliga'),
                       if (hadith.hasTranslation) ...[
-                        SelectableText(
-                          hadith.somaliText!,
-                          style: ArabicTextStyles.somaliTranslation(context),
-                        ),
+                        SelectableText(hadith.somaliText!, style: ArabicTextStyles.somaliTranslation(context)),
                         Align(
                           alignment: Alignment.centerRight,
                           child: AppTextButton(
                             label: 'Koobiyee tarjumaadda',
                             icon: Icons.copy_rounded,
-                            onPressed: () =>
-                                copyText(context, hadith.somaliText!, 'Tarjumaadda waa la koobiyeeyay'),
+                            onPressed: () => copyText(context, hadith.somaliText!, 'Tarjumaadda waa la koobiyeeyay'),
                           ),
                         ),
                       ] else
                         const _MissingText(missingTranslationText),
-                      if (inPlan) ...[
-                        AppSpacing.gapLg,
-                        SecondaryButton(
-                          label: memorized ? 'Waan xifdiyay ✓' : 'Calaamadee: waan xifdiyay',
-                          icon: memorized ? Icons.check_circle_rounded : Icons.psychology_outlined,
-                          onPressed: () => services.memorization.toggleMemorized(hadith.id),
-                        ),
-                      ],
+                      AppSpacing.gapMd,
+                      HadithReadingActions(hadith: hadith),
+                      AppSpacing.gapLg,
+                      HadithAudioPlayer(hadith: hadith),
+                      AppSpacing.gapLg,
+                      // Same progress record as the Xifdinta tab.
+                      SecondaryButton(
+                        label: memorized ? 'Waan xifdiyey ✓ (ka noqo)' : 'Calaamadee: Waan Xifdiyey',
+                        icon: memorized ? Icons.check_circle_rounded : Icons.psychology_outlined,
+                        onPressed: () => memorized
+                            ? services.memorization.undoMemorized(hadith.id)
+                            : services.memorization.markMemorized(hadith.id),
+                      ),
                       AppSpacing.gapXl,
                       const SectionHeader(title: 'Tixraaca'),
                       AppSpacing.gapSm,
@@ -208,10 +209,7 @@ class _MissingText extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     text,
-    style: context.textStyles.bodyMedium?.copyWith(
-      color: context.appColors.textSecondary,
-      fontStyle: FontStyle.italic,
-    ),
+    style: context.textStyles.bodyMedium?.copyWith(color: context.appColors.textSecondary, fontStyle: FontStyle.italic),
   );
 }
 

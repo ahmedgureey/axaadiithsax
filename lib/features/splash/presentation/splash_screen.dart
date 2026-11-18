@@ -68,8 +68,9 @@ class AppLogo extends StatelessWidget {
     final titleColor = onDark
         ? (scheme.brightness == Brightness.dark ? scheme.onPrimaryContainer : scheme.onTertiary)
         : scheme.onSurface;
-    final titleStyle = (large ? context.textStyles.displaySmall : context.textStyles.headlineMedium)
-        ?.copyWith(color: titleColor);
+    final titleStyle = (large ? context.textStyles.displaySmall : context.textStyles.headlineMedium)?.copyWith(
+      color: titleColor,
+    );
     return Semantics(
       label: 'Xadiith App, Axaadiista Nabiga',
       excludeSemantics: true,

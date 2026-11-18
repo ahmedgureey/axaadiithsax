@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme/app_typography.dart';
+import 'app_language.dart';
+
+export 'app_language.dart';
 
 /// Key-value storage used by [AppSettingsController].
 /// Abstracted so tests can use [InMemorySettingsStore].
@@ -79,14 +82,33 @@ class AppSettingsController extends ChangeNotifier {
 
   final SettingsStore _store;
 
+  static const _languageKey = 'settings.language';
+  static const _translationScaleKey = 'settings.translationScale';
+  static const _lineHeightKey = 'settings.arabicLineHeight';
+
   ThemeMode _themeMode = ThemeMode.system;
   double _arabicFontSize = ArabicFontSize.defaultSize;
+  AppLanguage _language = AppLanguage.somali;
+  double _translationScale = TranslationScale.defaultValue;
+  double _arabicLineHeight = ArabicLineHeight.defaultValue;
 
   ThemeMode get themeMode => _themeMode;
   double get arabicFontSize => _arabicFontSize;
+  AppLanguage get language => _language;
+
+  /// Multiplier for Somali translation text (reading screens only).
+  double get translationScale => _translationScale;
+
+  /// Line height for Arabic hadith text.
+  double get arabicLineHeight => _arabicLineHeight;
+
+  bool get readingIsDefault =>
+      _arabicFontSize == ArabicFontSize.defaultSize &&
+      _translationScale == TranslationScale.defaultValue &&
+      _arabicLineHeight == ArabicLineHeight.defaultValue;
 
   /// Loads saved values. Safe to call once at startup; falls back to defaults
-  /// if storage is unavailable or contains unexpected data.
+  /// if storage is unavailable or contains unexpected / out-of-range data.
   Future<void> load() async {
     try {
       final savedTheme = await _store.getString(_themeKey);
@@ -95,10 +117,62 @@ class AppSettingsController extends ChangeNotifier {
       if (savedSize != null) {
         _arabicFontSize = savedSize.clamp(ArabicFontSize.min, ArabicFontSize.max).toDouble();
       }
+      _language = AppLanguage.fromCode(await _store.getString(_languageKey));
+      final scale = await _store.getDouble(_translationScaleKey);
+      if (scale != null) _translationScale = TranslationScale.clamp(scale);
+      final line = await _store.getDouble(_lineHeightKey);
+      if (line != null) _arabicLineHeight = ArabicLineHeight.clamp(line);
     } catch (_) {
       // Storage failure must never block app start — keep defaults.
     }
     notifyListeners();
+  }
+
+  Future<void> setLanguage(AppLanguage language) async {
+    if (language == _language) return;
+    _language = language;
+    notifyListeners();
+    await _safeWrite(() => _store.setString(_languageKey, language.code));
+  }
+
+  Future<void> setTranslationScale(double scale) async {
+    final v = TranslationScale.clamp(scale);
+    if (v == _translationScale) return;
+    _translationScale = v;
+    notifyListeners();
+    await _safeWrite(() => _store.setDouble(_translationScaleKey, v));
+  }
+
+  Future<void> setArabicLineHeight(double height) async {
+    final v = ArabicLineHeight.clamp(height);
+    if (v == _arabicLineHeight) return;
+    _arabicLineHeight = v;
+    notifyListeners();
+    await _safeWrite(() => _store.setDouble(_lineHeightKey, v));
+  }
+
+  /// Restores reading preferences (Arabic size, translation size, spacing).
+  Future<void> resetReading() async {
+    _arabicFontSize = ArabicFontSize.defaultSize;
+    _translationScale = TranslationScale.defaultValue;
+    _arabicLineHeight = ArabicLineHeight.defaultValue;
+    notifyListeners();
+    await _safeWrite(() async {
+      for (final key in [_arabicSizeKey, _translationScaleKey, _lineHeightKey]) {
+        await _store.remove(key);
+      }
+    });
+  }
+
+  /// Restores theme, language and reading preferences.
+  Future<void> resetAppearanceAndReading() async {
+    _themeMode = ThemeMode.system;
+    _language = AppLanguage.somali;
+    await resetReading();
+    await _safeWrite(() async {
+      await _store.remove(_themeKey);
+      await _store.remove(_languageKey);
+    });
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

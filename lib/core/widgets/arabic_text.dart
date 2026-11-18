@@ -39,6 +39,7 @@ class ArabicText extends StatelessWidget {
       ArabicTextVariant.hadith => ArabicTextStyles.hadith(
         context,
         fontSize: fontSize ?? AppSettingsScope.maybeOf(context)?.arabicFontSize ?? ArabicFontSize.defaultSize,
+        lineHeight: AppSettingsScope.maybeOf(context)?.arabicLineHeight ?? ArabicLineHeight.defaultValue,
       ),
       ArabicTextVariant.chapterHeading => ArabicTextStyles.chapterHeading(context),
       ArabicTextVariant.narrator => ArabicTextStyles.narrator(context),

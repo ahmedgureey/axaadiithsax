@@ -176,11 +176,7 @@ class _PageContent extends StatelessWidget {
               AppSpacing.gapXs,
               Semantics(
                 header: true,
-                child: HonorificText(
-                  page.title,
-                  style: context.textStyles.headlineMedium,
-                  textAlign: TextAlign.center,
-                ),
+                child: HonorificText(page.title, style: context.textStyles.headlineMedium, textAlign: TextAlign.center),
               ),
               AppSpacing.gapSm,
               HonorificText(page.body, style: context.textStyles.bodyLarge, textAlign: TextAlign.center),

@@ -14,9 +14,7 @@ class HomeSearchShortcut extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = context.colors;
-    final fill = scheme.brightness == Brightness.dark
-        ? scheme.surfaceContainerHigh
-        : scheme.surfaceContainerLowest;
+    final fill = scheme.brightness == Brightness.dark ? scheme.surfaceContainerHigh : scheme.surfaceContainerLowest;
     return Semantics(
       button: true,
       label: 'Raadinta: $hint',

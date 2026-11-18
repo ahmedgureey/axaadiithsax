@@ -58,10 +58,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       subtitle: 'Dooro furaha sirta ah ee cusub (tijaabo).',
       children: [
         if (_done) ...[
-          const FormValidationMessage(
-            type: FormMessageType.success,
-            message: ResetPasswordScreen.doneMessage,
-          ),
+          const FormValidationMessage(type: FormMessageType.success, message: ResetPasswordScreen.doneMessage),
           AppSpacing.gapLg,
         ] else ...[
           Form(

@@ -186,11 +186,7 @@ class _DemoCredentialsCard extends StatelessWidget {
           AppSpacing.gapXxs,
           Align(
             alignment: Alignment.centerLeft,
-            child: AppTextButton(
-              label: 'Buuxi xogta demo-ga',
-              icon: Icons.edit_note_rounded,
-              onPressed: onFill,
-            ),
+            child: AppTextButton(label: 'Buuxi xogta demo-ga', icon: Icons.edit_note_rounded, onPressed: onFill),
           ),
         ],
       ),

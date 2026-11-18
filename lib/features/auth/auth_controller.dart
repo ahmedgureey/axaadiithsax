@@ -135,8 +135,20 @@ class AuthController extends ChangeNotifier {
     await _safe(() => _store.setBool(_verifiedKey, true));
   }
 
-  Future<void> signOut() =>
-      _setSession(AuthStatus.signedOut, name: null, email: null, verified: false, persist: true);
+  /// Edits the locally stored display name of a demo account (no server).
+  /// Returns false for guests or blank names.
+  Future<bool> updateDisplayName(String name) async {
+    final clean = name.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (!isSignedIn || clean.isEmpty || clean.length > maxNameLength) return false;
+    _displayName = clean;
+    notifyListeners();
+    await _safe(() => _store.setString(_nameKey, clean));
+    return true;
+  }
+
+  static const maxNameLength = 40;
+
+  Future<void> signOut() => _setSession(AuthStatus.signedOut, name: null, email: null, verified: false, persist: true);
 
   /// Clears ALL demo auth state, including onboarding (for testing).
   Future<void> resetDemo() async {

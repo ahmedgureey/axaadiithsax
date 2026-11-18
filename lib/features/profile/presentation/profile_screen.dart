@@ -7,64 +7,27 @@ import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../auth/auth_controller.dart';
 
-/// Tab 5 — Aniga.
+/// Tab 5 — Aniga. Demo profile from the local demo session; statistics come
+/// from the existing favourites and memorisation controllers.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  static const title = 'Aniga';
+
   @override
   Widget build(BuildContext context) {
-    final auth = context.services.auth;
+    final services = context.services;
+    final auth = services.auth;
     return Scaffold(
-      appBar: const AppTopBar(title: 'Aniga', showOrnament: true),
+      appBar: const AppTopBar(title: title, showOrnament: true),
       body: ListenableBuilder(
         listenable: auth,
         builder: (context, _) {
-          final isGuest = auth.status == AuthStatus.guest;
-          final name = auth.displayName ?? 'Marti';
+          final isGuest = auth.isGuest;
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
             children: [
-              AppPageBody(
-                child: AppCard(
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: context.colors.primaryContainer,
-                        foregroundColor: context.colors.onPrimaryContainer,
-                        child: Text(
-                          name.characters.first.toUpperCase(),
-                          style: context.textStyles.titleLarge?.copyWith(
-                            color: context.colors.onPrimaryContainer,
-                          ),
-                        ),
-                      ),
-                      AppSpacing.gapMd,
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(name, style: context.textStyles.titleMedium),
-                            Text(auth.email ?? 'Ma gelin (marti)', style: context.textStyles.bodySmall),
-                            AppSpacing.gapXxs,
-                            // Three clearly different demo states — never "server verified".
-                            if (isGuest)
-                              const DemoContentBadge(label: 'Marti — akoon ma jiro')
-                            else if (auth.emailVerified)
-                              MetaChip(
-                                label: 'Email la xaqiijiyay (demo)',
-                                icon: Icons.verified_outlined,
-                                color: context.appColors.success,
-                              )
-                            else
-                              const DemoContentBadge(label: 'Akoon demo · email lama xaqiijin'),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              AppPageBody(child: _ProfileHeader(auth: auth)),
               if (auth.isSignedIn && !auth.emailVerified) ...[
                 AppSpacing.gapMd,
                 AppPageBody(
@@ -85,27 +48,54 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ],
+              AppSpacing.gapLg,
+              const AppPageBody(child: _ProfileStatsCard()),
               AppSpacing.gapXl,
-              const AppPageBody(child: SectionHeader(title: 'Akhriska')),
-              _tile(context, Icons.bookmarks_outlined, 'Kuwa la jecel yahay', AppRoutes.favorites),
-              _tile(
-                context,
-                Icons.text_fields_rounded,
-                'Muuqaalka iyo qoraalka',
-                AppRoutes.settingsAppearance,
+              AppPageBody(
+                child: SettingsSection(
+                  title: 'Akhriska',
+                  children: [
+                    SettingsTile(
+                      icon: Icons.bookmarks_outlined,
+                      title: 'Xadiisyada aan Kaydiyey',
+                      onTap: () => context.push(AppRoutes.favorites),
+                    ),
+                    SettingsTile(
+                      icon: Icons.text_fields_rounded,
+                      title: 'Doorbidyada akhriska',
+                      onTap: () => context.push(AppRoutes.settingsReading),
+                    ),
+                  ],
+                ),
               ),
               AppSpacing.gapLg,
-              const AppPageBody(child: SectionHeader(title: 'Dejinta')),
-              _tile(context, Icons.language_rounded, 'Luqadda', AppRoutes.settingsLanguage),
-              _tile(
-                context,
-                Icons.notifications_none_rounded,
-                'Ogeysiisyada',
-                AppRoutes.settingsNotifications,
+              AppPageBody(
+                child: SettingsSection(
+                  title: 'Dejinta iyo macluumaad',
+                  children: [
+                    SettingsTile(
+                      icon: Icons.settings_outlined,
+                      title: 'Dejinta oo dhan',
+                      onTap: () => context.push(AppRoutes.settings),
+                    ),
+                    SettingsTile(
+                      icon: Icons.shield_outlined,
+                      title: 'Arrimaha gaarka ah',
+                      onTap: () => context.push(AppRoutes.settingsPrivacy),
+                    ),
+                    SettingsTile(
+                      icon: Icons.help_outline_rounded,
+                      title: 'Caawimaad',
+                      onTap: () => context.push(AppRoutes.help),
+                    ),
+                    SettingsTile(
+                      icon: Icons.info_outline_rounded,
+                      title: 'Ku saabsan app-ka',
+                      onTap: () => context.push(AppRoutes.about),
+                    ),
+                  ],
+                ),
               ),
-              _tile(context, Icons.settings_outlined, 'Dejinta oo dhan', AppRoutes.settings),
-              _tile(context, Icons.shield_outlined, 'Arrimaha gaarka ah', AppRoutes.settingsPrivacy),
-              _tile(context, Icons.info_outline_rounded, 'Ku saabsan app-ka', AppRoutes.about),
               AppSpacing.gapLg,
               AppPageBody(
                 child: AppTextButton(
@@ -116,7 +106,8 @@ class ProfileScreen extends StatelessWidget {
                     final ok = await showConfirmDialog(
                       context,
                       title: 'Ka bax?',
-                      message: 'Waxaad ku laaban doontaa bogga soo dhaweynta.',
+                      message:
+                          'Waxaad ku laaban doontaa bogga soo dhaweynta. Kuwa la keydiyay iyo xifdintu way sii jiraan.',
                       confirmLabel: 'Ka bax',
                       isDestructive: true,
                     );
@@ -132,16 +123,160 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _tile(BuildContext context, IconData icon, String title, String route) {
-    return AppPageBody(
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: Icon(icon),
-        title: Text(title),
-        trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () => context.push(route),
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.auth});
+
+  final AuthController auth;
+
+  Future<void> _editName(BuildContext context) async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => _EditNameDialog(initial: auth.displayName ?? ''),
+    );
+    if (name != null && await auth.updateDisplayName(name) && context.mounted) {
+      AppSnackbar.show(context, 'Magaca waa la beddelay (qalabkan oo keliya)', type: AppSnackType.success);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = auth.displayName ?? 'Marti';
+    return AppCard(
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: context.colors.primaryContainer,
+            foregroundColor: context.colors.onPrimaryContainer,
+            child: auth.isGuest
+                ? const Icon(Icons.person_outline_rounded)
+                : Text(
+                    name.characters.first.toUpperCase(),
+                    style: context.textStyles.titleLarge?.copyWith(color: context.colors.onPrimaryContainer),
+                  ),
+          ),
+          AppSpacing.gapMd,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: context.textStyles.titleMedium),
+                // Email only when the demo session has one — never invented.
+                Text(auth.email ?? 'Ma gelin (marti)', style: context.textStyles.bodySmall),
+                AppSpacing.gapXxs,
+                if (auth.isGuest)
+                  const DemoContentBadge(label: 'Marti — akoon ma jiro')
+                else if (auth.emailVerified)
+                  MetaChip(
+                    label: 'Email la xaqiijiyay (demo)',
+                    icon: Icons.verified_outlined,
+                    color: context.appColors.success,
+                  )
+                else
+                  const DemoContentBadge(label: 'Akoon demo · email lama xaqiijin'),
+                AppSpacing.gapXxs,
+                Text(
+                  auth.isGuest
+                      ? 'Ku soo dhowow! Horumarkaagu wuxuu ku kaydsan yahay qalabkan.'
+                      : 'Ku soo dhowow, $name! Xogtan waxay ku kaydsan tahay qalabkan oo keliya.',
+                  style: context.textStyles.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          if (auth.isSignedIn)
+            IconActionButton(icon: Icons.edit_outlined, tooltip: 'Beddel magaca', onPressed: () => _editName(context)),
+        ],
       ),
+    );
+  }
+}
+
+/// Owns its controller so it is disposed only after the dialog's exit
+/// animation has finished.
+class _EditNameDialog extends StatefulWidget {
+  const _EditNameDialog({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_EditNameDialog> createState() => _EditNameDialogState();
+}
+
+class _EditNameDialogState extends State<_EditNameDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState!.validate()) Navigator.pop(context, _controller.text);
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Beddel magaca'),
+    content: Form(
+      key: _formKey,
+      child: TextFormField(
+        controller: _controller,
+        autofocus: true,
+        maxLength: AuthController.maxNameLength,
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (_) => _submit(),
+        decoration: const InputDecoration(labelText: 'Magaca la muujiyo'),
+        validator: (v) => (v == null || v.trim().isEmpty) ? 'Magacu waa qasab.' : null,
+      ),
+    ),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Jooji')),
+      FilledButton(onPressed: _submit, child: const Text('Keydi')),
+    ],
+  );
+}
+
+class _ProfileStatsCard extends StatelessWidget {
+  const _ProfileStatsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final services = context.services;
+    return ListenableBuilder(
+      listenable: Listenable.merge([services.favorites, services.memorization]),
+      builder: (context, _) {
+        final m = services.memorization;
+        final stats = [
+          (Icons.psychology_outlined, '${m.memorizedCount}', 'La xifdiyey'),
+          (Icons.bookmarks_outlined, '${services.favorites.count}', 'La keydiyay'),
+          (Icons.quiz_outlined, '${m.quizHistory.length}', 'Imtixaan'),
+        ];
+        return AppCard(
+          child: Row(
+            children: [
+              for (final (icon, value, label) in stats)
+                Expanded(
+                  child: Semantics(
+                    label: '$label: $value',
+                    excludeSemantics: true,
+                    child: Column(
+                      children: [
+                        Icon(icon, color: context.appColors.goldText),
+                        Text(value, style: context.textStyles.titleLarge),
+                        Text(label, style: context.textStyles.labelSmall, textAlign: TextAlign.center),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -52,13 +52,7 @@ class BooksScreen extends StatelessWidget {
                     author: book.author,
                     description: book.description,
                     badges: hadiths == 0
-                        ? [
-                            MetaChip(
-                              label: 'Weli lama darin',
-                              icon: Icons.hourglass_empty_rounded,
-                              color: c.warning,
-                            ),
-                          ]
+                        ? [MetaChip(label: 'Weli lama darin', icon: Icons.hourglass_empty_rounded, color: c.warning)]
                         : [
                             MetaChip(label: '$chapters cutub'),
                             MetaChip(label: '$hadiths xadiis'),

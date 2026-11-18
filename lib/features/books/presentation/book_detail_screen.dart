@@ -27,7 +27,17 @@ class BookDetailScreen extends StatelessWidget {
     final hadithCount = repo.hadithCountOfBook(book.id);
 
     return Scaffold(
-      appBar: AppTopBar(title: book.nameSomali),
+      appBar: AppTopBar(
+        title: book.nameSomali,
+        actions: [
+          if (hadithCount > 0)
+            IconActionButton(
+              icon: Icons.manage_search_rounded,
+              tooltip: 'Ka raadi kitaabkan',
+              onPressed: () => context.go(AppRoutes.searchWith(bookId: book.id)),
+            ),
+        ],
+      ),
       body: CustomScrollView(
         slivers: [
           SliverPadding(
@@ -50,6 +60,11 @@ class BookDetailScreen extends StatelessWidget {
                           MetaChip(label: '${chapters.length} cutub (halkan)', icon: Icons.list_alt_rounded),
                           MetaChip(label: '$hadithCount xadiis (halkan)', icon: Icons.menu_book_outlined),
                           if (!book.isVerified) const DemoContentBadge(),
+                          OfflineStatusIndicator(
+                            status: hadithCount > 0
+                                ? OfflineAvailability.availableLocally
+                                : OfflineAvailability.notDownloaded,
+                          ),
                         ],
                       ),
                     ],
@@ -101,10 +116,7 @@ class BookDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             ArabicText(chapter.titleArabic, variant: ArabicTextVariant.label, maxLines: 1),
-                            Text(
-                              'Cutubka ${chapter.number} · $count xadiis',
-                              style: context.textStyles.labelSmall,
-                            ),
+                            Text('Cutubka ${chapter.number} · $count xadiis', style: context.textStyles.labelSmall),
                           ],
                         ),
                         trailing: const Icon(Icons.chevron_right_rounded),

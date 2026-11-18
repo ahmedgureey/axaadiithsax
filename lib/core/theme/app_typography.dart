@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../settings/app_settings_controller.dart';
 import 'app_theme_colors.dart';
 
 /// Font configuration.
@@ -28,6 +29,27 @@ abstract final class ArabicFontSize {
   static const double min = 20;
   static const double max = 40;
   static const double defaultSize = 26;
+}
+
+/// Multiplier for Somali translation text on reading screens.
+abstract final class TranslationScale {
+  static const double min = 0.9;
+  static const double max = 1.4;
+  static const double defaultValue = 1.0;
+  static const double step = 0.1;
+
+  /// Clamped and rounded to one decimal so repeated steps stay exact.
+  static double clamp(double v) => (v.clamp(min, max) * 10).roundToDouble() / 10;
+}
+
+/// Line height for Arabic hadith text.
+abstract final class ArabicLineHeight {
+  static const double min = 1.6;
+  static const double max = 2.6;
+  static const double defaultValue = 2.0;
+  static const double step = 0.2;
+
+  static double clamp(double v) => (v.clamp(min, max) * 10).roundToDouble() / 10;
 }
 
 /// Builds the Material [TextTheme] for the app (Somali / Latin text).
@@ -91,21 +113,23 @@ abstract final class ArabicTextStyles {
   );
 
   /// Main hadith matn. [fontSize] comes from reading settings.
-  static TextStyle hadith(BuildContext context, {double fontSize = ArabicFontSize.defaultSize}) {
+  static TextStyle hadith(
+    BuildContext context, {
+    double fontSize = ArabicFontSize.defaultSize,
+    double lineHeight = ArabicLineHeight.defaultValue,
+  }) {
     return _base(context.appColors.arabicText)
-        .copyWith(fontSize: fontSize, height: 2.0, fontWeight: FontWeight.w400);
+        .copyWith(fontSize: fontSize, height: lineHeight, fontWeight: FontWeight.w400);
   }
 
   /// Arabic chapter / book headings.
   static TextStyle chapterHeading(BuildContext context) {
-    return _base(context.appColors.arabicText)
-        .copyWith(fontSize: 22, height: 1.7, fontWeight: FontWeight.w700);
+    return _base(context.appColors.arabicText).copyWith(fontSize: 22, height: 1.7, fontWeight: FontWeight.w700);
   }
 
   /// Narrator line, e.g. «عن أبي هريرة رضي الله عنه».
   static TextStyle narrator(BuildContext context, {double fontSize = 18}) {
-    return _base(context.appColors.goldText)
-        .copyWith(fontSize: fontSize, height: 1.8, fontWeight: FontWeight.w600);
+    return _base(context.appColors.goldText).copyWith(fontSize: fontSize, height: 1.8, fontWeight: FontWeight.w600);
   }
 
   /// Short Arabic labels inside cards (book name in Arabic, etc.).
@@ -114,8 +138,11 @@ abstract final class ArabicTextStyles {
   }
 
   /// Somali translation of a hadith — sits under the Arabic text.
-  static TextStyle somaliTranslation(BuildContext context, {double scale = 1.0}) {
+  /// Somali translation on reading screens. Uses the reader's translation
+  /// size preference unless [scale] is given; the rest of the UI is unaffected.
+  static TextStyle somaliTranslation(BuildContext context, {double? scale}) {
     final base = Theme.of(context).textTheme.bodyLarge!;
-    return base.copyWith(fontSize: (base.fontSize ?? 17) * scale, height: 1.7);
+    final s = scale ?? AppSettingsScope.maybeOf(context)?.translationScale ?? TranslationScale.defaultValue;
+    return base.copyWith(fontSize: (base.fontSize ?? 17) * s, height: 1.7);
   }
 }

@@ -9,16 +9,10 @@ import 'package:xadiithapp/features/auth/auth_controller.dart';
 import 'package:xadiithapp/features/splash/presentation/splash_screen.dart';
 
 Future<AppServices> _services({bool onboarded = true, AuthStatus status = AuthStatus.signedIn}) {
-  return AppServices.create(
-    InMemorySettingsStore({'auth.onboardingSeen': onboarded, 'auth.status': status.name}),
-  );
+  return AppServices.create(InMemorySettingsStore({'auth.onboardingSeen': onboarded, 'auth.status': status.name}));
 }
 
-Future<AppServices> _pumpApp(
-  WidgetTester tester, {
-  String initial = AppRoutes.home,
-  AppServices? services,
-}) async {
+Future<AppServices> _pumpApp(WidgetTester tester, {String initial = AppRoutes.home, AppServices? services}) async {
   tester.view.physicalSize = const Size(390 * 3, 844 * 3);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
@@ -30,8 +24,7 @@ Future<AppServices> _pumpApp(
 
 Finder _tab(String label) => find.descendant(of: find.byType(NavigationBar), matching: find.text(label));
 
-int _selectedTab(WidgetTester tester) =>
-    tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex;
+int _selectedTab(WidgetTester tester) => tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex;
 
 Finder _appBarTitle(String text) => find.descendant(of: find.byType(AppBar), matching: find.text(text));
 
@@ -92,7 +85,7 @@ void main() {
   group('Five tabs', () {
     testWidgets('all five tabs are reachable and highlighted', (tester) async {
       await _pumpApp(tester);
-      const titles = ['Assalaamu Calaykum', 'Kutubta Xadiiska', 'Raadinta', 'Xifdinta', 'Aniga'];
+      const titles = ['Assalaamu Calaykum', 'Kutubta Xadiiska', 'Raadi Xadiis', 'Xifdintayda', 'Aniga'];
       const labels = ['Guriga', 'Kutubta', 'Raadinta', 'Xifdinta', 'Aniga'];
       for (var i = labels.length - 1; i >= 0; i--) {
         await _tap(tester, _tab(labels[i]));
@@ -140,9 +133,7 @@ void main() {
       expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing, reason: 'focused reading screen');
       // Arabic content is RTL inside the LTR screen.
-      final arabic = tester.element(
-        find.descendant(of: find.byType(ArabicText).first, matching: find.byType(Text)),
-      );
+      final arabic = tester.element(find.descendant(of: find.byType(ArabicText).first, matching: find.byType(Text)));
       expect(Directionality.of(arabic), TextDirection.rtl);
 
       await _tap(tester, find.byType(BackButton));
@@ -186,12 +177,17 @@ void main() {
 
     testWidgets('memorization → quiz → results → back to memorization', (tester) async {
       await _pumpApp(tester, initial: AppRoutes.memorization);
+      await tester.scrollUntilVisible(find.text('Imtixaan'), 300, scrollable: find.byType(Scrollable).first);
       await _tap(tester, find.text('Imtixaan'));
-      await _tap(tester, find.text('Muuji natiijo tusaale ah'));
-      expect(find.text('3 / 5'), findsOneWidget);
-      await _tap(tester, find.text('Isku day mar kale'));
-      expect(_appBarTitle('Imtixaan'), findsOneWidget);
-      await _tap(tester, find.text('Muuji natiijo tusaale ah'));
+      expect(_appBarTitle('Imtixaanka Xadiiska'), findsOneWidget);
+      await _tap(tester, find.text('Bilow imtixaanka'));
+      // Answer every question with the first option, then finish.
+      for (var i = 1; i <= 5; i++) {
+        expect(_appBarTitle("Su'aal $i / 5"), findsOneWidget);
+        await _tap(tester, find.text('A').first);
+        await _tap(tester, find.text(i == 5 ? 'Arag natiijada' : "Su'aasha xigta"));
+      }
+      expect(_appBarTitle('Natiijada'), findsOneWidget);
       await _tap(tester, find.text('Ku noqo Xifdinta'));
       expect(_selectedTab(tester), 3);
     });

@@ -60,10 +60,7 @@ class AuthScaffold extends StatelessWidget {
                 ],
                 Semantics(header: true, child: Text(title, style: context.textStyles.headlineMedium)),
                 AppSpacing.gapXs,
-                Text(
-                  subtitle,
-                  style: context.textStyles.bodyMedium?.copyWith(color: context.appColors.textSecondary),
-                ),
+                Text(subtitle, style: context.textStyles.bodyMedium?.copyWith(color: context.appColors.textSecondary)),
                 AppSpacing.gapLg,
                 const DemoAuthNotice(),
                 AppSpacing.gapXl,

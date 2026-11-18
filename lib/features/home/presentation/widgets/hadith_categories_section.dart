@@ -18,7 +18,7 @@ class HadithCategoriesSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: 'Mowduucyada'),
+        SectionHeader(title: 'Mowduucyada', actionLabel: 'Dhammaan', onAction: () => context.go(AppRoutes.categories)),
         AppSpacing.gapSm,
         if (categories.isEmpty)
           Text('Mowduuc lama helin.', style: context.textStyles.bodySmall)
@@ -58,7 +58,7 @@ class _CategoryTile extends StatelessWidget {
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs, vertical: AppSpacing.sm),
       semanticLabel: '${c.nameSomali}, ${summary.hadithCount} xadiis',
-      onTap: () => context.go(AppRoutes.searchCategory(c.id)),
+      onTap: () => context.go(AppRoutes.categoryResults(c.id)),
       child: Column(
         children: [
           Container(

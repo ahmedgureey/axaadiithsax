@@ -21,12 +21,7 @@ class CategorySummary {
 /// Everything the Home screen shows, computed once from the repository so
 /// widgets stay presentational and no transformation repeats on rebuild.
 class HomeFeed {
-  const HomeFeed({
-    required this.daily,
-    required this.books,
-    required this.categories,
-    required this.featuredHadiths,
-  });
+  const HomeFeed({required this.daily, required this.books, required this.categories, required this.featuredHadiths});
 
   final Hadith? daily;
   final List<FeaturedBook> books;
@@ -38,9 +33,7 @@ class HomeFeed {
 
   factory HomeFeed.build(HadithRepository repo, DateTime today) {
     final books = [for (final b in repo.books) FeaturedBook(b, repo.hadithCountOfBook(b.id))];
-    final categories = [
-      for (final c in repo.categories) CategorySummary(c, repo.hadithCountOfCategory(c.id)),
-    ];
+    final categories = [for (final c in repo.categories) CategorySummary(c, repo.hadithCountOfCategory(c.id))];
     final featured = <Hadith>[];
     for (final b in books.where((b) => b.hasContent)) {
       final chapters = repo.chaptersOf(b.book.id);

@@ -74,6 +74,9 @@ abstract final class MockLibrary {
   /// Books that have (demo) chapters and hadith in this dataset.
   static const _booksWithContent = {'bukhari', 'muslim', 'nawawi40'};
 
+  /// Demo records are spread over the first eight topics only.
+  static List<HadithCategory> get _assignedCategories => categories.take(8).toList();
+
   static const List<HadithCategory> categories = [
     HadithCategory(
       id: 'iman',
@@ -131,6 +134,21 @@ abstract final class MockLibrary {
       iconKey: 'night',
       description: 'Baryada Alle',
     ),
+    // Listed topics with no demo records yet (shows the empty-category state).
+    HadithCategory(
+      id: 'sawm',
+      nameSomali: 'Soonka',
+      nameArabic: 'الصيام',
+      iconKey: 'crescent',
+      description: 'Soonka iyo Ramadaan',
+    ),
+    HadithCategory(
+      id: 'tawbah',
+      nameSomali: 'Tawbad keenka',
+      nameArabic: 'التوبة',
+      iconKey: 'return',
+      description: 'Ka toobad keenka iyo dambi dhaafka',
+    ),
   ];
 
   static const _arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -178,7 +196,7 @@ abstract final class MockLibrary {
                 : 'Qoraal tusaale ah (#$serial). Halkan waxaa geli doona '
                       'tarjumaadda Af-Soomaaliga ee xadiis la xaqiijiyay.',
             narrator: incomplete ? null : 'اسم الراوي',
-            categoryIds: [categories[serial % categories.length].id],
+            categoryIds: [_assignedCategories[serial % _assignedCategories.length].id],
             source: demoSource,
           ),
         );

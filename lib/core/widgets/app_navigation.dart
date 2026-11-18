@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_theme_colors.dart';
 import 'islamic_ornament.dart';
@@ -47,8 +48,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               Flexible(child: Text(title, overflow: TextOverflow.ellipsis)),
             ],
           ),
-          if (subtitle != null)
-            Text(subtitle!, style: context.textStyles.bodySmall, overflow: TextOverflow.ellipsis),
+          if (subtitle != null) Text(subtitle!, style: context.textStyles.bodySmall, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -56,29 +56,52 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class AppNavDestination {
-  const AppNavDestination({required this.label, required this.icon, required this.selectedIcon});
+  const AppNavDestination({required this.label, required this.icon, required this.selectedIcon, this.textKey});
 
+  /// Somali label (fallback when [textKey] is null).
   final String label;
   final IconData icon;
   final IconData selectedIcon;
+
+  /// Translated label key for the selected interface language.
+  final AppText? textKey;
+
+  String labelFor(BuildContext context) => textKey == null ? label : AppStrings.of(context, textKey!);
 }
 
 /// The five main tabs agreed in the audit.
 abstract final class AppNavDestinations {
   static const List<AppNavDestination> main = [
-    AppNavDestination(label: 'Guriga', icon: Icons.home_outlined, selectedIcon: Icons.home_rounded),
+    AppNavDestination(
+      label: 'Guriga',
+      textKey: AppText.navHome,
+      icon: Icons.home_outlined,
+      selectedIcon: Icons.home_rounded,
+    ),
     AppNavDestination(
       label: 'Kutubta',
+      textKey: AppText.navBooks,
       icon: Icons.auto_stories_outlined,
       selectedIcon: Icons.auto_stories_rounded,
     ),
-    AppNavDestination(label: 'Raadinta', icon: Icons.search_outlined, selectedIcon: Icons.search_rounded),
+    AppNavDestination(
+      label: 'Raadinta',
+      textKey: AppText.navSearch,
+      icon: Icons.search_outlined,
+      selectedIcon: Icons.search_rounded,
+    ),
     AppNavDestination(
       label: 'Xifdinta',
+      textKey: AppText.navMemorize,
       icon: Icons.psychology_outlined,
       selectedIcon: Icons.psychology_rounded,
     ),
-    AppNavDestination(label: 'Aniga', icon: Icons.person_outline_rounded, selectedIcon: Icons.person_rounded),
+    AppNavDestination(
+      label: 'Aniga',
+      textKey: AppText.navProfile,
+      icon: Icons.person_outline_rounded,
+      selectedIcon: Icons.person_rounded,
+    ),
   ];
 }
 
@@ -110,8 +133,8 @@ class AppBottomNavBar extends StatelessWidget {
             NavigationDestination(
               icon: Icon(d.icon),
               selectedIcon: Icon(d.selectedIcon),
-              label: d.label,
-              tooltip: d.label,
+              label: d.labelFor(context),
+              tooltip: d.labelFor(context),
             ),
         ],
       ),

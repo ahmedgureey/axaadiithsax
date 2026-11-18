@@ -5,6 +5,7 @@ import '../../../app/app_services.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/hadith.dart';
+import '../../favorites/favorite_actions.dart';
 import '../hadith_actions.dart';
 
 /// Hadith list item wired to navigation and favourites. Opens the hadith
@@ -29,7 +30,7 @@ class HadithPreviewCard extends StatelessWidget {
         isVerified: hadith.isVerified,
         previewLines: 3,
         isFavorite: services.favorites.isFavorite(hadith.id),
-        onFavoriteToggle: () => services.favorites.toggle(hadith.id),
+        onFavoriteToggle: () => toggleFavoriteWithFeedback(context, hadith.id),
         onTap: () => context.push(AppRoutes.hadith(hadith.id)),
       ),
     );

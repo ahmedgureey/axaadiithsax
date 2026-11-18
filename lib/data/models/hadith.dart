@@ -34,6 +34,7 @@ class Hadith {
     this.categoryIds = const [],
     this.sourceStatus = SourceStatus.demo,
     this.source,
+    this.audioAsset,
   });
 
   final String id;
@@ -64,6 +65,11 @@ class Hadith {
   /// Human-readable description of where the content came from.
   final String? source;
 
+  /// Bundled audio recording (asset path), or `null` — no record has audio
+  /// yet, and none is ever invented.
+  final String? audioAsset;
+
   bool get isVerified => sourceStatus == SourceStatus.verified;
+  bool get hasAudio => audioAsset != null;
   bool get hasTranslation => somaliText != null && somaliText!.trim().isNotEmpty;
 }

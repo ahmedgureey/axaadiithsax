@@ -314,7 +314,7 @@ void main() {
     testWidgets('privacy link is reachable before signing in', (tester) async {
       await openRegister(tester);
       await _tap(tester, find.text('arrimaha gaarka ah'));
-      expect(find.text('Server ma jiro'), findsOneWidget);
+      expect(find.text('Server iyo akoon'), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(find.text('Magaca oo buuxa'), findsOneWidget);

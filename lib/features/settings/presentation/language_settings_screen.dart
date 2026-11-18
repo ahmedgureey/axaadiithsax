@@ -1,50 +1,95 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/app_services.dart';
+import '../../../core/l10n/app_strings.dart';
 import '../../../core/routing/route_leading.dart';
+import '../../../core/settings/app_settings_controller.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
 
-/// Interface language. Only Somali is available in this phase.
+/// Interface language. Somali is complete; Arabic and English are partial —
+/// the screen says exactly what changes.
 class LanguageSettingsScreen extends StatelessWidget {
   const LanguageSettingsScreen({super.key});
 
+  static const title = 'Luqadda';
+
   @override
   Widget build(BuildContext context) {
+    final settings = context.services.settings;
     return Scaffold(
-      appBar: AppTopBar(title: 'Luqadda', leading: backOrHomeLeading(context)),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        children: [
-          AppPageBody(
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Af-Soomaali'),
-              subtitle: const Text('Luqadda app-ka'),
-              trailing: Icon(
-                Icons.check_circle_rounded,
-                color: context.colors.primary,
-                semanticLabel: 'La doortay',
-              ),
-              selected: true,
-            ),
-          ),
-          for (final lang in ['English', 'العربية'])
+      appBar: AppTopBar(title: title, leading: backOrHomeLeading(context)),
+      body: ListenableBuilder(
+        listenable: settings,
+        builder: (context, _) => ListView(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          children: [
             AppPageBody(
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                enabled: false,
-                title: Text(lang),
-                subtitle: const Text('Dhowaan'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                    child: Column(
+                      children: [
+                        for (final lang in AppLanguage.values) _LanguageTile(language: lang, settings: settings),
+                      ],
+                    ),
+                  ),
+                  AppSpacing.gapMd,
+                  FormValidationMessage(
+                    type: FormMessageType.info,
+                    message: settings.language.isComplete
+                        ? 'Af-Soomaaligu waa luqadda app-ka oo dhammaystiran.'
+                        : '${settings.language.nativeName}: qayb ahaan. Waxaa la turjumay magacyada tab-yada '
+                              '(${AppStrings.translatedCount(settings.language)}/${AppStrings.totalKeys}) iyo '
+                              'qoraallada nidaamka (dialogs, waqtiga)${settings.language == AppLanguage.arabic ? ', jihaduna waa midig-ilaa-bidix' : ''}. '
+                              'Inta kale ee app-ka weli waa Af-Soomaali.',
+                  ),
+                  AppSpacing.gapSm,
+                  Text(
+                    'Qoraalka xadiiska wuxuu had iyo jeer ahaanayaa Carabi, tarjumaadduna Af-Soomaali — '
+                    'luqadda interface-ka isma beddesho waxa xadiiska ku qoran.',
+                    style: context.textStyles.bodySmall,
+                  ),
+                ],
               ),
             ),
-          AppSpacing.gapMd,
-          AppPageBody(
-            child: Text(
-              'Qoraalka xadiiska wuxuu had iyo jeer ku qornaanayaa Carabi, tarjumaaddana Af-Soomaali.',
-              style: context.textStyles.bodySmall,
-            ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LanguageTile extends StatelessWidget {
+  const _LanguageTile({required this.language, required this.settings});
+
+  final AppLanguage language;
+  final AppSettingsController settings;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = settings.language == language;
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: ListTile(
+        minTileHeight: AppSizes.minTouchTarget + AppSpacing.xs,
+        title: Text(language.nativeName, textDirection: language.textDirection),
+        subtitle: Text(language.isComplete ? 'Dhammaystiran' : 'Qayb ahaan (tijaabo)'),
+        // Check icon + "La doortay" label: selection is not shown by colour alone.
+        trailing: selected
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('La doortay', style: context.textStyles.labelSmall?.copyWith(color: context.colors.primary)),
+                  const SizedBox(width: AppSpacing.xxs),
+                  Icon(Icons.check_circle_rounded, color: context.colors.primary),
+                ],
+              )
+            : const Icon(Icons.radio_button_unchecked),
+        onTap: () => settings.setLanguage(language),
       ),
     );
   }

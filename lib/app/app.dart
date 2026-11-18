@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/app_info.dart';
+import '../core/l10n/app_localizations_setup.dart';
 import '../core/routing/app_router.dart';
 import '../core/routing/app_routes.dart';
 import '../core/settings/app_settings_controller.dart';
@@ -40,8 +42,13 @@ class _XadiisAppState extends State<XadiisApp> {
         child: ListenableBuilder(
           listenable: settings,
           builder: (context, _) => MaterialApp.router(
-            title: 'Xadiith App',
+            title: AppInfo.name,
             debugShowCheckedModeBanner: false,
+            // Language preference: system strings + text direction (Arabic
+            // = RTL). App strings beyond AppStrings remain Somali.
+            locale: settings.language.locale,
+            supportedLocales: AppLocalizationsSetup.supportedLocales,
+            localizationsDelegates: AppLocalizationsSetup.delegates,
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
             themeMode: settings.themeMode,

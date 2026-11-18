@@ -10,5 +10,7 @@ IconData categoryIcon(String iconKey) => switch (iconKey) {
   'hourglass' => Icons.hourglass_bottom_rounded,
   'giving' => Icons.volunteer_activism_outlined,
   'night' => Icons.nights_stay_outlined,
+  'crescent' => Icons.brightness_3_outlined,
+  'return' => Icons.undo_rounded,
   _ => Icons.label_outline_rounded,
 };

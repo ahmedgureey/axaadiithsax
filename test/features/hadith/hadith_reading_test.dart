@@ -57,9 +57,7 @@ List<String> _mockClipboard(WidgetTester tester) {
     if (call.method == 'Clipboard.setData') copied.add((call.arguments as Map)['text'] as String);
     return null;
   });
-  addTearDown(
-    () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null),
-  );
+  addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
   return copied;
 }
 
@@ -84,11 +82,7 @@ void main() {
       final bukhari = find.ancestor(of: find.text('Saxiix al-Bukhaari'), matching: find.byType(BookCard));
       expect(find.descendant(of: bukhari, matching: find.text('3 cutub')), findsOneWidget);
       expect(find.descendant(of: bukhari, matching: find.text('9 xadiis')), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.text('Sunan Abi Daawuud'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
+      await tester.scrollUntilVisible(find.text('Sunan Abi Daawuud'), 200, scrollable: find.byType(Scrollable).first);
       final abuDawud = find.ancestor(of: find.text('Sunan Abi Daawuud'), matching: find.byType(BookCard));
       expect(find.descendant(of: abuDawud, matching: find.text('Weli lama darin')), findsOneWidget);
     });
@@ -172,10 +166,7 @@ void main() {
       final somaliBefore = Theme.of(tester.element(_arabicBody)).textTheme.bodyLarge!.fontSize;
 
       expect(arabicSize(), ArabicFontSize.defaultSize);
-      expect(
-        tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.restart_alt_rounded)).onPressed,
-        isNull,
-      );
+      expect(tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.restart_alt_rounded)).onPressed, isNull);
 
       await _tap(tester, find.byTooltip('Weyneey qoraalka Carabiga'));
       expect(arabicSize(), ArabicFontSize.defaultSize + 2);
@@ -219,14 +210,8 @@ void main() {
 
     testWidgets('related hadith opens another detail', (tester) async {
       await _pump(tester, AppRoutes.hadith('muslim-c2-h1'));
-      await tester.scrollUntilVisible(
-        find.text('Xadiisyo la xiriira'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      final firstRelated = find
-          .ancestor(of: find.textContaining('(tusaale)'), matching: find.byType(AppCard))
-          .last;
+      await tester.scrollUntilVisible(find.text('Xadiisyo la xiriira'), 200, scrollable: find.byType(Scrollable).first);
+      final firstRelated = find.ancestor(of: find.textContaining('(tusaale)'), matching: find.byType(AppCard)).last;
       await _tap(tester, firstRelated);
       expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
       expect(find.text('Cutub tusaale 2 · #1'), findsNothing);

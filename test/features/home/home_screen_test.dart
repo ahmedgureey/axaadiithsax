@@ -160,10 +160,7 @@ void main() {
       expect(services.favorites.isFavorite(daily.id), isTrue);
       expect(find.text('Waa la keydiyay'), findsOneWidget);
       expect(
-        find.descendant(
-          of: find.byType(DailyHadithCard),
-          matching: find.byTooltip('Ka saar kuwa la jecel yahay'),
-        ),
+        find.descendant(of: find.byType(DailyHadithCard), matching: find.byTooltip('Ka saar kuwa la jecel yahay')),
         findsOneWidget,
       );
     });
@@ -172,10 +169,7 @@ void main() {
       final share = _RecordingShare();
       final services = await _pumpHome(tester, share: share);
       final daily = services.repository.dailyHadith(DateTime.now())!;
-      await _tap(
-        tester,
-        find.descendant(of: find.byType(DailyHadithCard), matching: find.byTooltip('La wadaag')),
-      );
+      await _tap(tester, find.descendant(of: find.byType(DailyHadithCard), matching: find.byTooltip('La wadaag')));
       expect(share.shared.single, contains(daily.arabicText));
       expect(share.shared.single, contains('Xog tusaale ah'));
     });
@@ -193,10 +187,7 @@ void main() {
     testWidgets('featured book opens its detail in the Kutubta tab', (tester) async {
       await _pumpHome(tester);
       await _scrollTo(tester, find.text('Kutubta Caanka ah'));
-      final muslim = find.descendant(
-        of: find.byType(FeaturedBooksSection),
-        matching: find.text('Saxiix Muslim'),
-      );
+      final muslim = find.descendant(of: find.byType(FeaturedBooksSection), matching: find.text('Saxiix Muslim'));
       await tester.scrollUntilVisible(muslim, 200, scrollable: _booksRow);
       await tester.tap(muslim);
       await tester.pumpAndSettle();
@@ -234,11 +225,11 @@ void main() {
     testWidgets('quick actions open favorites and quiz screens', (tester) async {
       await _pumpHome(tester);
       await _tap(tester, find.text('Xadiisyada aan Kaydiyey'));
-      expect(find.text('Weli wax ma keydsan'), findsOneWidget);
+      expect(find.text('Weli ma kaydin wax xadiis ah.'), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       await _tap(tester, find.text('Imtixaanka Xadiiska'));
-      expect(find.text('Imtixaanka xifdinta'), findsOneWidget);
+      expect(find.widgetWithText(AppBar, 'Imtixaanka Xadiiska'), findsOneWidget);
     });
 
     testWidgets('recent section switches from featured to real history', (tester) async {

@@ -13,11 +13,7 @@ class QuickActionsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final actions = [
       _QuickAction(Icons.search_rounded, 'Raadso Xadiis', () => context.go(AppRoutes.search)),
-      _QuickAction(
-        Icons.bookmarks_outlined,
-        'Xadiisyada aan Kaydiyey',
-        () => context.push(AppRoutes.favorites),
-      ),
+      _QuickAction(Icons.bookmarks_outlined, 'Xadiisyada aan Kaydiyey', () => context.push(AppRoutes.favorites)),
       _QuickAction(Icons.psychology_outlined, 'Qorshaha Xifdinta', () => context.go(AppRoutes.memorization)),
       _QuickAction(Icons.quiz_outlined, 'Imtixaanka Xadiiska', () => context.push(AppRoutes.quiz)),
     ];

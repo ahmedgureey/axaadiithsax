@@ -5,6 +5,7 @@ import '../../../../app/app_services.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../data/models/hadith.dart';
+import '../../../favorites/favorite_actions.dart';
 import '../../../hadith/hadith_actions.dart';
 
 /// "Xadiiska Maalinta" — uses the shared favorites controller for bookmarks.
@@ -49,12 +50,7 @@ class DailyHadithSection extends StatelessWidget {
           onTap: open,
           onRead: open,
           onShare: () => shareHadith(context, h),
-          onBookmark: () async {
-            final added = await services.favorites.toggle(h.id);
-            if (context.mounted) {
-              AppSnackbar.show(context, added ? 'Waa la keydiyay' : 'Waa laga saaray kuwa la keydiyay');
-            }
-          },
+          onBookmark: () => toggleFavoriteWithFeedback(context, h.id),
         );
       },
     );

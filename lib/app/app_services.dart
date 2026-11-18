@@ -7,6 +7,9 @@ import '../features/auth/auth_controller.dart';
 import '../features/favorites/favorites_controller.dart';
 import '../features/hadith/reading_history_controller.dart';
 import '../features/memorization/memorization_controller.dart';
+import '../features/search/data/hadith_search_service.dart';
+import '../features/search/search_history_controller.dart';
+import '../features/settings/notification_preferences_controller.dart';
 
 /// App-wide dependencies. Each concern has its own controller so unrelated
 /// state never rebuilds together:
@@ -21,6 +24,9 @@ class AppServices {
     required this.memorization,
     required this.history,
     required this.repository,
+    required this.search,
+    required this.searchHistory,
+    required this.notifications,
     this.share = const PlatformShareService(),
   });
 
@@ -31,6 +37,15 @@ class AppServices {
   final ReadingHistoryController history;
   final HadithRepository repository;
 
+  /// Local search index over [repository].
+  final HadithSearchService search;
+
+  /// Recent search terms (persisted).
+  final SearchHistoryController searchHistory;
+
+  /// Reminder preferences (no notification service yet).
+  final NotificationPreferencesController notifications;
+
   /// System share sheet (replaceable in tests).
   final ShareService share;
 
@@ -39,20 +54,56 @@ class AppServices {
     SettingsStore store, {
     HadithRepository? repository,
     ShareService? share,
+    DateTime Function()? clock,
   }) async {
     final repo = repository ?? HadithRepository();
     final services = AppServices(
       settings: AppSettingsController(store),
       auth: AuthController(store),
       favorites: FavoritesController(store),
-      // Demo plan: first five hadith of the dataset (IDs always exist).
-      memorization: MemorizationController(planHadithIds: repo.allHadiths.take(5).map((h) => h.id).toList()),
+      // Every hadith with content can be memorised, in reading order.
+      memorization: MemorizationController(
+        store,
+        candidateIds: [
+          for (final b in repo.books)
+            for (final h in repo.readingOrderOf(b.id)) h.id,
+        ],
+        exists: (id) => repo.hadithById(id) != null,
+        clock: clock,
+      ),
       history: ReadingHistoryController(),
       repository: repo,
+      search: HadithSearchService(repo),
+      searchHistory: SearchHistoryController(store),
+      notifications: NotificationPreferencesController(store),
       share: share ?? const PlatformShareService(),
     );
-    await Future.wait([services.settings.load(), services.auth.load(), services.favorites.load()]);
+    await Future.wait([
+      services.settings.load(),
+      services.auth.load(),
+      services.favorites.load(),
+      services.searchHistory.load(),
+      services.memorization.load(),
+      services.notifications.load(),
+    ]);
     return services;
+  }
+
+  /// Deletes ALL locally stored app data — bookmarks, memorisation progress,
+  /// quiz history, search history, reading history, preferences and the demo
+  /// session/onboarding — from memory and from storage. Hadith content (part
+  /// of the app) is not affected.
+  Future<void> resetAllLocalData() async {
+    history.clear();
+    await Future.wait([
+      favorites.clear(),
+      memorization.reset(),
+      searchHistory.clear(),
+      notifications.reset(),
+      settings.resetAppearanceAndReading(),
+    ]);
+    // Last: this triggers the router guard (back to onboarding).
+    await auth.resetDemo();
   }
 }
 

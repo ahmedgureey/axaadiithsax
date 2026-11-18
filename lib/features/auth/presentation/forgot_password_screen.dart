@@ -12,8 +12,7 @@ import 'auth_scaffold.dart';
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
-  static const confirmation =
-      'Haddii email-ku ku habboon yahay demo-ga, tallaabada xigta ayaa la muujin doonaa.';
+  static const confirmation = 'Haddii email-ku ku habboon yahay demo-ga, tallaabada xigta ayaa la muujin doonaa.';
 
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
@@ -69,10 +68,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         AppSpacing.gapLg,
         if (_submitted) ...[
-          const FormValidationMessage(
-            type: FormMessageType.success,
-            message: ForgotPasswordScreen.confirmation,
-          ),
+          const FormValidationMessage(type: FormMessageType.success, message: ForgotPasswordScreen.confirmation),
           AppSpacing.gapLg,
           PrimaryButton(
             label: 'U gudub furaha cusub (demo)',

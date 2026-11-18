@@ -246,9 +246,7 @@ abstract final class AppSnackbar {
               Expanded(child: Text(message)),
             ],
           ),
-          action: actionLabel == null
-              ? null
-              : SnackBarAction(label: actionLabel, onPressed: onAction ?? () {}),
+          action: actionLabel == null ? null : SnackBarAction(label: actionLabel, onPressed: onAction ?? () {}),
         ),
       );
   }

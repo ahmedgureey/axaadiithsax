@@ -1,55 +1,70 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/app_services.dart';
 import '../../../core/routing/route_leading.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
+import '../notification_preferences_controller.dart';
 
-/// Notification preferences — UI only in this phase (nothing is scheduled
-/// or persisted yet).
-class NotificationSettingsScreen extends StatefulWidget {
+/// Reminder preferences. No notification service exists yet: preferences are
+/// saved, but nothing is scheduled and no permission is requested.
+class NotificationSettingsScreen extends StatelessWidget {
   const NotificationSettingsScreen({super.key});
 
-  @override
-  State<NotificationSettingsScreen> createState() => _NotificationSettingsScreenState();
-}
-
-class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
-  bool _daily = true;
-  bool _memorization = false;
+  static const title = 'Ogeysiisyada';
+  static const notice =
+      'Doorbid oo keliya: app-ku weli ma laha adeeg ogeysiis, sidaas darteed xasuusin lama diro. '
+      'Doorashadaada waa la keydiyaa si loo isticmaalo marka ogeysiisyadu diyaar noqdaan.';
 
   @override
   Widget build(BuildContext context) {
+    final prefs = context.services.notifications;
     return Scaffold(
-      appBar: AppTopBar(title: 'Ogeysiisyada', leading: backOrHomeLeading(context)),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        children: [
-          const AppPageBody(
-            child: FormValidationMessage(
-              type: FormMessageType.info,
-              message: 'UI tusaale ah: ogeysiis dhab ah lama diro, doorashadana lama keydiyo weli.',
+      appBar: AppTopBar(title: title, leading: backOrHomeLeading(context)),
+      body: ListenableBuilder(
+        listenable: prefs,
+        builder: (context, _) => ListView(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          children: [
+            AppPageBody(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const FormValidationMessage(type: FormMessageType.info, message: notice),
+                  AppSpacing.gapLg,
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                    child: Column(
+                      children: [
+                        for (final kind in ReminderKind.values)
+                          SwitchListTile(
+                            title: Text(kind.label),
+                            subtitle: Text('${kind.description}\n${prefs.isEnabled(kind) ? 'Shidan' : 'Dansan'}'),
+                            isThreeLine: true,
+                            value: prefs.isEnabled(kind),
+                            onChanged: (v) => prefs.setEnabled(kind, v),
+                          ),
+                      ],
+                    ),
+                  ),
+                  AppSpacing.gapLg,
+                  AppCard(
+                    padding: EdgeInsets.zero,
+                    child: SettingsTile(
+                      icon: Icons.schedule_rounded,
+                      title: 'Waqtiga xasuusinta',
+                      subtitle: NotificationPreferencesController.formatTime(prefs.reminderTime),
+                      onTap: () async {
+                        final picked = await showTimePicker(context: context, initialTime: prefs.reminderTime);
+                        if (picked != null) await prefs.setReminderTime(picked);
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          AppSpacing.gapMd,
-          AppPageBody(
-            child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Xadiiska maanta'),
-              subtitle: const Text('Xasuusin maalinle ah'),
-              value: _daily,
-              onChanged: (v) => setState(() => _daily = v),
-            ),
-          ),
-          AppPageBody(
-            child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Xasuusinta xifdinta'),
-              subtitle: const Text('Dib-u-eegista qorshahaaga'),
-              value: _memorization,
-              onChanged: (v) => setState(() => _memorization = v),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -25,11 +25,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     await Future<void>.delayed(AuthController.demoDelay);
     if (!mounted) return;
     final router = GoRouter.of(context);
-    AppSnackbar.show(
-      context,
-      'Demo: email-ka waxaa loo calaamadeeyay "la xaqiijiyay".',
-      type: AppSnackType.success,
-    );
+    AppSnackbar.show(context, 'Demo: email-ka waxaa loo calaamadeeyay "la xaqiijiyay".', type: AppSnackType.success);
     await context.services.auth.verifyEmailDemo();
     // Verified sessions are redirected away from this route; go explicitly too.
     router.go(AppRoutes.home);

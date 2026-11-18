@@ -17,10 +17,7 @@ class IslamicStar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ExcludeSemantics(
-      child: CustomPaint(
-        size: Size.square(size),
-        painter: _StarPainter(color ?? context.appColors.gold, filled),
-      ),
+      child: CustomPaint(size: Size.square(size), painter: _StarPainter(color ?? context.appColors.gold, filled)),
     );
   }
 }
@@ -89,10 +86,7 @@ class IslamicPatternBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _LatticePainter(color ?? context.appColors.patternStroke, tile),
-      child: child,
-    );
+    return CustomPaint(painter: _LatticePainter(color ?? context.appColors.patternStroke, tile), child: child);
   }
 }
 

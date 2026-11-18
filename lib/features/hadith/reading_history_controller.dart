@@ -7,6 +7,12 @@ class ReadingHistoryController extends ChangeNotifier {
 
   List<String> get recentIds => List.unmodifiable(_ids);
 
+  void clear() {
+    if (_ids.isEmpty) return;
+    _ids.clear();
+    notifyListeners();
+  }
+
   void record(String hadithId) {
     if (_ids.isNotEmpty && _ids.first == hadithId) return;
     _ids

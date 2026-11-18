@@ -172,15 +172,11 @@ class HadithCard extends StatelessWidget {
             children: [
               MetaChip(label: source, icon: Icons.menu_book_rounded),
               if (reference != null) MetaChip(label: reference!, color: c.goldText),
-              if (isVerified && grade != null)
-                MetaChip(label: grade!, icon: Icons.verified_rounded, color: c.success),
+              if (isVerified && grade != null) MetaChip(label: grade!, icon: Icons.verified_rounded, color: c.success),
               if (!isVerified) const DemoContentBadge(),
             ],
           ),
-          if (narrator != null) ...[
-            AppSpacing.gapSm,
-            ArabicText(narrator!, variant: ArabicTextVariant.narrator),
-          ],
+          if (narrator != null) ...[AppSpacing.gapSm, ArabicText(narrator!, variant: ArabicTextVariant.narrator)],
           AppSpacing.gapXs,
           ArabicText(arabicText, maxLines: previewLines),
           const OrnamentDivider(),
@@ -195,8 +191,7 @@ class HadithCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (onCopy != null)
-                  IconActionButton(icon: Icons.copy_rounded, tooltip: 'Koobiyee', onPressed: onCopy),
+                if (onCopy != null) IconActionButton(icon: Icons.copy_rounded, tooltip: 'Koobiyee', onPressed: onCopy),
                 if (onShare != null)
                   IconActionButton(icon: Icons.share_rounded, tooltip: 'La wadaag', onPressed: onShare),
                 if (onFavoriteToggle != null)
@@ -309,10 +304,7 @@ class DailyHadithCard extends StatelessWidget {
                 AppSpacing.gapXs,
                 ArabicText(arabicText, color: onHero, maxLines: 5),
                 AppSpacing.gapMd,
-                Text(
-                  'Tarjumaadda Af Soomaaliga:',
-                  style: context.textStyles.labelMedium?.copyWith(color: muted),
-                ),
+                Text('Tarjumaadda Af Soomaaliga:', style: context.textStyles.labelMedium?.copyWith(color: muted)),
                 AppSpacing.gapXxs,
                 Text(
                   somaliText,
@@ -399,11 +391,19 @@ class FavoriteHadithCard extends StatelessWidget {
     this.isVerified = false,
     this.onTap,
     this.onRemove,
+    this.reference,
+    this.onOpen,
   });
 
   final String arabicText;
   final String somaliText;
   final String source;
+
+  /// Reference label (only what the data provides).
+  final String? reference;
+
+  /// Explicit "Akhri xadiiska" button (in addition to tapping the card).
+  final VoidCallback? onOpen;
 
   /// e.g. "La keydiyay 3 maalmood ka hor".
   final String? savedLabel;
@@ -431,12 +431,7 @@ class FavoriteHadithCard extends StatelessWidget {
               children: [
                 ArabicText(arabicText, maxLines: 2, fontSize: 20),
                 AppSpacing.gapXxs,
-                Text(
-                  somaliText,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.textStyles.bodyMedium,
-                ),
+                Text(somaliText, maxLines: 2, overflow: TextOverflow.ellipsis, style: context.textStyles.bodyMedium),
                 AppSpacing.gapXs,
                 Wrap(
                   spacing: AppSpacing.xs,
@@ -444,20 +439,21 @@ class FavoriteHadithCard extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(source, style: context.textStyles.labelSmall),
+                    if (reference != null) Text('· $reference', style: context.textStyles.labelSmall),
                     if (savedLabel != null) Text('· $savedLabel', style: context.textStyles.labelSmall),
                     if (!isVerified) const DemoContentBadge(),
                   ],
                 ),
+                if (onOpen != null)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: AppTextButton(label: 'Akhri xadiiska', icon: Icons.menu_book_rounded, onPressed: onOpen),
+                  ),
               ],
             ),
           ),
           if (onRemove != null)
-            IconActionButton(
-              icon: Icons.bookmark_rounded,
-              isSelected: true,
-              tooltip: 'Ka saar',
-              onPressed: onRemove,
-            ),
+            IconActionButton(icon: Icons.bookmark_rounded, isSelected: true, tooltip: 'Ka saar', onPressed: onRemove),
         ],
       ),
     );
@@ -517,17 +513,11 @@ class BookCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(titleSomali, style: context.textStyles.titleMedium),
-                if (titleArabic != null)
-                  ArabicText(titleArabic!, variant: ArabicTextVariant.label, maxLines: 1),
+                if (titleArabic != null) ArabicText(titleArabic!, variant: ArabicTextVariant.label, maxLines: 1),
                 if (author != null) Text(author!, style: context.textStyles.bodySmall),
                 if (description != null) ...[
                   AppSpacing.gapXxs,
-                  Text(
-                    description!,
-                    style: context.textStyles.bodySmall,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(description!, style: context.textStyles.bodySmall, maxLines: 3, overflow: TextOverflow.ellipsis),
                 ],
                 if (countLabel != null || badges.isNotEmpty) ...[
                   AppSpacing.gapXs,
@@ -588,21 +578,11 @@ class CategoryCard extends StatelessWidget {
           // Flexible so the card degrades (ellipsis) instead of overflowing
           // when placed in a fixed-height grid cell with large text.
           Flexible(
-            child: Text(
-              title,
-              style: context.textStyles.titleSmall,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(title, style: context.textStyles.titleSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
           ),
           if (subtitle != null)
             Flexible(
-              child: Text(
-                subtitle!,
-                style: context.textStyles.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: Text(subtitle!, style: context.textStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
         ],
       ),
@@ -683,9 +663,7 @@ class MemorizationProgressCard extends StatelessWidget {
           AppSpacing.gapXs,
           Row(
             children: [
-              Expanded(
-                child: Text('$memorized / $total xadiis la xifdiyay', style: context.textStyles.bodySmall),
-              ),
+              Expanded(child: Text('$memorized / $total xadiis la xifdiyay', style: context.textStyles.bodySmall)),
               if (streakDays != null) ...[
                 Icon(Icons.local_fire_department_rounded, size: 16, color: c.warning),
                 const SizedBox(width: AppSpacing.xxs),

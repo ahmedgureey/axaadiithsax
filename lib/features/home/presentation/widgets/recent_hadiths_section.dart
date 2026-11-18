@@ -38,10 +38,7 @@ class RecentHadithsSection extends StatelessWidget {
               onAction: () => context.go(AppRoutes.books),
             ),
             if (!hasHistory)
-              Text(
-                'Weli wax xadiis ah ma aadan akhrin — kuwan waa tusaalooyin.',
-                style: context.textStyles.bodySmall,
-              ),
+              Text('Weli wax xadiis ah ma aadan akhrin — kuwan waa tusaalooyin.', style: context.textStyles.bodySmall),
             AppSpacing.gapSm,
             if (items.isEmpty)
               Text('Xadiis lama helin.', style: context.textStyles.bodySmall)

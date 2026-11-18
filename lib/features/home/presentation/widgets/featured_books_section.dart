@@ -73,19 +73,10 @@ class _BookTile extends StatelessWidget {
               borderRadius: AppRadius.smAll,
               border: Border.all(color: c.gold.withValues(alpha: 0.5)),
             ),
-            child: Icon(
-              Icons.auto_stories_rounded,
-              color: context.colors.onPrimaryContainer,
-              size: AppSizes.icon,
-            ),
+            child: Icon(Icons.auto_stories_rounded, color: context.colors.onPrimaryContainer, size: AppSizes.icon),
           ),
           AppSpacing.gapSm,
-          Text(
-            book.nameSomali,
-            style: context.textStyles.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          Text(book.nameSomali, style: context.textStyles.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
           ArabicText(book.nameArabic, variant: ArabicTextVariant.label, maxLines: 1),
           AppSpacing.gapXxs,
           Flexible(

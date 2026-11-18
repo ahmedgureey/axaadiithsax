@@ -76,16 +76,8 @@ class _DesignSystemScreenState extends State<DesignSystemScreen> {
                   label: Text('System'),
                   icon: Icon(Icons.brightness_auto_outlined),
                 ),
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  label: Text('Iftiin'),
-                  icon: Icon(Icons.light_mode_outlined),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  label: Text('Mugdi'),
-                  icon: Icon(Icons.dark_mode_outlined),
-                ),
+                ButtonSegment(value: ThemeMode.light, label: Text('Iftiin'), icon: Icon(Icons.light_mode_outlined)),
+                ButtonSegment(value: ThemeMode.dark, label: Text('Mugdi'), icon: Icon(Icons.dark_mode_outlined)),
               ],
               selected: {settings.themeMode},
               onSelectionChanged: (s) => settings.setThemeMode(s.first),
@@ -121,12 +113,7 @@ class _DesignSystemScreenState extends State<DesignSystemScreen> {
             Text(_Demo.somali, style: ArabicTextStyles.somaliTranslation(context)),
           ]),
           _section('Badhamada', [
-            PrimaryButton(
-              label: 'Gal',
-              icon: Icons.login_rounded,
-              onPressed: _fakeLoad,
-              isLoading: _buttonLoading,
-            ),
+            PrimaryButton(label: 'Gal', icon: Icons.login_rounded, onPressed: _fakeLoad, isLoading: _buttonLoading),
             AppSpacing.gapSm,
             SecondaryButton(label: 'Is diiwaangeli', onPressed: () {}),
             AppSpacing.gapSm,
@@ -203,11 +190,7 @@ class _DesignSystemScreenState extends State<DesignSystemScreen> {
               onFavoriteToggle: () => setState(() => _isFavorite = !_isFavorite),
             ),
             AppSpacing.gapMd,
-            const BookCard(
-              titleSomali: 'Saxiix al-Bukhaari',
-              titleArabic: 'صحيح البخاري',
-              author: 'Imaam al-Bukhaari',
-            ),
+            const BookCard(titleSomali: 'Saxiix al-Bukhaari', titleArabic: 'صحيح البخاري', author: 'Imaam al-Bukhaari'),
             AppSpacing.gapMd,
             GridView(
               shrinkWrap: true,
@@ -265,10 +248,7 @@ class _DesignSystemScreenState extends State<DesignSystemScreen> {
                     validator: AppValidators.email,
                   ),
                   AppSpacing.gapMd,
-                  const PasswordTextField(
-                    helperText: 'Ugu yaraan 8 xaraf',
-                    validator: AppValidators.password,
-                  ),
+                  const PasswordTextField(helperText: 'Ugu yaraan 8 xaraf', validator: AppValidators.password),
                   AppSpacing.gapMd,
                   PrimaryButton(label: 'Hubi foomka', onPressed: () => _formKey.currentState?.validate()),
                 ],

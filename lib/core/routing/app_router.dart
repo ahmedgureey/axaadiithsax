@@ -18,17 +18,26 @@ import '../../features/design_system/design_system_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/hadith/presentation/hadith_detail_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/memorization/presentation/daily_plan_screen.dart';
 import '../../features/memorization/presentation/memorization_screen.dart';
+import '../../features/memorization/presentation/memorize_hadith_screen.dart';
+import '../../features/memorization/presentation/review_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/quiz/domain/quiz_models.dart';
+import '../../features/quiz/presentation/quiz_play_screen.dart';
 import '../../features/quiz/presentation/quiz_results_screen.dart';
 import '../../features/quiz/presentation/quiz_screen.dart';
+import '../../features/search/presentation/categories_screen.dart';
+import '../../features/search/presentation/category_results_screen.dart';
 import '../../features/search/presentation/search_screen.dart';
 import '../../features/settings/presentation/appearance_settings_screen.dart';
+import '../../features/settings/presentation/help_screen.dart';
 import '../../features/settings/presentation/language_settings_screen.dart';
 import '../../features/settings/presentation/notification_settings_screen.dart';
 import '../../features/settings/presentation/privacy_screen.dart';
+import '../../features/settings/presentation/reading_settings_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import 'app_routes.dart';
@@ -108,8 +117,7 @@ GoRouter buildAppRouter(AppServices services, {String initialLocation = AppRoute
                 routes: [
                   GoRoute(
                     path: ':${AppRoutes.bookIdParam}',
-                    builder: (_, state) =>
-                        BookDetailScreen(bookId: state.pathParameters[AppRoutes.bookIdParam] ?? ''),
+                    builder: (_, state) => BookDetailScreen(bookId: state.pathParameters[AppRoutes.bookIdParam] ?? ''),
                     routes: [
                       GoRoute(
                         path: 'chapters/:${AppRoutes.chapterIdParam}',
@@ -126,14 +134,46 @@ GoRouter buildAppRouter(AppServices services, {String initialLocation = AppRoute
           ),
           StatefulShellBranch(
             routes: [
-              simple(
-                AppRoutes.search,
-                (state) =>
-                    SearchScreen(initialCategoryId: state.uri.queryParameters[AppRoutes.categoryQuery]),
+              GoRoute(
+                path: AppRoutes.search,
+                builder: (_, state) => SearchScreen(
+                  initialQuery: state.uri.queryParameters[AppRoutes.queryParam],
+                  initialCategoryId: state.uri.queryParameters[AppRoutes.categoryQuery],
+                  initialBookId: state.uri.queryParameters[AppRoutes.bookQuery],
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'categories',
+                    builder: (_, _) => const CategoriesScreen(),
+                    routes: [
+                      GoRoute(
+                        path: ':${AppRoutes.categoryIdParam}',
+                        builder: (_, state) =>
+                            CategoryResultsScreen(categoryId: state.pathParameters[AppRoutes.categoryIdParam] ?? ''),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
-          StatefulShellBranch(routes: [simple(AppRoutes.memorization, (_) => const MemorizationScreen())]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.memorization,
+                builder: (_, _) => const MemorizationScreen(),
+                routes: [
+                  GoRoute(path: 'plan', builder: (_, _) => const DailyPlanScreen()),
+                  GoRoute(path: 'review', builder: (_, _) => const ReviewScreen()),
+                  GoRoute(
+                    path: 'hadith/:${AppRoutes.hadithIdParam}',
+                    builder: (_, state) =>
+                        MemorizeHadithScreen(hadithId: state.pathParameters[AppRoutes.hadithIdParam] ?? ''),
+                  ),
+                ],
+              ),
+            ],
+          ),
           StatefulShellBranch(routes: [simple(AppRoutes.profile, (_) => const ProfileScreen())]),
         ],
       ),
@@ -141,8 +181,7 @@ GoRouter buildAppRouter(AppServices services, {String initialLocation = AppRoute
       // Full-screen routes (cover the bottom navigation)
       GoRoute(
         path: '/hadith/:${AppRoutes.hadithIdParam}',
-        builder: (_, state) =>
-            HadithDetailScreen(hadithId: state.pathParameters[AppRoutes.hadithIdParam] ?? ''),
+        builder: (_, state) => HadithDetailScreen(hadithId: state.pathParameters[AppRoutes.hadithIdParam] ?? ''),
       ),
       simple(AppRoutes.favorites, (_) => const FavoritesScreen()),
       simple(AppRoutes.notifications, (_) => const NotificationsScreen()),
@@ -150,9 +189,17 @@ GoRouter buildAppRouter(AppServices services, {String initialLocation = AppRoute
         path: AppRoutes.quiz,
         builder: (_, _) => const QuizScreen(),
         routes: [
+          // `extra` is only present for in-app navigation; a refresh / deep
+          // link gives null and the screens show a safe fallback.
+          GoRoute(
+            path: 'play',
+            builder: (_, state) =>
+                QuizPlayScreen(config: state.extra is QuizConfig ? state.extra! as QuizConfig : null),
+          ),
           GoRoute(
             path: 'results',
-            builder: (_, state) => QuizResultsScreen(result: state.extra as QuizResultArgs?),
+            builder: (_, state) =>
+                QuizResultsScreen(result: state.extra is QuizResult ? state.extra! as QuizResult : null),
           ),
         ],
       ),
@@ -164,6 +211,8 @@ GoRouter buildAppRouter(AppServices services, {String initialLocation = AppRoute
           GoRoute(path: 'appearance', builder: (_, _) => const AppearanceSettingsScreen()),
           GoRoute(path: 'notifications', builder: (_, _) => const NotificationSettingsScreen()),
           GoRoute(path: 'privacy', builder: (_, _) => const PrivacyScreen()),
+          GoRoute(path: 'reading', builder: (_, _) => const ReadingSettingsScreen()),
+          GoRoute(path: 'help', builder: (_, _) => const HelpScreen()),
         ],
       ),
       simple(AppRoutes.about, (_) => const AboutScreen()),

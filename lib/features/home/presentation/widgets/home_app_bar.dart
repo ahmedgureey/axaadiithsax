@@ -42,12 +42,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    greeting,
-                    style: context.textStyles.titleLarge,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(greeting, style: context.textStyles.titleLarge, maxLines: 1, overflow: TextOverflow.ellipsis),
                   Text(
                     // Guests are greeted generically — never as an account holder.
                     auth.isSignedIn && auth.displayName != null

@@ -5,12 +5,7 @@ import '../theme/app_theme_colors.dart';
 
 /// Shared button content: optional leading icon, or a spinner while loading.
 class _ButtonChild extends StatelessWidget {
-  const _ButtonChild({
-    required this.label,
-    required this.icon,
-    required this.isLoading,
-    required this.spinnerColor,
-  });
+  const _ButtonChild({required this.label, required this.icon, required this.isLoading, required this.spinnerColor});
 
   final String label;
   final IconData? icon;
@@ -20,10 +15,7 @@ class _ButtonChild extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return SizedBox.square(
-        dimension: 22,
-        child: CircularProgressIndicator(strokeWidth: 2.4, color: spinnerColor),
-      );
+      return SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: spinnerColor));
     }
     final text = Text(label, maxLines: 1, overflow: TextOverflow.ellipsis);
     if (icon == null) return text;
@@ -65,12 +57,7 @@ class PrimaryButton extends StatelessWidget {
       style: isLoading
           ? FilledButton.styleFrom(disabledBackgroundColor: context.colors.primary.withValues(alpha: 0.85))
           : null,
-      child: _ButtonChild(
-        label: label,
-        icon: icon,
-        isLoading: isLoading,
-        spinnerColor: context.colors.onPrimary,
-      ),
+      child: _ButtonChild(label: label, icon: icon, isLoading: isLoading, spinnerColor: context.colors.onPrimary),
     );
     return Semantics(
       button: true,
@@ -102,12 +89,7 @@ class SecondaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final button = OutlinedButton(
       onPressed: isLoading ? null : onPressed,
-      child: _ButtonChild(
-        label: label,
-        icon: icon,
-        isLoading: isLoading,
-        spinnerColor: context.colors.primary,
-      ),
+      child: _ButtonChild(label: label, icon: icon, isLoading: isLoading, spinnerColor: context.colors.primary),
     );
     return expanded ? SizedBox(width: double.infinity, child: button) : button;
   }
@@ -180,12 +162,6 @@ class IconActionButton extends StatelessWidget {
         ),
       );
     }
-    return IconButton(
-      onPressed: onPressed,
-      tooltip: tooltip,
-      isSelected: isSelected,
-      icon: iconWidget,
-      color: fg,
-    );
+    return IconButton(onPressed: onPressed, tooltip: tooltip, isSelected: isSelected, icon: iconWidget, color: fg);
   }
 }

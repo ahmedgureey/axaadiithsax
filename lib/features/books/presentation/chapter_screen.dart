@@ -22,10 +22,7 @@ class ChapterScreen extends StatelessWidget {
     final book = repo.bookById(bookId);
     final chapter = repo.chapterById(chapterId);
     if (book == null || chapter == null || chapter.bookId != book.id) {
-      return const NotFoundScreen(
-        title: 'Cutubkan lama helin',
-        message: 'Cutubka aad dooratay kuma jiro kitaabkan.',
-      );
+      return const NotFoundScreen(title: 'Cutubkan lama helin', message: 'Cutubka aad dooratay kuma jiro kitaabkan.');
     }
     final hadiths = repo.hadithsOf(chapter.id);
 
