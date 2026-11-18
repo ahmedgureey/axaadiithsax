@@ -181,8 +181,10 @@ class _DemoCredentialsCard extends StatelessWidget {
         children: [
           Text('Akoonka demo-ga', style: context.textStyles.titleSmall),
           AppSpacing.gapXxs,
-          SelectableText('Email: ${AuthController.demoEmail}', style: context.textStyles.bodyMedium),
-          SelectableText('Furaha: ${AuthController.demoPassword}', style: context.textStyles.bodyMedium),
+          // Plain text: "Buuxi xogta demo-ga" fills the form, so long-press
+          // selection (a sub-48dp tap target) is not needed.
+          Text('Email: ${AuthController.demoEmail}', style: context.textStyles.bodyMedium),
+          Text('Furaha: ${AuthController.demoPassword}', style: context.textStyles.bodyMedium),
           AppSpacing.gapXxs,
           Align(
             alignment: Alignment.centerLeft,
