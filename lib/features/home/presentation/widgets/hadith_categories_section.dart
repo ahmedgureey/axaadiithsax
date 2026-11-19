@@ -55,6 +55,10 @@ class _CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = summary.category;
     final appColors = context.appColors;
+    final labelStyle = context.textStyles.labelMedium?.copyWith(color: context.colors.onSurface);
+    // Every tile reserves room for two label lines, so all tiles have the same
+    // height (and icons line up) whether a name fits on one line or needs two.
+    final lineHeight = MediaQuery.textScalerOf(context).scale(labelStyle?.fontSize ?? 12) * (labelStyle?.height ?? 1.3);
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs, vertical: AppSpacing.sm),
       semanticLabel: '${c.nameSomali}, ${summary.hadithCount} xadiis',
@@ -67,12 +71,17 @@ class _CategoryTile extends StatelessWidget {
             child: Icon(categoryIcon(c.iconKey), color: appColors.goldText, size: AppSizes.icon),
           ),
           AppSpacing.gapXs,
-          Text(
-            c.nameSomali,
-            style: context.textStyles.labelMedium?.copyWith(color: context.colors.onSurface),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          SizedBox(
+            height: lineHeight * 2,
+            child: Center(
+              child: Text(
+                c.nameSomali,
+                style: labelStyle,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ),
         ],
       ),

@@ -312,7 +312,7 @@ void main() {
     testWidgets('about shows the real version and a disclaimer', (tester) async {
       await _pump(tester, AppRoutes.about);
       expect(find.text(AboutScreen.versionLabel), findsOneWidget);
-      expect(find.text('Nooca 1.0.0 (build 1)'), findsOneWidget);
+      expect(find.text('Nooca 1.0.1 (build 2)'), findsOneWidget);
       expect(find.textContaining('tusaale aan la xaqiijin'), findsOneWidget);
       expect(find.textContaining('(demo)'), findsNothing);
     });

@@ -6,6 +6,7 @@ import 'package:xadiithapp/core/routing/app_routes.dart';
 import 'package:xadiithapp/core/services/share_service.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/widgets/widgets.dart';
+import 'package:xadiithapp/features/home/presentation/widgets/hadith_categories_section.dart';
 import 'package:xadiithapp/data/models/hadith.dart';
 import 'package:xadiithapp/data/repositories/hadith_repository.dart';
 import 'package:xadiithapp/features/auth/auth_controller.dart';
@@ -83,6 +84,28 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
 int _tab(WidgetTester tester) => tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex;
 
 void main() {
+  group('Topic tiles', () {
+    for (final size in [const Size(390, 844), const Size(320, 568)]) {
+      testWidgets('all tiles have the same height and aligned icons (${size.width.toInt()} wide)', (tester) async {
+        await _pumpHome(tester, size: size);
+        final section = find.byType(HadithCategoriesSection);
+        await _scrollTo(tester, find.text('Tawbad keenka'));
+        await tester.ensureVisible(find.text('Tawbad keenka'));
+        await tester.pumpAndSettle();
+        final cards = find.descendant(of: section, matching: find.byType(AppCard));
+        expect(cards, findsWidgets);
+        final heights = {for (final e in cards.evaluate()) tester.getSize(find.byWidget(e.widget)).height};
+        expect(heights, hasLength(1), reason: 'tile heights: $heights');
+        // Icon tops in the same row line up (one distinct top per row).
+        final icons = find.descendant(of: section, matching: find.byType(Icon));
+        final iconTops = {for (final e in icons.evaluate()) tester.getTopLeft(find.byWidget(e.widget)).dy.round()};
+        final rowTops = {for (final e in cards.evaluate()) tester.getTopLeft(find.byWidget(e.widget)).dy.round()};
+        expect(iconTops.length, rowTops.length);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
   group('Layout', () {
     testWidgets('shows all sections inside the single app shell', (tester) async {
       await _pumpHome(tester);

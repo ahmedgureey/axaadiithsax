@@ -74,19 +74,40 @@ and dark mode.
 
 ```bash
 flutter build apk --debug
-flutter build apk --release
+flutter build apk --release                  # universal APK (all CPUs, ~55 MB)
+flutter build apk --release --split-per-abi  # one smaller APK per CPU (~17–21 MB)
 ```
+
+Outputs are in `build/app/outputs/flutter-apk/`. For sharing, most phones need
+`app-arm64-v8a-release.apk`; older 32-bit phones need `app-armeabi-v7a-release.apk`;
+the universal `app-release.apk` works everywhere.
 
 Notes:
 
+- **Application ID:** `com.xadiithapp.app` (Kotlin namespace too). Do not change
+  it after sharing: phones would treat it as a different app.
+- **Release signing:** `android/app/build.gradle.kts` reads
+  `android/key.properties` and signs with `android/app/upload-keystore.jks`.
+  Both files are git-ignored and exist only on the developer's machine —
+  **back them up**; without them no update can be installed over an existing
+  copy. If `key.properties` is missing the release build falls back to the
+  debug key and logs a warning; such an APK must not be shared.
+  `key.properties` format:
+  ```properties
+  storePassword=…
+  keyPassword=…
+  keyAlias=upload
+  storeFile=upload-keystore.jks
+  ```
+- Split APKs get per-CPU version codes (e.g. arm64 `2001`) while the universal
+  APK uses `1`; stick to one kind when sharing, or Android may refuse an
+  "older" version code as a downgrade.
+- Icon: adaptive icon (`mipmap-anydpi-v26`, vector star on brand green, also
+  monochrome for themed icons) plus PNGs for Android 7. The native launch
+  screen uses the same green and star.
 - `android/gradle.properties` sets `kotlin.incremental=false` because the pub
   cache (C:) and the project (D:) are on different drives, which breaks Kotlin's
   incremental cache on Windows. Remove it if both are on the same drive.
-- **Release signing:** `android/app/build.gradle.kts` still signs release builds
-  with the debug key (Flutter template default). Before publishing, create an
-  upload keystore and a `key.properties` (both are git-ignored).
-- **Application ID** is still the template `com.example.xadiithapp`; choose the
-  final ID before the first store upload (it cannot change afterwards).
 
 ## iOS build
 
@@ -109,4 +130,4 @@ Xcode. iOS has not been built in this project's Windows environment.
 - Arabic and English UI translations cover essential labels only; explanatory copy is Somali.
 - On the web build Flutter may download CanvasKit and fallback fonts from
   Google's CDN; Android/iOS builds make no network requests from app code.
-- Release signing and application/bundle IDs are not configured (see above).
+- iOS bundle ID (`com.example.xadiithapp`) and iOS signing are not configured yet.

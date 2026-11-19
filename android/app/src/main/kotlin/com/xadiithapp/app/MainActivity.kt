@@ -1,4 +1,4 @@
-package com.example.xadiithapp
+package com.xadiithapp.app
 
 import io.flutter.embedding.android.FlutterActivity
 
