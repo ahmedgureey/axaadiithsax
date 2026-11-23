@@ -71,7 +71,6 @@ enum AppText {
   themeDark,
   aboutApp,
   allSettings,
-  signOut,
 }
 
 abstract final class AppStrings {
@@ -130,7 +129,6 @@ abstract final class AppStrings {
       AppText.themeDark: 'Mugdi',
       AppText.aboutApp: 'Ku saabsan app-ka',
       AppText.allSettings: 'Dejinta oo dhan',
-      AppText.signOut: 'Ka bax',
     },
     AppLanguage.arabic: {
       AppText.navHome: 'الرئيسية',
@@ -186,7 +184,6 @@ abstract final class AppStrings {
       AppText.themeDark: 'داكن',
       AppText.aboutApp: 'حول التطبيق',
       AppText.allSettings: 'كل الإعدادات',
-      AppText.signOut: 'تسجيل الخروج',
     },
     AppLanguage.english: {
       AppText.navHome: 'Home',
@@ -242,7 +239,6 @@ abstract final class AppStrings {
       AppText.themeDark: 'Dark',
       AppText.aboutApp: 'About the app',
       AppText.allSettings: 'All settings',
-      AppText.signOut: 'Sign out',
     },
   };
 

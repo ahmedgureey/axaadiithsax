@@ -61,5 +61,3 @@ supabase.json
 # Downloaded / converted hadith datasets (decide per licence before committing)
 /import_data/
 
-# Local web preview data (unverified, never shipped)
-/web/preview/

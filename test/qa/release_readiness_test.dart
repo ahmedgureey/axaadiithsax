@@ -11,13 +11,8 @@ import '../support/test_library.dart';
 /// Cross-cutting release checks: keyboard overlap, accessibility guidelines,
 /// RTL rendering of hadith text and startup with an empty store.
 
-InMemorySettingsStore _store({String status = 'guest', String theme = 'light', String? language}) =>
-    InMemorySettingsStore({
-      'auth.onboardingSeen': true,
-      'auth.status': status,
-      'settings.themeMode': theme,
-      'settings.language': ?language,
-    });
+InMemorySettingsStore _store({String theme = 'light', String? language}) =>
+    InMemorySettingsStore({'auth.onboardingSeen': true, 'settings.themeMode': theme, 'settings.language': ?language});
 
 Future<AppServices> _pump(
   WidgetTester tester,
@@ -42,28 +37,21 @@ void main() {
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      expect(services.auth.onboardingSeen, isFalse);
+      expect(services.onboarding.onboardingSeen, isFalse);
       expect(find.byType(Scaffold), findsWidgets);
     });
   });
 
   group('Keyboard overlap (320×568 with a 260 dp keyboard)', () {
-    for (final route in [AppRoutes.login, AppRoutes.register, AppRoutes.forgotPassword, AppRoutes.resetPassword]) {
-      testWidgets('$route stays scrollable without overflow', (tester) async {
-        tester.view.viewInsets = const FakeViewPadding(bottom: 260 * 3);
-        addTearDown(tester.view.resetViewInsets);
-        await _pump(
-          tester,
-          route,
-          store: _store(status: 'signedOut'),
-          size: const Size(320, 568),
-        );
-        expect(tester.takeException(), isNull);
-        await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
-        await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull);
-      });
-    }
+    testWidgets('search stays usable without overflow', (tester) async {
+      tester.view.viewInsets = const FakeViewPadding(bottom: 260 * 3);
+      addTearDown(tester.view.resetViewInsets);
+      await _pump(tester, AppRoutes.search, size: const Size(320, 568));
+      expect(tester.takeException(), isNull);
+      await tester.drag(find.byType(Scrollable).last, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('Accessibility guidelines', () {
@@ -95,15 +83,6 @@ void main() {
         });
       }
     }
-
-    testWidgets('login form (signed out): guidelines pass', (tester) async {
-      final handle = tester.ensureSemantics();
-      await _pump(tester, AppRoutes.login, store: _store(status: 'signedOut'));
-      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
-      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-      await expectLater(tester, meetsGuideline(textContrastGuideline));
-      handle.dispose();
-    });
 
     for (final theme in ['light', 'dark']) {
       testWidgets('hadith reader ($theme): guidelines pass', (tester) async {

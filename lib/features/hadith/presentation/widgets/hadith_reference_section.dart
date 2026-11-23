@@ -22,27 +22,34 @@ class HadithReferenceSection extends StatelessWidget {
     // Gradings: each scholar's classification with its reference, as stored.
     // Several may differ; they are listed, never merged or inferred.
     final String grading;
-    if (!h.isVerified) {
+    if (h.isDemo) {
       grading = 'Lama xaqiijin — xogtani waa tusaale';
-    } else if (h.gradings.isNotEmpty) {
+    } else if (h.isVerified && h.gradings.isNotEmpty) {
       grading = [
         for (final g in h.gradings)
           '${g.displayName}${g.label != null && g.grade != 'other' ? ' (${g.label})' : ''} — '
               '${g.scholar} · ${g.sourceReference}${g.notes != null ? '\n${g.notes}' : ''}',
       ].join('\n\n');
     } else {
-      grading = h.grade ?? 'Darajo lama diiwaangelin';
+      grading = (h.isVerified ? h.grade : null) ?? 'Darajo lama diiwaangelin';
     }
     final rows = <(String, String)>[
       ('Kitaabka', repo.bookById(h.bookId)?.nameSomali ?? unavailable),
       ('Cutubka', chapter == null ? unavailable : 'Cutubka ${chapter.number} — ${chapter.titleSomali}'),
-      ('Lambarka xadiiska', h.isVerified ? h.displayNumber : '#${h.displayNumber} (booska xogta tusaalaha)'),
+      ('Lambarka xadiiska', h.isDemo ? '#${h.displayNumber} (booska xogta tusaalaha)' : h.displayNumber),
       ('Tixraac', repo.referenceLabel(h)),
       ('Weriyaha', h.narrators.isNotEmpty ? h.narrators.join('، ') : (h.narrator ?? unavailable)),
       ('Darajada', grading),
       if (h.translator != null)
         ('Tarjumaadda', '${h.translator}${h.translationSource != null ? ' · ${h.translationSource}' : ''}'),
-      ('Xaaladda xogta', h.isVerified ? 'La xaqiijiyay oo la daabacay' : 'Tusaale (lama xaqiijin)'),
+      (
+        'Xaaladda xogta',
+        switch (h.sourceStatus) {
+          SourceStatus.verified => 'La xaqiijiyay oo la daabacay',
+          SourceStatus.sourced => 'Laga soo qaatay isha hoos ku qoran',
+          SourceStatus.demo => 'Tusaale (lama xaqiijin)',
+        },
+      ),
       ('Isha', h.source ?? unavailable),
       if (h.sourceUrl != null) ('Link-ga isha', h.sourceUrl!),
     ];

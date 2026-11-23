@@ -25,7 +25,7 @@ String formatHadithText(Hadith h, HadithRepository repo) {
     '',
     [?book, repo.referenceLabel(h)].join(' · '),
     if (h.isVerified && h.grade != null) 'Darajada: ${h.grade}',
-    if (!h.isVerified) '(Xog tusaale ah — ma aha xadiis la xaqiijiyay.)',
+    if (h.isDemo) '(Xog tusaale ah — ma aha xadiis la xaqiijiyay.)',
     'Xadiith App',
   ];
   return lines.join('\n');

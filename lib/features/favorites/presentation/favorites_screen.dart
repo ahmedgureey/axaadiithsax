@@ -193,6 +193,7 @@ class _FavoriteTile extends StatelessWidget {
       source: repo.bookById(hadith.bookId)?.nameSomali ?? '—',
       reference: repo.referenceLabel(hadith),
       isVerified: hadith.isVerified,
+      isDemo: hadith.isDemo,
       onTap: open,
       onOpen: open,
       onRemove: () async {

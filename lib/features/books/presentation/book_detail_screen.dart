@@ -61,7 +61,7 @@ class BookDetailScreen extends StatelessWidget {
                         children: [
                           MetaChip(label: '${chapters.length} cutub (halkan)', icon: Icons.list_alt_rounded),
                           MetaChip(label: '$hadithCount xadiis (halkan)', icon: Icons.menu_book_outlined),
-                          if (!book.isVerified && hadithCount > 0) const DemoContentBadge(),
+                          if (book.isDemo && hadithCount > 0) const DemoContentBadge(),
                           OfflineStatusIndicator(
                             status: hadithCount > 0
                                 ? OfflineAvailability.availableLocally

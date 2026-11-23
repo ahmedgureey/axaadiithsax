@@ -153,7 +153,7 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                               icon: Icons.verified_rounded,
                               color: context.appColors.success,
                             ),
-                          if (!hadith.isVerified) const DemoContentBadge(),
+                          if (hadith.isDemo) const DemoContentBadge(),
                         ],
                       ),
                       AppSpacing.gapXs,
@@ -218,7 +218,7 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                       AppSpacing.gapMd,
                       HadithReadingActions(hadith: hadith),
                       AppSpacing.gapLg,
-                      HadithAudioPlayer(hadith: hadith),
+                      HadithAudioPlayer(key: ValueKey('audio-${hadith.id}'), hadith: hadith),
                       AppSpacing.gapLg,
                       // Same progress record as the Xifdinta tab.
                       SecondaryButton(

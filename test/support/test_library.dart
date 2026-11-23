@@ -1,3 +1,4 @@
+import 'package:xadiithapp/core/audio/audio_engine.dart';
 import 'package:xadiithapp/app/app_services.dart';
 import 'package:xadiithapp/core/services/share_service.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
@@ -83,5 +84,12 @@ Future<AppServices> createTestServices(
   SettingsStore store, {
   HadithRepository? repository,
   ShareService? share,
+  AudioEngineFactory? audioEngineFactory,
   DateTime Function()? clock,
-}) => AppServices.create(store, repository: repository ?? testRepository(), share: share, clock: clock);
+}) => AppServices.create(
+  store,
+  repository: repository ?? testRepository(),
+  share: share,
+  clock: clock,
+  audioEngineFactory: audioEngineFactory,
+);

@@ -12,10 +12,6 @@ import 'package:xadiithapp/data/remote/catalog_api.dart';
 import 'package:xadiithapp/data/remote/catalog_mapper.dart';
 import 'package:xadiithapp/data/remote/catalog_service.dart';
 import 'package:xadiithapp/data/repositories/hadith_repository.dart';
-import 'package:xadiithapp/features/auth/auth_controller.dart';
-import 'package:xadiithapp/features/auth/auth_gateway.dart';
-import 'package:xadiithapp/features/favorites/bookmark_sync.dart';
-import 'package:xadiithapp/features/favorites/favorites_controller.dart';
 
 // Fixture rows in the v2 shape. Text is TEST ONLY — not hadith.
 const _ar1 = 'نَصٌّ لِلِاخْتِبَارِ ١';
@@ -122,7 +118,7 @@ Map<String, dynamic> _detail({String status = 'published', bool disagree = true}
   ],
 };
 
-class FakeApi implements CatalogApi, BookmarkApi {
+class FakeApi implements CatalogApi {
   FakeApi({this.total = 5, this.failMeta = false});
 
   int total;
@@ -134,9 +130,6 @@ class FakeApi implements CatalogApi, BookmarkApi {
   final searchCalls = <Map<String, Object?>>[];
   Completer<void>? searchGate;
   Object? failNextSearch;
-  final bookmarks = <String>{};
-  Object? failBookmarks;
-  final bookmarkOps = <String>[];
 
   void _meta() {
     if (failMeta) throw const SocketException('offline');
@@ -240,49 +233,6 @@ class FakeApi implements CatalogApi, BookmarkApi {
 
   @override
   Future<List<Map<String, dynamic>>> daily(DateTime day) async => [_item(4)];
-
-  @override
-  Future<List<String>> bookmarkIds() async {
-    if (failBookmarks != null) throw failBookmarks!;
-    return bookmarks.toList();
-  }
-
-  @override
-  Future<void> add(String hadithId) async {
-    if (failBookmarks != null) throw failBookmarks!;
-    bookmarkOps.add('+$hadithId');
-    bookmarks.add(hadithId);
-  }
-
-  @override
-  Future<void> remove(String hadithId) async {
-    bookmarkOps.add('-$hadithId');
-    bookmarks.remove(hadithId);
-  }
-}
-
-class FakeAuth implements AuthGateway {
-  AuthUser? user;
-  final _events = StreamController<AuthGatewayEvent>.broadcast();
-  @override
-  AuthUser? get currentUser => user;
-  @override
-  Stream<AuthGatewayEvent> get events => _events.stream;
-  @override
-  Future<AuthUser> signIn({required String email, required String password}) async =>
-      user = AuthUser(email: email, emailVerified: true);
-  @override
-  Future<AuthUser?> signUp({required String name, required String email, required String password}) async => null;
-  @override
-  Future<void> sendPasswordReset(String email) async {}
-  @override
-  Future<void> resendVerification(String email) async {}
-  @override
-  Future<void> updatePassword(String newPassword) async {}
-  @override
-  Future<void> updateDisplayName(String name) async {}
-  @override
-  Future<void> signOut() async => user = null;
 }
 
 Future<CatalogService> _service(FakeApi api, {InMemorySettingsStore? store, int pageSize = 100}) async {
@@ -291,8 +241,6 @@ Future<CatalogService> _service(FakeApi api, {InMemorySettingsStore? store, int 
   await s.start();
   return s;
 }
-
-Future<void> _settle() => Future<void>.delayed(Duration.zero);
 
 void main() {
   group('CatalogMapper', () {
@@ -543,59 +491,6 @@ void main() {
     });
   });
 
-  group('BookmarkSync', () {
-    Future<(FakeApi, FavoritesController, AuthController, BookmarkSync)> setUpSync({bool signedIn = true}) async {
-      final store = InMemorySettingsStore({
-        'favorites.hadithIds': ['h1'],
-      });
-      final api = FakeApi()..bookmarks.addAll({'h2'});
-      final gateway = FakeAuth()..user = signedIn ? const AuthUser(email: 'a@b.so', emailVerified: true) : null;
-      final auth = AuthController(store, gateway: gateway);
-      await auth.load();
-      final fav = FavoritesController(store);
-      await fav.load();
-      final sync = BookmarkSync(api, fav, auth)..start();
-      await _settle();
-      await _settle();
-      return (api, fav, auth, sync);
-    }
-
-    test('sign-in merges device and account bookmarks (nothing lost)', () async {
-      final (api, fav, _, sync) = await setUpSync();
-      expect(sync.isSynced, isTrue);
-      expect(fav.ids.toSet(), {'h1', 'h2'});
-      expect(api.bookmarks, {'h1', 'h2'});
-    });
-
-    test('changes while signed in are sent; failures are reported, device keeps the change', () async {
-      final (api, fav, _, sync) = await setUpSync();
-      await fav.add('h3');
-      await _settle();
-      await fav.remove('h1');
-      await _settle();
-      expect(api.bookmarkOps, containsAll(['+h3', '-h1']));
-      api.failBookmarks = const SocketException('x');
-      await fav.add('h4');
-      await _settle();
-      expect(fav.ids, contains('h4'));
-      expect(sync.lastFailure?.kind, CatalogFailureKind.offline);
-    });
-
-    test('guests never sync; local reset never deletes account bookmarks', () async {
-      final (guestApi, guestFav, _, _) = await setUpSync(signedIn: false);
-      await guestFav.add('h5');
-      await _settle();
-      expect(guestApi.bookmarkOps, isEmpty);
-
-      final (api, fav, _, sync) = await setUpSync();
-      sync.pause();
-      await fav.clear();
-      await _settle();
-      expect(api.bookmarkOps.where((o) => o.startsWith('-')), isEmpty);
-      expect(api.bookmarks, isNotEmpty);
-    });
-  });
-
   group('Screens on the backend (fake API)', () {
     Future<AppServices> pump(
       WidgetTester tester,
@@ -608,7 +503,7 @@ void main() {
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
       final services = await AppServices.create(
-        store ?? InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest'}),
+        store ?? InMemorySettingsStore({'auth.onboardingSeen': true}),
         catalogApi: api ?? FakeApi(),
       );
       await tester.pumpWidget(XadiisApp(services: services, initialLocation: route));
@@ -764,7 +659,6 @@ void main() {
         api: api,
         store: InMemorySettingsStore({
           'auth.onboardingSeen': true,
-          'auth.status': 'guest',
           'favorites.hadithIds': ['h2'],
         }),
       );

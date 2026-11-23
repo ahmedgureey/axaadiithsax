@@ -43,7 +43,7 @@ Future<_Harness> _pump(
   addTearDown(tester.view.reset);
   final share = _FakeShare(shareOutcome);
   final services = await createTestServices(
-    InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest', 'settings.themeMode': theme}),
+    InMemorySettingsStore({'auth.onboardingSeen': true, 'settings.themeMode': theme}),
     share: share,
   );
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: initial));

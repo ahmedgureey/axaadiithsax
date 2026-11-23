@@ -43,16 +43,18 @@ class BooksScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const CatalogStatusBanner(),
-                        FormValidationMessage(
-                          type: FormMessageType.info,
-                          message: repo.totalHadithCount == 0
-                              ? noVerifiedHadithMessage
-                              : catalog != null
-                              ? 'Xadiisyada halkan ku jira waa kuwa dib-u-eegis lagu sameeyey oo la daabacay; '
-                                    'mid kasta wuxuu leeyahay isha iyo lambarkiisa asalka ah.'
-                              : 'Kutubtan waa tusaale: kaliya xadiisyo kooban oo tijaabo ah ayaa ku jira, '
-                                    'mana aha kutubta oo dhammaystiran.',
-                        ),
+                        // Placeholder notice only while placeholder books are shown.
+                        if (repo.totalHadithCount == 0 || catalog != null || books.any((b) => b.isDemo))
+                          FormValidationMessage(
+                            type: FormMessageType.info,
+                            message: repo.totalHadithCount == 0
+                                ? noVerifiedHadithMessage
+                                : catalog != null
+                                ? 'Xadiisyada halkan ku jira waa kuwa dib-u-eegis lagu sameeyey oo la daabacay; '
+                                      'mid kasta wuxuu leeyahay isha iyo lambarkiisa asalka ah.'
+                                : 'Kutubtan waa tusaale: kaliya xadiisyo kooban oo tijaabo ah ayaa ku jira, '
+                                      'mana aha kutubta oo dhammaystiran.',
+                          ),
                       ],
                     ),
                   );
@@ -72,7 +74,7 @@ class BooksScreen extends StatelessWidget {
                         : [
                             MetaChip(label: '$chapters cutub'),
                             MetaChip(label: '$hadiths xadiis'),
-                            if (!book.isVerified) const DemoContentBadge(label: 'Tusaale'),
+                            if (book.isDemo) const DemoContentBadge(label: 'Tusaale'),
                           ],
                     onTap: () => context.go(AppRoutes.book(book.id)),
                   ),

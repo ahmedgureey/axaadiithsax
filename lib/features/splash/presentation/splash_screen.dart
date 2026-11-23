@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     _timer = Timer(SplashScreen.duration, () {
       if (!mounted) return;
-      context.go(splashDestination(context.services.auth));
+      context.go(splashDestination(context.services.onboarding));
     });
   }
 

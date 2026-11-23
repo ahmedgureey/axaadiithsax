@@ -18,7 +18,6 @@ import '../support/test_library.dart';
 InMemorySettingsStore _store({String theme = 'light', String? language, List<String>? history}) =>
     InMemorySettingsStore({
       'auth.onboardingSeen': true,
-      'auth.status': 'guest',
       'settings.themeMode': theme,
       'settings.language': ?language,
       'reading.history': ?history,

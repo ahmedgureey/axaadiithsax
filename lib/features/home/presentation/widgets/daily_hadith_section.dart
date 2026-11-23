@@ -48,6 +48,7 @@ class DailyHadithSection extends StatelessWidget {
           reference: repo.referenceLabel(h),
           grade: h.grade,
           isVerified: h.isVerified,
+          isDemo: h.isDemo,
           isFavorite: saved,
           onTap: open,
           onRead: open,

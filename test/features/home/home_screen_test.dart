@@ -9,7 +9,6 @@ import 'package:xadiithapp/core/widgets/widgets.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/hadith_categories_section.dart';
 import 'package:xadiithapp/data/models/hadith.dart';
 import 'package:xadiithapp/data/repositories/hadith_repository.dart';
-import 'package:xadiithapp/features/auth/auth_controller.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/featured_books_section.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/home_search_shortcut.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/recent_hadiths_section.dart';
@@ -42,7 +41,6 @@ class _RecordingShare implements ShareService {
 
 Future<AppServices> _pumpHome(
   WidgetTester tester, {
-  AuthStatus status = AuthStatus.guest,
   HadithRepository? repository,
   ShareService? share,
   Size size = const Size(390, 844),
@@ -52,12 +50,7 @@ Future<AppServices> _pumpHome(
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   final services = await createTestServices(
-    InMemorySettingsStore({
-      'auth.onboardingSeen': true,
-      'auth.status': status.name,
-      'auth.displayName': ?(status == AuthStatus.signedIn ? AuthController.demoName : null),
-      'settings.themeMode': theme,
-    }),
+    InMemorySettingsStore({'auth.onboardingSeen': true, 'settings.themeMode': theme}),
     repository: repository,
     share: share,
   );
@@ -138,15 +131,9 @@ void main() {
   });
 
   group('App bar', () {
-    testWidgets('guest is greeted generically', (tester) async {
+    testWidgets('everyone is greeted the same way (no accounts)', (tester) async {
       await _pumpHome(tester);
       expect(find.text('Ku soo dhowow Xadiith App'), findsOneWidget);
-      expect(find.byTooltip('Aniga (marti)'), findsOneWidget);
-    });
-
-    testWidgets('signed-in demo user is greeted by name', (tester) async {
-      await _pumpHome(tester, status: AuthStatus.signedIn);
-      expect(find.text('Ku soo dhowow, ${AuthController.demoName}'), findsOneWidget);
       expect(find.descendant(of: find.byType(AppBar), matching: find.byTooltip('Aniga')), findsOneWidget);
     });
 
@@ -159,7 +146,7 @@ void main() {
 
     testWidgets('profile shortcut opens the Aniga tab', (tester) async {
       await _pumpHome(tester);
-      await tester.tap(find.byTooltip('Aniga (marti)'));
+      await tester.tap(find.descendant(of: find.byType(AppBar), matching: find.byTooltip('Aniga')));
       await tester.pumpAndSettle();
       expect(_tab(tester), 4);
     });

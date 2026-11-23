@@ -28,6 +28,7 @@ class HadithPreviewCard extends StatelessWidget {
         reference: services.repository.referenceLabel(hadith),
         grade: hadith.grade,
         isVerified: hadith.isVerified,
+        isDemo: hadith.isDemo,
         previewLines: 3,
         isFavorite: services.favorites.isFavorite(hadith.id),
         onFavoriteToggle: () => toggleFavoriteWithFeedback(context, hadith.id),

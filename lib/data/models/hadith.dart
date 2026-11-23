@@ -5,6 +5,11 @@ enum SourceStatus {
   /// Placeholder content for UI development. Never shown as authentic.
   demo,
 
+  /// Real text taken unchanged from a documented source (e.g. the bundled
+  /// an-Nawawi collection). Not placeholder content; scholarly grading is
+  /// shown only for [verified] records.
+  sourced,
+
   /// Text, translation and metadata checked against a reliable source.
   verified,
 }
@@ -34,7 +39,7 @@ class Hadith {
     this.categoryIds = const [],
     this.sourceStatus = SourceStatus.demo,
     this.source,
-    this.audioAsset,
+    this.audio,
     this.numberLabel,
     this.translator,
     this.translationSource,
@@ -71,9 +76,10 @@ class Hadith {
   /// Human-readable description of where the content came from.
   final String? source;
 
-  /// Bundled audio recording (asset path), or `null` — no record has audio
-  /// yet, and none is ever invented.
-  final String? audioAsset;
+  /// Arabic recitation of this hadith, or `null` — none is ever invented.
+  /// Backend records only carry it once the recording's source and licence
+  /// were checked and it was published.
+  final HadithAudio? audio;
 
   /// Hadith number exactly as the source gives it (e.g. "52a"). [number]
   /// is the position used for ordering; display [displayNumber].
@@ -96,7 +102,10 @@ class Hadith {
   String get displayNumber => numberLabel ?? number.toString();
 
   bool get isVerified => sourceStatus == SourceStatus.verified;
-  bool get hasAudio => audioAsset != null;
+
+  /// Placeholder content (shown with a "Tusaale" badge).
+  bool get isDemo => sourceStatus == SourceStatus.demo;
+  bool get hasAudio => audio != null;
   bool get hasTranslation => somaliText != null && somaliText!.trim().isNotEmpty;
 }
 
@@ -132,4 +141,33 @@ class HadithGrading {
     'mawdu' => 'Mawduuc (been abuur)',
     _ => label ?? grade,
   };
+}
+
+/// A recitation of a hadith (metadata only; the audio itself is streamed).
+@immutable
+class HadithAudio {
+  const HadithAudio({
+    required this.url,
+    required this.reciter,
+    required this.sourceName,
+    required this.license,
+    this.sourceUrl,
+    this.duration,
+    this.language = 'ar',
+    this.verified = false,
+  });
+
+  /// Streaming URL (https). Loaded only when the user presses play.
+  final Uri url;
+  final String reciter;
+  final String sourceName;
+  final String? sourceUrl;
+
+  /// Licence or written permission for streaming in the app.
+  final String license;
+  final Duration? duration;
+  final String language;
+
+  /// Checked by a reviewer against the Arabic text (source, completeness).
+  final bool verified;
 }

@@ -105,12 +105,22 @@ void main() {
   });
 
   group('HadithCard', () {
-    testWidgets('unverified content shows demo badge and hides grade', (tester) async {
+    testWidgets('placeholder content shows demo badge and hides grade', (tester) async {
       await tester.pumpWidget(
-        _wrap(const HadithCard(arabicText: 'نص', somaliText: 'Tarjumaad', source: 'Kitaab', grade: 'Saxiix')),
+        _wrap(
+          const HadithCard(arabicText: 'نص', somaliText: 'Tarjumaad', source: 'Kitaab', grade: 'Saxiix', isDemo: true),
+        ),
       );
       expect(find.byType(DemoContentBadge), findsOneWidget);
       expect(find.text('Saxiix'), findsNothing);
+    });
+
+    testWidgets('real unreviewed content: no demo badge, no grade', (tester) async {
+      await tester.pumpWidget(
+        _wrap(const HadithCard(arabicText: 'نص', somaliText: 'Tarjumaad', source: 'Kitaab', grade: 'Saxiix')),
+      );
+      expect(find.byType(DemoContentBadge), findsNothing);
+      expect(find.text('Saxiix'), findsNothing, reason: 'grades only for verified records');
     });
 
     testWidgets('verified content shows grade without demo badge', (tester) async {

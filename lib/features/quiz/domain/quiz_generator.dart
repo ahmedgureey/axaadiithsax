@@ -74,7 +74,7 @@ class QuizGenerator {
 
   String _ref(Hadith h) {
     final book = _repo.bookById(h.bookId)?.nameSomali ?? '';
-    final demo = h.isVerified ? '' : ' (xog tusaale ah)';
+    final demo = h.isDemo ? ' (xog tusaale ah)' : '';
     return '$book · ${_repo.referenceLabel(h)}$demo';
   }
 

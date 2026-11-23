@@ -1,18 +1,14 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
 import 'app/app.dart';
 import 'app/app_services.dart';
 import 'core/backend/supabase_backend.dart';
 import 'core/settings/app_settings_controller.dart';
-import 'data/preview/preview_dataset.dart';
+import 'data/bundled/bundled_dataset.dart';
 import 'data/remote/catalog_api.dart';
 import 'data/repositories/hadith_repository.dart';
-import 'features/auth/supabase_auth_gateway.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,36 +30,20 @@ Future<AppServices> _createServices() async {
   }
 }
 
-/// With Supabase: published catalogue (loaded on demand, cached offline),
-/// real accounts and synced bookmarks. Without it: bundled data and demo auth.
+/// Hadith come from the collection bundled with the app (assets): they work
+/// online and offline and need no database. Only if the bundle is missing
+/// does the app fall back to the Supabase catalogue (when configured).
 Future<AppServices> _servicesFrom(SettingsStore store) async {
+  final bundled = await _bundledRepository();
+  if (bundled != null) return AppServices.create(store, repository: bundled);
   final client = SupabaseBackend.client;
-  final api = client == null ? null : SupabaseCatalogApi(client);
-  return AppServices.create(
-    store,
-    repository: client == null ? await _previewRepository() : null,
-    catalogApi: api,
-    bookmarkApi: api,
-    authGateway: client == null ? null : SupabaseAuthGateway(client),
-  );
+  return AppServices.create(store, catalogApi: client == null ? null : SupabaseCatalogApi(client));
 }
 
-/// LOCAL WEB PREVIEW ONLY (`--dart-define=XADIITH_PREVIEW_DATA=true`): the
-/// unverified import file from `web/preview/`, every record marked
-/// "lama xaqiijin". Never active in APK / production builds.
-Future<HadithRepository?> _previewRepository() async {
-  if (!kIsWeb || !PreviewDataset.enabled) return null;
-  final data = await loadPreviewDataset((uri) async {
-    final response = await http.get(uri);
-    return response.statusCode == 200 ? utf8.decode(response.bodyBytes) : null;
-  }, base: Uri.base);
-  if (data == null) return null;
-  return HadithRepository(
-    books: [data.book],
-    chapters: [data.chapter],
-    hadiths: data.hadiths,
-    categories: const [],
-  );
+Future<HadithRepository?> _bundledRepository() async {
+  final data = await loadBundledDataset(rootBundle);
+  if (data == null || data.hadiths.isEmpty) return null;
+  return HadithRepository(books: [data.book], chapters: [data.chapter], hadiths: data.hadiths, categories: const []);
 }
 
 /// OFL requires the license to ship with the font; this makes it appear in

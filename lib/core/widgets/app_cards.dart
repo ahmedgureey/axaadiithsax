@@ -130,6 +130,7 @@ class HadithCard extends StatelessWidget {
     this.reference,
     this.grade,
     this.isVerified = false,
+    this.isDemo = false,
     this.isFavorite = false,
     this.onTap,
     this.onFavoriteToggle,
@@ -147,6 +148,9 @@ class HadithCard extends StatelessWidget {
   final String? reference;
   final String? grade;
   final bool isVerified;
+
+  /// Placeholder content: shows the "Tusaale" badge.
+  final bool isDemo;
   final bool isFavorite;
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteToggle;
@@ -173,7 +177,7 @@ class HadithCard extends StatelessWidget {
               MetaChip(label: source, icon: Icons.menu_book_rounded),
               if (reference != null) MetaChip(label: reference!, color: c.goldText),
               if (isVerified && grade != null) MetaChip(label: grade!, icon: Icons.verified_rounded, color: c.success),
-              if (!isVerified) const DemoContentBadge(),
+              if (isDemo) const DemoContentBadge(),
             ],
           ),
           if (narrator != null) ...[AppSpacing.gapSm, ArabicText(narrator!, variant: ArabicTextVariant.narrator)],
@@ -219,6 +223,7 @@ class DailyHadithCard extends StatelessWidget {
     required this.somaliText,
     required this.source,
     this.isVerified = false,
+    this.isDemo = false,
     this.title = 'Xadiiska Maalinta',
     this.narrator,
     this.reference,
@@ -235,6 +240,9 @@ class DailyHadithCard extends StatelessWidget {
   final String somaliText;
   final String source;
   final bool isVerified;
+
+  /// Placeholder content: shows the "Tusaale" badge.
+  final bool isDemo;
   final String title;
 
   /// Arabic narrator line, when available.
@@ -324,7 +332,7 @@ class DailyHadithCard extends StatelessWidget {
                     child: MetaChip(label: grade!, icon: Icons.verified_rounded, color: onHero),
                   ),
                 ],
-                if (!isVerified) ...[
+                if (isDemo) ...[
                   AppSpacing.gapXs,
                   Align(
                     alignment: Alignment.centerLeft,
@@ -389,6 +397,7 @@ class FavoriteHadithCard extends StatelessWidget {
     required this.source,
     this.savedLabel,
     this.isVerified = false,
+    this.isDemo = false,
     this.onTap,
     this.onRemove,
     this.reference,
@@ -408,6 +417,9 @@ class FavoriteHadithCard extends StatelessWidget {
   /// e.g. "La keydiyay 3 maalmood ka hor".
   final String? savedLabel;
   final bool isVerified;
+
+  /// Placeholder content: shows the "Tusaale" badge.
+  final bool isDemo;
   final VoidCallback? onTap;
   final VoidCallback? onRemove;
 
@@ -441,7 +453,7 @@ class FavoriteHadithCard extends StatelessWidget {
                     Text(source, style: context.textStyles.labelSmall),
                     if (reference != null) Text('· $reference', style: context.textStyles.labelSmall),
                     if (savedLabel != null) Text('· $savedLabel', style: context.textStyles.labelSmall),
-                    if (!isVerified) const DemoContentBadge(),
+                    if (isDemo) const DemoContentBadge(),
                   ],
                 ),
                 if (onOpen != null)

@@ -153,13 +153,6 @@ class SearchRequest {
   );
 }
 
-/// Bookmarks of the signed-in user (RLS: own rows only).
-abstract class BookmarkApi {
-  Future<List<String>> bookmarkIds();
-  Future<void> add(String hadithId);
-  Future<void> remove(String hadithId);
-}
-
 enum CatalogFailureKind { offline, timeout, permission, notFound, server, malformed }
 
 /// A backend error with a Somali message for the UI.
@@ -224,8 +217,10 @@ const _detailColumns =
     'hadith_narrators(role,position,narrators(name_ar,status)),'
     'hadith_categories(category_id)';
 
+const _audioColumns = 'audio_url,reciter,source_name,source_url,license,duration_seconds,language,verified_at,status';
+
 /// v2 catalogue over the official Supabase client (publishable key + RLS).
-class SupabaseCatalogApi implements CatalogApi, BookmarkApi {
+class SupabaseCatalogApi implements CatalogApi {
   SupabaseCatalogApi(this._client, {this.timeout = const Duration(seconds: 10)});
 
   final SupabaseClient _client;
@@ -290,8 +285,27 @@ class SupabaseCatalogApi implements CatalogApi, BookmarkApi {
           .eq('translations.status', 'published')
           .eq('gradings.status', 'published'),
     );
-    return rows.isEmpty ? null : rows.single;
+    if (rows.isEmpty) return null;
+    return {...rows.single, 'hadith_audio': await _audioOf(id)};
   });
+
+  /// Published recitations of a hadith (migration 0010). Audio is optional:
+  /// if the table is missing or the request fails, the hadith still loads.
+  Future<List<Map<String, dynamic>>> _audioOf(String hadithId) async {
+    try {
+      return _rows(
+        await _client
+            .from('hadith_audio')
+            .select(_audioColumns)
+            .eq('hadith_id', hadithId)
+            .eq('status', 'published')
+            .order('is_primary', ascending: false)
+            .limit(1),
+      );
+    } catch (_) {
+      return const [];
+    }
+  }
 
   @override
   Future<List<Map<String, dynamic>>> searchPage(SearchRequest request) =>
@@ -304,31 +318,4 @@ class SupabaseCatalogApi implements CatalogApi, BookmarkApi {
         '${day.day.toString().padLeft(2, '0')}';
     return _rows(await _client.rpc('daily_hadith', params: {'p_day': d}));
   });
-
-  // ---- bookmarks (RLS: the user's own rows only) ----
-
-  String get _uid {
-    final id = _client.auth.currentUser?.id;
-    if (id == null) throw const CatalogFailure(CatalogFailureKind.permission, 'not signed in');
-    return id;
-  }
-
-  @override
-  Future<List<String>> bookmarkIds() => _run(() async {
-    final rows = _rows(
-      await _client.from('bookmarks').select('hadith_id').eq('user_id', _uid).order('created_at', ascending: false),
-    );
-    return [for (final r in rows) r['hadith_id'] as String];
-  });
-
-  @override
-  Future<void> add(String hadithId) => _run(
-    () async => _client
-        .from('bookmarks')
-        .upsert({'user_id': _uid, 'hadith_id': hadithId}, onConflict: 'user_id,hadith_id', ignoreDuplicates: true),
-  );
-
-  @override
-  Future<void> remove(String hadithId) =>
-      _run(() async => _client.from('bookmarks').delete().eq('user_id', _uid).eq('hadith_id', hadithId));
 }

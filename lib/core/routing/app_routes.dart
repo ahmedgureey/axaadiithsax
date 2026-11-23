@@ -4,14 +4,17 @@ abstract final class AppRoutes {
   // ── Initial flow ────────────────────────────────────────────────────────
   static const splash = '/splash';
   static const onboarding = '/onboarding';
-  static const welcome = '/welcome';
 
-  // ── Demo authentication ─────────────────────────────────────────────────
-  static const login = '/login';
-  static const register = '/register';
-  static const forgotPassword = '/forgot-password';
-  static const resetPassword = '/reset-password';
-  static const verifyEmail = '/verify-email';
+  /// Paths of the removed login / sign-up screens. Old links still work:
+  /// they open the app (Home) instead of a "page not found".
+  static const legacyAccountRoutes = {
+    '/welcome',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/verify-email',
+  };
 
   // ── Main tabs (bottom navigation, in branch order) ───────────────────────
   static const home = '/home';
@@ -73,12 +76,6 @@ abstract final class AppRoutes {
   static const categories = '$search/categories';
   static const categoryIdParam = 'categoryId';
   static String categoryResults(String categoryId) => '$categories/${Uri.encodeComponent(categoryId)}';
-
-  /// Screens reachable while signed out.
-  static const authFlow = {welcome, login, register, forgotPassword, resetPassword, verifyEmail};
-
-  /// Informational pages readable before signing in (linked from registration).
-  static const publicRoutes = {settingsPrivacy, about};
 
   /// Branch index for each main tab path (used by tests and the shell).
   static const tabs = [home, books, search, memorization, profile];

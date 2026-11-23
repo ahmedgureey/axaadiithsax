@@ -9,7 +9,6 @@ import 'package:xadiithapp/core/routing/app_routes.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/theme/app_typography.dart';
 import 'package:xadiithapp/features/about/presentation/about_screen.dart';
-import 'package:xadiithapp/features/auth/auth_controller.dart';
 import 'package:xadiithapp/features/favorites/favorites_controller.dart';
 import 'package:xadiithapp/features/memorization/memorization_controller.dart';
 import 'package:xadiithapp/features/settings/notification_preferences_controller.dart';
@@ -20,7 +19,7 @@ import 'package:xadiithapp/features/settings/presentation/privacy_screen.dart';
 import '../../support/test_library.dart';
 
 InMemorySettingsStore _guestStore({String theme = 'light'}) =>
-    InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest', 'settings.themeMode': theme});
+    InMemorySettingsStore({'auth.onboardingSeen': true, 'settings.themeMode': theme});
 
 InMemorySettingsStore _signedInStore({String theme = 'light'}) => InMemorySettingsStore({
   'auth.onboardingSeen': true,
@@ -132,23 +131,6 @@ void main() {
     });
   });
 
-  group('Profile name (demo)', () {
-    test('guest cannot rename; signed-in name is trimmed, validated and persisted', () async {
-      final guest = AuthController(_guestStore());
-      await guest.load();
-      expect(await guest.updateDisplayName('X'), isFalse);
-
-      final store = _signedInStore();
-      final auth = AuthController(store);
-      await auth.load();
-      expect(await auth.updateDisplayName('   '), isFalse);
-      expect(await auth.updateDisplayName('x' * (AuthController.maxNameLength + 1)), isFalse);
-      expect(await auth.updateDisplayName('  Xaliimo  '), isTrue);
-      expect(auth.displayName, 'Xaliimo');
-      expect(await store.getString('auth.displayName'), 'Xaliimo');
-    });
-  });
-
   group('App info', () {
     test('version shown in the app matches pubspec.yaml', () {
       final pubspec = File('pubspec.yaml').readAsStringSync();
@@ -183,40 +165,20 @@ void main() {
       expect(s.favorites.count, 0);
       expect(s.memorization.memorizedCount, 0);
       expect(s.searchHistory.terms, isEmpty);
-      expect(s.auth.onboardingSeen, isFalse);
+      expect(s.onboarding.onboardingSeen, isFalse);
     });
   });
 
   group('Profile screen', () {
-    testWidgets('guest: honest header, zero stats, login entry, links', (tester) async {
+    testWidgets('no account UI: device notice, zero stats, links', (tester) async {
       await _pump(tester, AppRoutes.profile);
-      expect(find.text('Marti'), findsOneWidget);
-      expect(find.text('Marti — akoon ma jiro'), findsOneWidget);
+      expect(find.textContaining('Akoon looma baahna'), findsOneWidget);
       expect(_statSemantics('La keydiyay: 0'), findsOneWidget);
-      expect(find.text('Gal ama is diiwaangeli'), findsOneWidget);
+      expect(find.text('Gal ama is diiwaangeli'), findsNothing);
+      expect(find.text('Ka bax'), findsNothing);
       expect(find.byTooltip('Beddel magaca'), findsNothing);
       await tester.scrollUntilVisible(find.text('Caawimaad'), 200, scrollable: find.byType(Scrollable).first);
       expect(find.text('Dejinta oo dhan'), findsOneWidget);
-    });
-
-    testWidgets('signed-in: name edit validates and saves locally', (tester) async {
-      final s = await _pump(tester, AppRoutes.profile, store: _signedInStore());
-      expect(find.text('Cali'), findsOneWidget);
-      expect(find.text('demo@xadiis.app'), findsOneWidget);
-      expect(find.text('Akoon demo · email lama xaqiijin'), findsOneWidget);
-
-      await tester.tap(find.byTooltip('Beddel magaca'));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextFormField), '  ');
-      await tester.tap(find.text('Keydi'));
-      await tester.pumpAndSettle();
-      expect(find.text('Magacu waa qasab.'), findsOneWidget);
-
-      await tester.enterText(find.byType(TextFormField), 'Xaliimo');
-      await tester.tap(find.text('Keydi'));
-      await tester.pumpAndSettle();
-      expect(s.auth.displayName, 'Xaliimo');
-      expect(find.text('Xaliimo'), findsOneWidget);
     });
 
     testWidgets('stats reflect real favourites', (tester) async {
@@ -314,7 +276,7 @@ void main() {
     testWidgets('about shows the real version and a disclaimer', (tester) async {
       await _pump(tester, AppRoutes.about);
       expect(find.text(AboutScreen.versionLabel), findsOneWidget);
-      expect(find.text('Nooca 1.0.2 (build 3)'), findsOneWidget);
+      expect(find.text('Nooca 1.0.3 (build 4)'), findsOneWidget);
       expect(find.textContaining('xadiisyo la xaqiijiyey'), findsOneWidget);
       expect(find.textContaining('(demo)'), findsNothing);
     });
@@ -337,7 +299,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(s.favorites.count, 0);
       expect(await store.getStringList(FavoritesController.storageKey), isNull);
-      expect(s.auth.onboardingSeen, isFalse);
+      expect(s.onboarding.onboardingSeen, isFalse);
     });
 
     testWidgets('notification reset only touches notifications', (tester) async {

@@ -50,12 +50,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   bool get _isLast => _index == onboardingPages.length - 1;
 
-  /// Persists completion locally, then opens Welcome.
+  /// Persists completion locally, then opens Home (no account needed).
   Future<void> _finish() async {
     if (_finishing) return;
     _finishing = true;
-    await context.services.auth.completeOnboarding();
-    if (mounted) context.go(AppRoutes.welcome);
+    await context.services.onboarding.completeOnboarding();
+    if (mounted) context.go(AppRoutes.home);
   }
 
   void _next() {

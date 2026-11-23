@@ -193,9 +193,37 @@ abstract final class CatalogMapper {
       source: sourceName == null ? null : (edition == null ? sourceName : '$sourceName — $edition'),
       sourceUrl: _s(r, 'source_url'),
       sourceStatus: SourceStatus.verified,
+      audio: audio(r['hadith_audio']),
     );
   }
 
+  /// First published `hadith_audio` row → [HadithAudio]. Only https URLs with
+  /// a reciter, source and licence are accepted; anything else is dropped.
+  static HadithAudio? audio(Object? rows) {
+    if (rows is! List) return null;
+    for (final r in rows) {
+      if (r is! Map || r['status'] != 'published') continue;
+      final url = Uri.tryParse('${r['audio_url'] ?? ''}');
+      final reciter = r['reciter'];
+      final source = r['source_name'];
+      final license = r['license'];
+      if (url == null || url.scheme != 'https' || url.host.isEmpty) continue;
+      if (reciter is! String || source is! String || license is! String) continue;
+      if (reciter.trim().isEmpty || source.trim().isEmpty || license.trim().isEmpty) continue;
+      final seconds = r['duration_seconds'];
+      return HadithAudio(
+        url: url,
+        reciter: reciter,
+        sourceName: source,
+        sourceUrl: r['source_url'] as String?,
+        license: license,
+        duration: seconds is num && seconds > 0 ? Duration(milliseconds: (seconds * 1000).round()) : null,
+        language: (r['language'] as String?) ?? 'ar',
+        verified: r['verified_at'] != null,
+      );
+    }
+    return null;
+  }
   // ---- offline cache (published records only) ----
 
   static Map<String, dynamic> hadithToJson(Hadith h) => {
@@ -225,6 +253,17 @@ abstract final class CatalogMapper {
           'notes': g.notes,
         },
     ],
+    if (h.audio case final a?)
+      'audio': {
+        'url': a.url.toString(),
+        'reciter': a.reciter,
+        'sourceName': a.sourceName,
+        'sourceUrl': a.sourceUrl,
+        'license': a.license,
+        'durationMs': a.duration?.inMilliseconds,
+        'language': a.language,
+        'verified': a.verified,
+      },
   };
 
   static Hadith? hadithFromJson(Map<String, dynamic> j) {
@@ -256,6 +295,19 @@ abstract final class CatalogMapper {
               notes: g['notes'] as String?,
             ),
         ],
+        audio: switch (j['audio']) {
+          final Map<String, dynamic> a => HadithAudio(
+            url: Uri.parse(a['url'] as String),
+            reciter: a['reciter'] as String,
+            sourceName: a['sourceName'] as String,
+            sourceUrl: a['sourceUrl'] as String?,
+            license: a['license'] as String,
+            duration: a['durationMs'] is int ? Duration(milliseconds: a['durationMs'] as int) : null,
+            language: (a['language'] as String?) ?? 'ar',
+            verified: a['verified'] == true,
+          ),
+          _ => null,
+        },
         sourceStatus: SourceStatus.verified,
       );
     } catch (_) {

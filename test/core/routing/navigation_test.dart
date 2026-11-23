@@ -5,13 +5,12 @@ import 'package:xadiithapp/app/app_services.dart';
 import 'package:xadiithapp/core/routing/app_routes.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/widgets/widgets.dart';
-import 'package:xadiithapp/features/auth/auth_controller.dart';
 import 'package:xadiithapp/features/splash/presentation/splash_screen.dart';
 
 import '../../support/test_library.dart';
 
-Future<AppServices> _services({bool onboarded = true, AuthStatus status = AuthStatus.signedIn}) {
-  return createTestServices(InMemorySettingsStore({'auth.onboardingSeen': onboarded, 'auth.status': status.name}));
+Future<AppServices> _services({bool onboarded = true}) {
+  return createTestServices(InMemorySettingsStore({'auth.onboardingSeen': onboarded}));
 }
 
 Future<AppServices> _pumpApp(WidgetTester tester, {String initial = AppRoutes.home, AppServices? services}) async {
@@ -44,8 +43,8 @@ Future<void> _systemBack(WidgetTester tester) async {
 
 void main() {
   group('Initial flow', () {
-    testWidgets('fresh install: splash → onboarding → welcome → guest → home', (tester) async {
-      final services = await _services(onboarded: false, status: AuthStatus.signedOut);
+    testWidgets('fresh install: splash → onboarding → home, no login screen', (tester) async {
+      final services = await _services(onboarded: false);
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
@@ -57,16 +56,14 @@ void main() {
       expect(find.text('Baro Axaadiista Nabiga ﷺ'), findsOneWidget);
 
       await _tap(tester, find.text('Ka gudub'));
-      expect(services.auth.onboardingSeen, isTrue);
-      expect(find.text('Sii wad adigoon gelin'), findsOneWidget);
-
-      await _tap(tester, find.text('Sii wad adigoon gelin'));
-      expect(services.auth.status, AuthStatus.guest);
+      expect(services.onboarding.onboardingSeen, isTrue);
       expect(find.byType(NavigationBar), findsOneWidget);
       expect(_selectedTab(tester), 0);
+      expect(find.text('Gal Akoonka'), findsNothing);
+      expect(find.text('Samee Akoon'), findsNothing);
     });
 
-    testWidgets('returning signed-in user: splash goes straight to home', (tester) async {
+    testWidgets('returning user: splash goes straight to home', (tester) async {
       final services = await _services();
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
@@ -77,10 +74,10 @@ void main() {
       expect(find.byType(NavigationBar), findsOneWidget);
     });
 
-    testWidgets('signed-out user cannot open main app routes', (tester) async {
-      await _pumpApp(tester, services: await _services(status: AuthStatus.signedOut));
-      expect(find.byType(NavigationBar), findsNothing);
-      expect(find.text('Sii wad adigoon gelin'), findsOneWidget);
+    testWidgets('an old /login link opens the app', (tester) async {
+      await _pumpApp(tester, initial: '/login');
+      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(_selectedTab(tester), 0);
     });
   });
 

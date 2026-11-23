@@ -62,7 +62,7 @@ class _BookTile extends StatelessWidget {
     return AppCard(
       onTap: () => context.go(AppRoutes.book(book.id)),
       semanticLabel:
-          '${book.nameSomali}, ${item.hasContent ? '${item.hadithCount} xadiis tusaale ah' : 'weli lama darin'}',
+          '${book.nameSomali}, ${item.hasContent ? '${item.hadithCount} xadiis${book.isDemo ? ' tusaale ah' : ''}' : 'weli lama darin'}',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -89,7 +89,7 @@ class _BookTile extends StatelessWidget {
           ),
           const Spacer(),
           MetaChip(
-            label: item.hasContent ? '${item.hadithCount} xadiis (tusaale)' : 'Weli lama darin',
+            label: item.hasContent ? '${item.hadithCount} xadiis${book.isDemo ? ' (tusaale)' : ''}' : 'Weli lama darin',
             icon: item.hasContent ? Icons.menu_book_outlined : Icons.hourglass_empty_rounded,
             color: item.hasContent ? context.colors.primary : c.warning,
           ),

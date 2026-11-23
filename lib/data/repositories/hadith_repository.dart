@@ -109,11 +109,11 @@ class HadithRepository extends ChangeNotifier {
 
   int hadithCountOfCategory(String categoryId) => _hadiths.where((h) => h.categoryIds.contains(categoryId)).length;
 
-  /// Reference shown to users. Verified hadith use their real reference;
+  /// Reference shown to users. Real (verified or sourced) hadith use their reference;
   /// demo hadith only get their position in the demo dataset, labelled as
   /// such, so nothing looks like an official hadith number.
   String referenceLabel(Hadith hadith) {
-    if (hadith.isVerified && hadith.reference != null) return hadith.reference!;
+    if (!hadith.isDemo && hadith.reference != null) return hadith.reference!;
     final chapter = chapterById(hadith.chapterId);
     return "${chapter?.titleSomali ?? 'Cutub'}, #${hadith.displayNumber} (tusaale)";
   }

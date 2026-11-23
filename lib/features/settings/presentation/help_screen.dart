@@ -45,10 +45,11 @@ class HelpScreen extends StatelessWidget {
       'Aniga → Dejinta. Halkaas ka dooro iftiin, mugdi ama nidaamka, iyo luqadda.',
     ),
     (
-      Icons.science_outlined,
-      'Maxay ka dhigan tahay "tusaale" ama "demo"?',
-      '$noVerifiedHadithMessage Galitaanka waa tijaabo, ogeysiisyadu waa '
-          'doorbid oo keliya, codkuna weli ma jiro. Dhammaan xogtaadu waxay ku jirtaa qalabkan.',
+      Icons.cloud_off_outlined,
+      'Ma u baahanahay internet ama akoon?',
+      'Maya. Xadiisyadu waxay ku jiraan app-ka, waxaana lagu akhrin karaa internet la\'aan; akoon looma baahna. '
+          'Kuwa aad keydisay iyo xifdintaadu waxay ku jiraan qalabkan oo keliya. Ogeysiisyadu waa doorbid oo keliya, '
+          'codkuna weli ma jiro.',
     ),
   ];
 

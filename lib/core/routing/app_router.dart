@@ -4,13 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/app_services.dart';
 import '../../features/about/presentation/about_screen.dart';
-import '../../features/auth/auth_controller.dart';
-import '../../features/auth/presentation/forgot_password_screen.dart';
-import '../../features/auth/presentation/login_screen.dart';
-import '../../features/auth/presentation/register_screen.dart';
-import '../../features/auth/presentation/reset_password_screen.dart';
-import '../../features/auth/presentation/verify_email_screen.dart';
-import '../../features/auth/presentation/welcome_screen.dart';
 import '../../features/books/presentation/book_detail_screen.dart';
 import '../../features/books/presentation/books_screen.dart';
 import '../../features/books/presentation/chapter_screen.dart';
@@ -23,6 +16,7 @@ import '../../features/memorization/presentation/memorization_screen.dart';
 import '../../features/memorization/presentation/memorize_hadith_screen.dart';
 import '../../features/memorization/presentation/review_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
+import '../../features/onboarding/onboarding_controller.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/quiz/domain/quiz_models.dart';
@@ -46,69 +40,42 @@ import 'not_found_screen.dart';
 
 /// Route guard. Pure function so it can be unit-tested.
 ///
+/// The app has no accounts: everyone can open every screen.
 /// * `/splash` decides where to go itself.
-/// * Onboarding is shown until completed.
-/// * Privacy / About are readable by everyone (linked from registration).
-/// * `/verify-email` only exists for a simulated, not-yet-verified session.
-/// * Signed-out users may only see the auth flow.
-/// * Signed-in users skip the auth flow. Guests may still open it (to log in).
-String? appRedirect(AuthController auth, String location) {
+/// * The introduction (onboarding) is shown once, until completed.
+/// * Links to the removed login / sign-up screens open Home.
+String? appRedirect(OnboardingController onboarding, String location) {
   if (location == AppRoutes.splash) return null;
-
-  if (!auth.onboardingSeen) {
+  if (!onboarding.onboardingSeen) {
     return location == AppRoutes.onboarding ? null : AppRoutes.onboarding;
   }
-  if (location == AppRoutes.onboarding) {
-    return auth.canUseApp ? AppRoutes.home : AppRoutes.welcome;
+  if (location == AppRoutes.onboarding || AppRoutes.legacyAccountRoutes.contains(location)) {
+    return AppRoutes.home;
   }
-  if (AppRoutes.publicRoutes.contains(location)) return null;
-
-  // A password-recovery e-mail link was opened: choose a new password first.
-  if (auth.isRecoveringPassword) {
-    return location == AppRoutes.resetPassword ? null : AppRoutes.resetPassword;
-  }
-
-  if (location == AppRoutes.verifyEmail) {
-    if (auth.isSignedIn && !auth.emailVerified) return null;
-    if (auth.pendingVerificationEmail != null) return null; // "check your e-mail" after real sign-up
-    return auth.canUseApp ? AppRoutes.home : AppRoutes.welcome;
-  }
-
-  final isAuthRoute = AppRoutes.authFlow.contains(location);
-  if (!auth.canUseApp) return isAuthRoute ? null : AppRoutes.welcome;
-  if (auth.isSignedIn && isAuthRoute) return AppRoutes.home;
   return null;
 }
 
 /// Where splash should go once it has finished.
-String splashDestination(AuthController auth) {
-  if (!auth.onboardingSeen) return AppRoutes.onboarding;
-  return auth.canUseApp ? AppRoutes.home : AppRoutes.welcome;
-}
+String splashDestination(OnboardingController onboarding) =>
+    onboarding.onboardingSeen ? AppRoutes.home : AppRoutes.onboarding;
 
 GoRouter buildAppRouter(AppServices services, {String initialLocation = AppRoutes.splash}) {
-  final auth = services.auth;
+  final onboarding = services.onboarding;
 
   GoRoute simple(String path, Widget Function(GoRouterState s) build) =>
       GoRoute(path: path, builder: (_, state) => build(state));
 
   return GoRouter(
     initialLocation: initialLocation,
-    refreshListenable: auth,
-    redirect: (context, state) => appRedirect(auth, state.matchedLocation),
+    refreshListenable: onboarding,
+    redirect: (context, state) => appRedirect(onboarding, state.matchedLocation),
     errorBuilder: (context, state) => const NotFoundScreen(),
     routes: [
       // Initial flow
       simple(AppRoutes.splash, (_) => const SplashScreen()),
       simple(AppRoutes.onboarding, (_) => const OnboardingScreen()),
-      simple(AppRoutes.welcome, (_) => const WelcomeScreen()),
-
-      // Demo auth
-      simple(AppRoutes.login, (_) => const LoginScreen()),
-      simple(AppRoutes.register, (_) => const RegisterScreen()),
-      simple(AppRoutes.forgotPassword, (_) => const ForgotPasswordScreen()),
-      simple(AppRoutes.resetPassword, (_) => const ResetPasswordScreen()),
-      simple(AppRoutes.verifyEmail, (_) => const VerifyEmailScreen()),
+      // Removed login / sign-up screens: old links open Home.
+      for (final path in AppRoutes.legacyAccountRoutes) GoRoute(path: path, redirect: (_, _) => AppRoutes.home),
 
       // Main app: five tabs with independent stacks
       StatefulShellRoute.indexedStack(

@@ -44,9 +44,7 @@ Future<AppServices> _pump(
   tester.view.physicalSize = size * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
-  final s =
-      store ??
-      InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest', 'settings.themeMode': theme});
+  final s = store ?? InMemorySettingsStore({'auth.onboardingSeen': true, 'settings.themeMode': theme});
   final services = await createTestServices(s);
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: initial));
   await tester.pumpAndSettle();
@@ -62,7 +60,6 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
 
 Map<String, Object> _session([List<String>? favorites]) => {
   'auth.onboardingSeen': true,
-  'auth.status': 'guest',
   'favorites.hadithIds': ?favorites,
 };
 

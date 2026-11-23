@@ -74,7 +74,7 @@ class MemorizeHadithScreen extends StatelessWidget {
                           icon: memorized ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
                           color: memorized ? c.success : c.textSecondary,
                         ),
-                        if (!hadith.isVerified) const DemoContentBadge(),
+                        if (hadith.isDemo) const DemoContentBadge(),
                       ],
                     ),
                     AppSpacing.gapMd,

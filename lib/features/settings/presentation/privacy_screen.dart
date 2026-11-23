@@ -20,19 +20,15 @@ class PrivacyScreen extends StatelessWidget {
       'Waxa qalabkan lagu kaydiyo',
       'Dejinta (theme, luqadda, cabbirrada qoraalka), doorbidyada ogeysiisyada, xadiisyada aad keydisay '
           '(lambarrada id-ga oo keliya), horumarka xifdinta iyo dib-u-eegista, natiijooyinka imtixaannada, '
-          'raadintii dhowayd, xadiisyadii aad ugu dambeysay akhriska (id-ga oo keliya), iyo session-ka demo-ga (magaca iyo email-ka aad gelisay). '
-          'Furaha sirta ah marnaba lama kaydiyo.',
+          'raadintii dhowayd iyo xadiisyadii aad ugu dambeysay akhriska (id-ga oo keliya).',
     ),
     (
       Icons.cloud_outlined,
-      'Server iyo akoon',
-      'Liiska xadiisyada (kutub, cutubyo, xadiisyo) waxaa laga soo dejin karaa server-ka Supabase ee app-ka, '
+      'Server — akoon ma jiro',
+      'App-ku akoon ma laha: ma jiro gelid, is-diiwaangelin, email ama furo sir ah. '
+          'Liiska xadiisyada (kutub, cutubyo, xadiisyo) waxaa laga soo dejin karaa server-ka Supabase ee app-ka, '
           'waxaana lagu kaydiyaa qalabkan si offline loogu akhriyo. Codsigaas kuma jiro wax xog shakhsi ah. '
-          'Haddii aad akoon sameysato, email-kaaga, magacaaga iyo furaha sirta ah (oo si ammaan ah loo xifdiyay, '
-          'app-kuna ma kaydiyo) waxaa haya Supabase Auth, si aad u gasho. Nooca aan server lahayn galitaanku waa demo. '
-          'Si kastaba, '
-          'kuwa aad keydisay, xifdintaada iyo dejintaada qalabka lagama diro meel kale. '
-          'Tirtiridda akoonka weli app-ka kuma jirto.',
+          'Kuwa aad keydisay, xifdintaada iyo dejintaada qalabka lagama diro meel kale.',
     ),
     (Icons.analytics_outlined, 'Raadraac iyo analytics', 'App-ka kuma jiro wax analytics, xayeysiis ama raadraac ah.'),
     (

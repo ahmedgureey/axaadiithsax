@@ -1,5 +1,5 @@
 -- =============================================================================
--- ROLLBACK for catalogue v2 (migrations 20261120000001 … 20261124000009).
+-- ROLLBACK for catalogue v2 (migrations 20261120000001 … 20261125000010).
 --
 -- ⚠️ DESTRUCTIVE: drops the v2 tables AND THEIR DATA (hadiths, translations,
 -- gradings, bookmarks, history, roles). Run only on a database where v2 was
@@ -9,6 +9,9 @@
 
 begin;
 
+drop table if exists public.hadith_audio;
+drop function if exists public.review_audio(uuid, public.content_status, text, uuid);
+drop function if exists public.guard_audio_status();
 drop function if exists public.search_hadiths_v2(text, text[], uuid[], text[], uuid[], public.grade_kind[], boolean,
                                               integer, numeric, text, integer);
 drop function if exists public.daily_hadith(date);

@@ -88,7 +88,7 @@ class SearchResultCard extends StatelessWidget {
             children: [
               MetaChip(label: book?.nameSomali ?? '—', icon: Icons.menu_book_rounded),
               MetaChip(label: repo.referenceLabel(hadith), color: c.goldText),
-              if (!hadith.isVerified) const DemoContentBadge(label: 'Tusaale'),
+              if (hadith.isDemo) const DemoContentBadge(label: 'Tusaale'),
               if (gradeLabel(hadith) case final grade?) MetaChip(label: grade, icon: Icons.verified_outlined),
             ],
           ),

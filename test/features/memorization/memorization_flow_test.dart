@@ -33,7 +33,7 @@ Future<AppServices> _pump(
 }
 
 InMemorySettingsStore _store({String theme = 'light'}) =>
-    InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest', 'settings.themeMode': theme});
+    InMemorySettingsStore({'auth.onboardingSeen': true, 'settings.themeMode': theme});
 
 Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.scrollUntilVisible(f, 300, scrollable: find.byType(Scrollable).first);

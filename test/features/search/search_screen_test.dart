@@ -22,7 +22,7 @@ Future<AppServices> _pump(
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   final services = await createTestServices(
-    InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest', 'settings.themeMode': theme}),
+    InMemorySettingsStore({'auth.onboardingSeen': true, 'settings.themeMode': theme}),
   );
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: initial));
   await tester.pumpAndSettle();
