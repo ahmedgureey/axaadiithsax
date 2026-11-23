@@ -10,6 +10,8 @@ import 'package:xadiithapp/features/auth/presentation/reset_password_screen.dart
 import 'package:xadiithapp/features/splash/presentation/splash_screen.dart';
 import 'package:xadiithapp/core/widgets/widgets.dart';
 
+import '../../support/test_library.dart';
+
 const _demoEmail = AuthController.demoEmail;
 const _demoPassword = AuthController.demoPassword;
 
@@ -31,7 +33,7 @@ Future<_Harness> _pump(
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   final s = store ?? InMemorySettingsStore({'auth.onboardingSeen': onboarded});
-  final services = await AppServices.create(s);
+  final services = await createTestServices(s);
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: initial));
   await tester.pumpAndSettle();
   return _Harness(s, services);
@@ -61,7 +63,7 @@ void main() {
   group('Splash', () {
     testWidgets('deep green brand screen with name and subtitle', (tester) async {
       final store = InMemorySettingsStore();
-      final services = await AppServices.create(store);
+      final services = await createTestServices(store);
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
@@ -103,7 +105,7 @@ void main() {
 
       // Simulate an app restart with the same storage.
       await tester.pumpWidget(const SizedBox());
-      final services = await AppServices.create(h.store);
+      final services = await createTestServices(h.store);
       await tester.pumpWidget(XadiisApp(services: services));
       await tester.pump(SplashScreen.duration);
       await tester.pumpAndSettle();
@@ -162,7 +164,7 @@ void main() {
       await tester.enterText(_field(0), 'amina@example.com');
       await tester.enterText(_field(1), 'password123');
       await _tapAndWait(tester, _button('Gal'));
-      expect(find.textContaining('kuma habboona akoonka demo-ga'), findsOneWidget);
+      expect(find.textContaining('furaha sirta ah waa khalad'), findsOneWidget);
       expect(h.auth.canUseApp, isFalse);
       expect(_inMainApp(tester), isFalse);
     });
@@ -413,7 +415,7 @@ void main() {
 
     testWidgets('verify-email has no overflow at 320×568, dark', (tester) async {
       final store = InMemorySettingsStore({'auth.onboardingSeen': true, 'settings.themeMode': 'dark'});
-      final services = await AppServices.create(store);
+      final services = await createTestServices(store);
       await services.auth.registerDemo(name: 'Amina', email: 'amina@example.com');
       tester.view.physicalSize = const Size(320 * 3, 568 * 3);
       tester.view.devicePixelRatio = 3;

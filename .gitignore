@@ -46,3 +46,20 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Supabase client config (URL + publishable key) — passed with
+# --dart-define-from-file=supabase.json; never commit secret keys.
+supabase.json
+
+# Secrets for tools (import script etc.)
+.env
+*.env
+!*.env.example
+# Import reports may contain dataset excerpts
+*.report.json
+
+# Downloaded / converted hadith datasets (decide per licence before committing)
+/import_data/
+
+# Local web preview data (unverified, never shipped)
+/web/preview/

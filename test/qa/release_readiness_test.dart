@@ -6,6 +6,8 @@ import 'package:xadiithapp/core/routing/app_routes.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/widgets/arabic_text.dart';
 
+import '../support/test_library.dart';
+
 /// Cross-cutting release checks: keyboard overlap, accessibility guidelines,
 /// RTL rendering of hadith text and startup with an empty store.
 
@@ -26,7 +28,7 @@ Future<AppServices> _pump(
   tester.view.physicalSize = size * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
-  final services = await AppServices.create(store ?? _store(), clock: () => DateTime(2026, 11, 18, 10));
+  final services = await createTestServices(store ?? _store(), clock: () => DateTime(2026, 11, 18, 10));
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: route));
   await tester.pumpAndSettle();
   return services;
@@ -35,7 +37,7 @@ Future<AppServices> _pump(
 void main() {
   group('Startup', () {
     testWidgets('empty storage starts at onboarding without errors', (tester) async {
-      final services = await AppServices.create(InMemorySettingsStore());
+      final services = await createTestServices(InMemorySettingsStore());
       await tester.pumpWidget(XadiisApp(services: services));
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
@@ -106,7 +108,7 @@ void main() {
     for (final theme in ['light', 'dark']) {
       testWidgets('hadith reader ($theme): guidelines pass', (tester) async {
         final handle = tester.ensureSemantics();
-        final probe = await AppServices.create(InMemorySettingsStore());
+        final probe = await createTestServices(InMemorySettingsStore());
         final id = probe.repository.dailyHadith(DateTime(2026, 11, 18))!.id;
         await _pump(tester, AppRoutes.hadith(id), store: _store(theme: theme));
         await expectLater(tester, meetsGuideline(androidTapTargetGuideline));

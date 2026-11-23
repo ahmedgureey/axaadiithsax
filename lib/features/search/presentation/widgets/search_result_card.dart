@@ -39,6 +39,18 @@ List<TextSpan> highlightSpans(String text, List<String> tokens, TextStyle highli
   return spans;
 }
 
+/// Short grade label for a result card, from documented gradings only:
+/// null when there is none, the grade when all scholars agree, otherwise
+/// "Darajooyin kala duwan" (details on the Hadith screen). Never inferred
+/// from the collection.
+String? gradeLabel(Hadith h) {
+  if (h.gradings.isEmpty) return null;
+  final kinds = {for (final g in h.gradings) g.grade};
+  if (kinds.length > 1) return 'Darajooyin kala duwan';
+  final g = h.gradings.first;
+  return h.gradings.length == 1 ? '${g.displayName} · ${g.scholar}' : g.displayName;
+}
+
 /// Search / category result. Opens the shared Hadith Detail screen.
 class SearchResultCard extends StatelessWidget {
   const SearchResultCard({super.key, required this.hadith, this.tokens = const [], this.onOpen});
@@ -77,8 +89,13 @@ class SearchResultCard extends StatelessWidget {
               MetaChip(label: book?.nameSomali ?? '—', icon: Icons.menu_book_rounded),
               MetaChip(label: repo.referenceLabel(hadith), color: c.goldText),
               if (!hadith.isVerified) const DemoContentBadge(label: 'Tusaale'),
+              if (gradeLabel(hadith) case final grade?) MetaChip(label: grade, icon: Icons.verified_outlined),
             ],
           ),
+          if (hadith.narrator case final narrator?) ...[
+            AppSpacing.gapXs,
+            ArabicText(narrator, maxLines: 1, fontSize: 15),
+          ],
           AppSpacing.gapSm,
           ArabicText(hadith.arabicText, maxLines: 2, fontSize: 20),
           AppSpacing.gapXs,

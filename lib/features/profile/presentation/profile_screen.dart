@@ -28,7 +28,7 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
             children: [
               AppPageBody(child: _ProfileHeader(auth: auth)),
-              if (auth.isSignedIn && !auth.emailVerified) ...[
+              if (auth.isSignedIn && !auth.emailVerified && !auth.usesRealAccounts) ...[
                 AppSpacing.gapMd,
                 AppPageBody(
                   child: SecondaryButton(
@@ -170,16 +170,20 @@ class _ProfileHeader extends StatelessWidget {
                   const DemoContentBadge(label: 'Marti — akoon ma jiro')
                 else if (auth.emailVerified)
                   MetaChip(
-                    label: 'Email la xaqiijiyay (demo)',
+                    label: auth.usesRealAccounts ? 'Email la xaqiijiyay' : 'Email la xaqiijiyay (demo)',
                     icon: Icons.verified_outlined,
                     color: context.appColors.success,
                   )
                 else
-                  const DemoContentBadge(label: 'Akoon demo · email lama xaqiijin'),
+                  DemoContentBadge(
+                    label: auth.usesRealAccounts ? 'Email-ka weli lama xaqiijin' : 'Akoon demo · email lama xaqiijin',
+                  ),
                 AppSpacing.gapXxs,
                 Text(
                   auth.isGuest
                       ? 'Ku soo dhowow! Horumarkaagu wuxuu ku kaydsan yahay qalabkan.'
+                      : auth.usesRealAccounts
+                      ? 'Ku soo dhowow, $name! Akoonkaagu waa Supabase; kuwa la keydiyay iyo xifdintu weli qalabkan ayay ku jiraan.'
                       : 'Ku soo dhowow, $name! Xogtan waxay ku kaydsan tahay qalabkan oo keliya.',
                   style: context.textStyles.bodySmall,
                 ),

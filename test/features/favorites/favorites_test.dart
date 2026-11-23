@@ -7,7 +7,6 @@ import 'package:xadiithapp/core/routing/app_routes.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/theme/theme.dart';
 import 'package:xadiithapp/core/widgets/widgets.dart';
-import 'package:xadiithapp/data/mock_data/mock_library.dart';
 import 'package:xadiithapp/data/models/chapter.dart';
 import 'package:xadiithapp/data/models/hadith.dart';
 import 'package:xadiithapp/data/models/hadith_book.dart';
@@ -17,6 +16,8 @@ import 'package:xadiithapp/features/favorites/presentation/favorites_screen.dart
 import 'package:xadiithapp/features/favorites/presentation/widgets/favorites_empty_state.dart';
 import 'package:xadiithapp/features/hadith/hadith_actions.dart';
 import 'package:xadiithapp/features/hadith/presentation/widgets/hadith_audio_player.dart';
+
+import '../../support/test_library.dart';
 
 /// Storage that can be told to fail reads and/or writes.
 class _FlakyStore extends InMemorySettingsStore {
@@ -46,7 +47,7 @@ Future<AppServices> _pump(
   final s =
       store ??
       InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest', 'settings.themeMode': theme});
-  final services = await AppServices.create(s);
+  final services = await createTestServices(s);
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: initial));
   await tester.pumpAndSettle();
   return services;
@@ -137,7 +138,7 @@ void main() {
   });
 
   group('Copy / share text', () {
-    final repo = HadithRepository();
+    final repo = testRepository();
 
     test('demo record: Arabic, Somali, book, reference, narrator, disclaimer; no grade', () {
       final h = repo.hadithById('muslim-c1-h1')!;
@@ -151,7 +152,7 @@ void main() {
     });
 
     test('missing translation / narrator are not invented', () {
-      final h = repo.hadithById('${MockLibrary.incompleteChapterId}-h3')!;
+      final h = repo.hadithById('${TestLibrary.incompleteChapterId}-h3')!;
       final text = formatHadithText(h, repo);
       expect(text, contains(missingTranslationText));
       expect(text, startsWith(h.arabicText));

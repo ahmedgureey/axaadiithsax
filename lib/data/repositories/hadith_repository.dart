@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../core/utils/arabic_normalizer.dart';
 import '../mock_data/mock_library.dart';
 import '../models/chapter.dart';
@@ -5,37 +7,97 @@ import '../models/hadith.dart';
 import '../models/hadith_book.dart';
 import '../models/hadith_category.dart';
 
-/// Read-only access to books, chapters, hadith and categories.
+/// Synchronous access to books, chapters, hadith and categories.
 ///
-/// Backed by local mock data in this phase. Lookups return `null` for unknown
-/// IDs so screens can show a not-found state instead of crashing. Methods are
-/// synchronous for now; when a real data source arrives they can become async
-/// without changing call sites' validation logic.
-class HadithRepository {
+/// Without a backend it holds the bundled catalogue. With Supabase it is the
+/// app's **cache**: `CatalogService` fills it on demand (metadata at start,
+/// chapters page by page, records by id) and listeners rebuild when data
+/// arrives. Lookups return `null` for unknown IDs so screens can show a
+/// loading or not-found state instead of crashing. It only ever holds
+/// published records (see migration 0007).
+class HadithRepository extends ChangeNotifier {
   HadithRepository({
     List<HadithBook>? books,
     List<Chapter>? chapters,
     List<Hadith>? hadiths,
     List<HadithCategory>? categories,
-  }) : books = books ?? MockLibrary.books,
-       _chapters = chapters ?? MockLibrary.chapters,
-       _hadiths = hadiths ?? MockLibrary.hadiths,
-       categories = categories ?? MockLibrary.categories;
+  }) : _books = List.of(books ?? MockLibrary.books),
+       _chapters = List.of(chapters ?? MockLibrary.chapters),
+       _hadiths = List.of(hadiths ?? MockLibrary.hadiths),
+       _categories = List.of(categories ?? MockLibrary.categories);
 
-  final List<HadithBook> books;
+  final List<HadithBook> _books;
   final List<Chapter> _chapters;
   final List<Hadith> _hadiths;
-  final List<HadithCategory> categories;
+  final List<HadithCategory> _categories;
+
+  /// Published counts from the backend (collection id / chapter id → count),
+  /// so counts are right before records are downloaded.
+  final Map<String, int> _bookCounts = {};
+  final Map<String, int> _chapterCounts = {};
+
+  List<HadithBook> get books => List.unmodifiable(_books);
+  List<HadithCategory> get categories => List.unmodifiable(_categories);
+
+  /// Replaces the catalogue metadata (backend start-up). Records already in
+  /// the cache are kept only if their chapter still exists.
+  void replaceCatalog({
+    required List<HadithBook> books,
+    required List<Chapter> chapters,
+    List<HadithCategory>? categories,
+    Map<String, int> bookCounts = const {},
+    Map<String, int> chapterCounts = const {},
+  }) {
+    _books
+      ..clear()
+      ..addAll(books);
+    _chapters
+      ..clear()
+      ..addAll(chapters);
+    if (categories != null && categories.isNotEmpty) {
+      _categories
+        ..clear()
+        ..addAll(categories);
+    }
+    _bookCounts
+      ..clear()
+      ..addAll(bookCounts);
+    _chapterCounts
+      ..clear()
+      ..addAll(chapterCounts);
+    final bookIds = {for (final b in books) b.id};
+    _hadiths.removeWhere((h) => !bookIds.contains(h.bookId));
+    notifyListeners();
+  }
+
+  /// Adds or replaces records by id (backend pages / details).
+  void mergeHadiths(Iterable<Hadith> records) {
+    var changed = false;
+    for (final h in records) {
+      final i = _hadiths.indexWhere((x) => x.id == h.id);
+      if (i >= 0) {
+        _hadiths[i] = h;
+      } else {
+        _hadiths.add(h);
+      }
+      changed = true;
+    }
+    if (changed) notifyListeners();
+  }
 
   List<Hadith> get allHadiths => _hadiths;
 
-  HadithBook? bookById(String? id) => _firstOrNull(books, (b) => b.id == id);
+  /// Total records available: backend published count when known, else
+  /// what is held locally.
+  int get totalHadithCount => _bookCounts.isEmpty ? _hadiths.length : _bookCounts.values.fold(0, (a, b) => a + b);
+
+  HadithBook? bookById(String? id) => _firstOrNull(_books, (b) => b.id == id);
 
   Chapter? chapterById(String? id) => _firstOrNull(_chapters, (c) => c.id == id);
 
   Hadith? hadithById(String? id) => _firstOrNull(_hadiths, (h) => h.id == id);
 
-  HadithCategory? categoryById(String? id) => _firstOrNull(categories, (c) => c.id == id);
+  HadithCategory? categoryById(String? id) => _firstOrNull(_categories, (c) => c.id == id);
 
   List<Chapter> chaptersOf(String bookId) =>
       _chapters.where((c) => c.bookId == bookId).toList()..sort((a, b) => a.number.compareTo(b.number));
@@ -43,7 +105,7 @@ class HadithRepository {
   List<Hadith> hadithsOf(String chapterId) =>
       _hadiths.where((h) => h.chapterId == chapterId).toList()..sort((a, b) => a.number.compareTo(b.number));
 
-  int hadithCountOfBook(String bookId) => _hadiths.where((h) => h.bookId == bookId).length;
+  int hadithCountOfBook(String bookId) => _bookCounts[bookId] ?? _hadiths.where((h) => h.bookId == bookId).length;
 
   int hadithCountOfCategory(String categoryId) => _hadiths.where((h) => h.categoryIds.contains(categoryId)).length;
 
@@ -53,10 +115,15 @@ class HadithRepository {
   String referenceLabel(Hadith hadith) {
     if (hadith.isVerified && hadith.reference != null) return hadith.reference!;
     final chapter = chapterById(hadith.chapterId);
-    return "${chapter?.titleSomali ?? 'Cutub'}, #${hadith.number} (tusaale)";
+    return "${chapter?.titleSomali ?? 'Cutub'}, #${hadith.displayNumber} (tusaale)";
   }
 
-  int hadithCountOfChapter(String chapterId) => _hadiths.where((h) => h.chapterId == chapterId).length;
+  int hadithCountOfChapter(String chapterId) =>
+      _chapterCounts[chapterId] ?? _hadiths.where((h) => h.chapterId == chapterId).length;
+
+  /// Records of [chapterId] currently in the cache (may be fewer than
+  /// [hadithCountOfChapter] while pages are still loading).
+  int loadedCountOfChapter(String chapterId) => _hadiths.where((h) => h.chapterId == chapterId).length;
 
   /// All hadith of a book in reading order (chapter number, then hadith
   /// number). Used for previous / next navigation.

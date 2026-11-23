@@ -10,6 +10,8 @@ import 'package:xadiithapp/data/models/hadith.dart';
 import 'package:xadiithapp/features/hadith/reading_history_controller.dart';
 import 'package:xadiithapp/features/settings/notification_preferences_controller.dart';
 
+import '../support/test_library.dart';
+
 /// Prompt 12: persisted reading history, Home progress cards, reader
 /// translation controls and position, and interface localisation.
 
@@ -34,7 +36,7 @@ Future<AppServices> _pump(
   tester.platformDispatcher.textScaleFactorTestValue = textScale;
   addTearDown(tester.view.reset);
   addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-  final services = await AppServices.create(store ?? _store(), clock: () => DateTime(2026, 11, 18, 10));
+  final services = await createTestServices(store ?? _store(), clock: () => DateTime(2026, 11, 18, 10));
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: route));
   await tester.pumpAndSettle();
   return services;
@@ -47,7 +49,7 @@ Future<void> _scrollTo(WidgetTester tester, Finder f) async {
 
 /// A record in the middle of a book (has both neighbours) with a translation.
 Future<Hadith> _middleHadith() async {
-  final s = await AppServices.create(InMemorySettingsStore());
+  final s = await createTestServices(InMemorySettingsStore());
   final order = s.repository.readingOrderOf('bukhari');
   return order.skip(1).firstWhere((h) => h.hasTranslation && h != order.last);
 }
@@ -78,14 +80,14 @@ void main() {
     });
 
     test('AppServices drops ids that are not in the dataset', () async {
-      final s = await AppServices.create(_store(history: ['does-not-exist']));
+      final s = await createTestServices(_store(history: ['does-not-exist']));
       expect(s.history.recentIds, isEmpty);
     });
 
     test('reset all local data clears reading history', () async {
       final h = await _middleHadith();
       final store = _store(history: [h.id]);
-      final s = await AppServices.create(store);
+      final s = await createTestServices(store);
       expect(s.history.lastId, h.id);
       await s.resetAllLocalData();
       await Future<void>.delayed(Duration.zero);

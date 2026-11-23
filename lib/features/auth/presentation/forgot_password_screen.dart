@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_services.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
@@ -13,6 +14,11 @@ class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   static const confirmation = 'Haddii email-ku ku habboon yahay demo-ga, tallaabada xigta ayaa la muujin doonaa.';
+
+  /// Same text whether or not the address has an account.
+  static const realConfirmation =
+      'Haddii akoon uu ku diiwaangashan yahay email-kaas, waxaa loo diray link lagu beddelo furaha sirta ah. '
+      'Ka fur link-ga telefoonkan.';
 
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
@@ -34,8 +40,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _loading = true);
-    await Future<void>.delayed(AuthController.demoDelay);
+    final auth = context.services.auth;
+    if (!auth.usesRealAccounts) await Future<void>.delayed(AuthController.demoDelay);
+    final failure = await auth.requestPasswordReset(_email.text);
     if (!mounted) return;
+    if (failure != null) {
+      // Only network / rate-limit problems are reported; never "no such account".
+      setState(() => _loading = false);
+      AppSnackbar.show(context, failure.message, type: AppSnackType.error);
+      return;
+    }
     setState(() {
       _loading = false;
       _submitted = true;
@@ -46,10 +60,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final real = context.services.auth.usesRealAccounts;
     return AuthScaffold(
       icon: Icons.lock_reset_rounded,
       title: 'Ma illowday furaha sirta ah?',
-      subtitle: 'Geli email-kaaga. Demo-gan email dhab ah ma diro — wuxuu kuu muujinayaa tallaabooyinka.',
+      subtitle: real
+          ? 'Geli email-kaaga, waxaan kuu soo diraynaa link lagu beddelo furaha sirta ah.'
+          : 'Geli email-kaaga. Demo-gan email ma diro.',
       children: [
         Form(
           key: _formKey,
@@ -67,7 +84,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ),
         AppSpacing.gapLg,
-        if (_submitted) ...[
+        if (_submitted && real)
+          const FormValidationMessage(type: FormMessageType.success, message: ForgotPasswordScreen.realConfirmation)
+        else if (_submitted) ...[
           const FormValidationMessage(type: FormMessageType.success, message: ForgotPasswordScreen.confirmation),
           AppSpacing.gapLg,
           PrimaryButton(

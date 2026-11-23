@@ -29,7 +29,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     return Scaffold(
       appBar: const AppTopBar(title: ReviewScreen.title),
       body: ListenableBuilder(
-        listenable: m,
+        listenable: Listenable.merge([m, context.services.repository]),
         builder: (context, _) {
           final due = [for (final r in m.dueForReview) ?services.repository.hadithById(r.hadithId)];
           return ListView(
@@ -54,7 +54,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     title: _sessionCount > 0
                         ? 'Hambalyo! Dib-u-eegistii waa dhammaatay.'
                         : 'Wax dib-u-eegis ah ma jiro maanta',
-                    message: 'Xadiisyada aad xifdiso waxay halkan ku soo muuqan doonaan marka la gaaro waqtigooda.',
+                    message: 'Xadiisyada aad xifdisay halkan ayay ku soo bixi doonaan waqtigooda.',
                     actionLabel: 'Ku noqo Xifdintayda',
                     onAction: () => context.go(AppRoutes.memorization),
                   ),

@@ -8,9 +8,10 @@ import 'package:xadiithapp/core/services/share_service.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/theme/theme.dart';
 import 'package:xadiithapp/core/widgets/widgets.dart';
-import 'package:xadiithapp/data/mock_data/mock_library.dart';
 import 'package:xadiithapp/features/books/presentation/books_screen.dart';
 import 'package:xadiithapp/features/hadith/hadith_actions.dart';
+
+import '../../support/test_library.dart';
 
 class _FakeShare implements ShareService {
   _FakeShare([this.outcome = ShareOutcome.shared]);
@@ -41,7 +42,7 @@ Future<_Harness> _pump(
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   final share = _FakeShare(shareOutcome);
-  final services = await AppServices.create(
+  final services = await createTestServices(
     InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest', 'settings.themeMode': theme}),
     share: share,
   );
@@ -82,8 +83,8 @@ void main() {
       final bukhari = find.ancestor(of: find.text('Saxiix al-Bukhaari'), matching: find.byType(BookCard));
       expect(find.descendant(of: bukhari, matching: find.text('3 cutub')), findsOneWidget);
       expect(find.descendant(of: bukhari, matching: find.text('9 xadiis')), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('Sunan Abi Daawuud'), 200, scrollable: find.byType(Scrollable).first);
-      final abuDawud = find.ancestor(of: find.text('Sunan Abi Daawuud'), matching: find.byType(BookCard));
+      await tester.scrollUntilVisible(find.text('Sunan Abii Daawuud'), 200, scrollable: find.byType(Scrollable).first);
+      final abuDawud = find.ancestor(of: find.text('Sunan Abii Daawuud'), matching: find.byType(BookCard));
       expect(find.descendant(of: abuDawud, matching: find.text('Weli lama darin')), findsOneWidget);
     });
 
@@ -117,11 +118,11 @@ void main() {
       await tester.scrollUntilVisible(find.text('Isha'), 200, scrollable: find.byType(Scrollable).first);
       expect(find.text('Lama xaqiijin — xogtani waa tusaale'), findsOneWidget);
       expect(find.text('Tusaale (lama xaqiijin)'), findsOneWidget);
-      expect(find.text(MockLibrary.demoSource), findsOneWidget);
+      expect(find.text(TestLibrary.demoSource), findsOneWidget);
     });
 
     testWidgets('missing translation and narrator show explicit messages', (tester) async {
-      await _pump(tester, AppRoutes.hadith('${MockLibrary.incompleteChapterId}-h3'));
+      await _pump(tester, AppRoutes.hadith('${TestLibrary.incompleteChapterId}-h3'));
       expect(find.text(missingTranslationText), findsOneWidget);
       expect(find.text('Weriyaha lama hayo.'), findsOneWidget);
       expect(find.text('Koobiyee tarjumaadda'), findsNothing);
@@ -222,9 +223,9 @@ void main() {
     final routes = {
       'library': AppRoutes.books,
       'book detail': AppRoutes.book('nawawi40'),
-      'chapter': AppRoutes.chapter('nawawi40', MockLibrary.incompleteChapterId),
+      'chapter': AppRoutes.chapter('nawawi40', TestLibrary.incompleteChapterId),
       'hadith detail': AppRoutes.hadith('nawawi40-c1-h1'),
-      'hadith without translation': AppRoutes.hadith('${MockLibrary.incompleteChapterId}-h3'),
+      'hadith without translation': AppRoutes.hadith('${TestLibrary.incompleteChapterId}-h3'),
     };
     for (final MapEntry(key: name, value: route) in routes.entries) {
       testWidgets('$name: no overflow at 320×568, dark, 1.5× text, max Arabic size', (tester) async {

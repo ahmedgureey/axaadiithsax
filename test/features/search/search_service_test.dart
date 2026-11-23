@@ -1,12 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
-import 'package:xadiithapp/data/repositories/hadith_repository.dart';
 import 'package:xadiithapp/features/search/data/hadith_search_service.dart';
 import 'package:xadiithapp/features/search/domain/search_options.dart';
 import 'package:xadiithapp/features/search/search_history_controller.dart';
 
+import '../../support/test_library.dart';
+
 void main() {
-  final repo = HadithRepository();
+  final repo = testRepository();
   final service = HadithSearchService(repo);
   final all = repo.allHadiths;
 
@@ -166,6 +167,43 @@ void main() {
       expect(restored.terms.contains('الصَّلَاة'), isFalse);
       await restored.clear();
       expect(restored.terms, isEmpty);
+    });
+  });
+
+  group('STEP 06 filters', () {
+    test('translatedOnly keeps only records with a Somali translation', () {
+      final r = service.search(filters: const SearchFilters(translatedOnly: true));
+      expect(r, isNotEmpty);
+      expect(r.every((h) => h.hasTranslation), isTrue);
+      expect(r.length, all.where((h) => h.hasTranslation).length);
+    });
+
+    test('grade filter matches documented gradings only (never inferred)', () {
+      final graded = all.where((h) => h.gradings.any((g) => g.grade == 'sahih')).length;
+      expect(service.search(filters: const SearchFilters(grades: {'sahih'})), hasLength(graded));
+    });
+
+    test('unknown grade values are dropped by sanitize', () {
+      final f = service.sanitize(const SearchFilters(grades: {'sahih', 'invented'}));
+      expect(f.grades, {'sahih'});
+    });
+
+    test('chapter filter narrows to that chapter', () {
+      final chapterId = all.first.chapterId;
+      final r = service.search(filters: SearchFilters(chapterIds: {chapterId}));
+      expect(r, isNotEmpty);
+      expect(r.every((h) => h.chapterId == chapterId), isTrue);
+    });
+
+    test('SearchFilters equality, isEmpty and activeCount include the new fields', () {
+      const a = SearchFilters(grades: {'sahih', 'hasan'}, translatedOnly: true, chapterIds: {'c'});
+      const b = SearchFilters(grades: {'hasan', 'sahih'}, translatedOnly: true, chapterIds: {'c'});
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+      expect(a.activeCount, 4);
+      expect(a.isEmpty, isFalse);
+      expect(const SearchFilters(translatedOnly: true).isEmpty, isFalse);
+      expect(a.copyWith(translatedOnly: false).translatedOnly, isFalse);
     });
   });
 }

@@ -18,7 +18,7 @@ class ContinueReadingCard extends StatelessWidget {
     final services = context.services;
     final repo = services.repository;
     return ListenableBuilder(
-      listenable: services.history,
+      listenable: Listenable.merge([services.history, services.repository]),
       builder: (context, _) {
         final id = services.history.lastId;
         final hadith = id == null ? null : repo.hadithById(id);
@@ -32,7 +32,8 @@ class ContinueReadingCard extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: AppSpacing.xl),
           child: AppCard(
             onTap: open,
-            semanticLabel: '${context.tr(AppText.homeContinueReading)}: ${book?.nameSomali ?? ''}, #${hadith.number}',
+            semanticLabel:
+                '${context.tr(AppText.homeContinueReading)}: ${book?.nameSomali ?? ''}, #${hadith.displayNumber}',
             child: Row(
               children: [
                 Container(
@@ -47,7 +48,7 @@ class ContinueReadingCard extends StatelessWidget {
                     children: [
                       Text(context.tr(AppText.homeContinueReading), style: context.textStyles.titleSmall),
                       Text(
-                        '${book?.nameSomali ?? '—'} · ${chapter?.titleSomali ?? ''} · #${hadith.number}',
+                        '${book?.nameSomali ?? '—'} · ${chapter?.titleSomali ?? ''} · #${hadith.displayNumber}',
                         style: context.textStyles.bodySmall,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -88,11 +89,11 @@ class HomeMemorizationSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = context.services.memorization;
     return ListenableBuilder(
-      listenable: m,
+      listenable: Listenable.merge([m, context.services.repository]),
       builder: (context, _) {
         final due = m.dueForReview.length;
         final subtitle = m.plannedToday == 0
-            ? 'Maanta xadiis cusub looma qorsheyn karo (xogta oo dhan waa la xifdiyey).'
+            ? 'Xadiisyada la heli karo oo dhan waad xifdisay.'
             : due == 0
             ? 'Maanta · dib-u-eegis ma sugayso'
             : 'Maanta · $due dib-u-eegis ayaa sugaya';

@@ -20,23 +20,19 @@ const onboardingPages = [
     icon: Icons.auto_stories_rounded,
     tag: 'Baro Xadiiska',
     title: 'Baro Axaadiista Nabiga ﷺ',
-    body:
-        'Hel axaadiis aad ku baran karto sunnada Nabiga ﷺ, adigoo akhrinaya qoraalka Carabiga '
-        'iyo tarjumaadda Af Soomaaliga.',
+    body: 'Baro sunnada Nabiga ﷺ: qoraalka Carabiga iyo tarjumaadda Af-Soomaaliga.',
   ),
   OnboardingPage(
     icon: Icons.menu_book_rounded,
     tag: 'Akhri oo Faham',
     title: 'Akhri oo Faham',
-    body:
-        'Akhri axaadiista, faham macnahooda, oo eeg tixraacyada kutubta si aad aqoontaada '
-        'u kobciso.',
+    body: 'Akhri axaadiista, faham macnahooda, oo eeg tixraacyada.',
   ),
   OnboardingPage(
     icon: Icons.psychology_rounded,
     tag: 'Xifdi oo Dib-u-eeg',
     title: 'Xifdi oo Dib-u-eeg',
-    body: 'Samee qorshe xifdin, la soco horumarkaaga, kuna tijaabi aqoontaada su\'aalo gaagaaban.',
+    body: 'Samee qorshe xifdin, la soco horumarkaaga, oo isku tijaabi su\'aalo.',
   ),
 ];
 

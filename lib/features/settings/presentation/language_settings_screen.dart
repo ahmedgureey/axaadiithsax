@@ -40,16 +40,15 @@ class LanguageSettingsScreen extends StatelessWidget {
                     type: FormMessageType.info,
                     message: settings.language.isComplete
                         ? 'Af-Soomaaligu waa luqadda app-ka oo dhammaystiran.'
-                        : '${settings.language.nativeName}: qayb ahaan. Waxaa la turjumay qoraallada muhiimka ah '
-                              '(${AppStrings.translatedCount(settings.language)}/${AppStrings.totalKeys}): tab-yada, '
-                              'cinwaannada shaashadaha, qaybaha Guriga, badhamada akhriska iyo dejinta, iyo '
-                              'qoraallada nidaamka (dialogs, waqtiga)${settings.language == AppLanguage.arabic ? ', jihaduna waa midig-ilaa-bidix' : ''}. '
-                              'Sharaxaadaha dhaadheer weli waa Af-Soomaali.',
+                        : '${settings.language.nativeName}: qayb ahaan '
+                              '(${AppStrings.translatedCount(settings.language)}/${AppStrings.totalKeys}) — tab-yada, '
+                              'cinwaannada iyo badhamada ayaa la turjumay'
+                              '${settings.language == AppLanguage.arabic ? ', jihaduna waa midig-ilaa-bidix' : ''}. '
+                              'Sharaxaadaha dhaadheer waa Af-Soomaali.',
                   ),
                   AppSpacing.gapSm,
                   Text(
-                    'Qoraalka xadiiska wuxuu had iyo jeer ahaanayaa Carabi, tarjumaadduna Af-Soomaali — '
-                    'luqadda interface-ka isma beddesho waxa xadiiska ku qoran.',
+                    'Luqadda app-ku ma beddesho qoraalka xadiiska (Carabi) iyo tarjumaadda (Af-Soomaali).',
                     style: context.textStyles.bodySmall,
                   ),
                 ],

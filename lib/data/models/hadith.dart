@@ -35,6 +35,12 @@ class Hadith {
     this.sourceStatus = SourceStatus.demo,
     this.source,
     this.audioAsset,
+    this.numberLabel,
+    this.translator,
+    this.translationSource,
+    this.sourceUrl,
+    this.gradings = const [],
+    this.narrators = const [],
   });
 
   final String id;
@@ -69,7 +75,61 @@ class Hadith {
   /// yet, and none is ever invented.
   final String? audioAsset;
 
+  /// Hadith number exactly as the source gives it (e.g. "52a"). [number]
+  /// is the position used for ordering; display [displayNumber].
+  final String? numberLabel;
+
+  /// Translator and origin of [somaliText] (backend records).
+  final String? translator;
+  final String? translationSource;
+
+  /// Link to the record in its documented source.
+  final String? sourceUrl;
+
+  /// Scholarly gradings, each with its scholar and reference. Several may
+  /// exist and may differ; they are shown as they are, never merged.
+  final List<HadithGrading> gradings;
+
+  /// Narrator names as linked in the backend (Arabic).
+  final List<String> narrators;
+
+  String get displayNumber => numberLabel ?? number.toString();
+
   bool get isVerified => sourceStatus == SourceStatus.verified;
   bool get hasAudio => audioAsset != null;
   bool get hasTranslation => somaliText != null && somaliText!.trim().isNotEmpty;
+}
+
+/// One scholar's documented classification of a hadith.
+@immutable
+class HadithGrading {
+  const HadithGrading({
+    required this.grade,
+    required this.scholar,
+    required this.sourceReference,
+    this.label,
+    this.sourceUrl,
+    this.notes,
+  });
+
+  /// sahih, hasan, hasan_sahih, daif, daif_jiddan, mawdu or other.
+  final String grade;
+
+  /// Wording as the scholar gave it (Arabic), if recorded.
+  final String? label;
+  final String scholar;
+  final String sourceReference;
+  final String? sourceUrl;
+  final String? notes;
+
+  /// Somali display name for [grade]; [label] wins for "other".
+  String get displayName => switch (grade) {
+    'sahih' => 'Saxiix',
+    'hasan' => 'Xasan',
+    'hasan_sahih' => 'Xasan Saxiix',
+    'daif' => 'Daciif',
+    'daif_jiddan' => 'Daciif aad u ah',
+    'mawdu' => 'Mawduuc (been abuur)',
+    _ => label ?? grade,
+  };
 }

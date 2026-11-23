@@ -19,15 +19,32 @@ class HadithReferenceSection extends StatelessWidget {
     final repo = context.services.repository;
     final h = hadith;
     final chapter = repo.chapterById(h.chapterId);
+    // Gradings: each scholar's classification with its reference, as stored.
+    // Several may differ; they are listed, never merged or inferred.
+    final String grading;
+    if (!h.isVerified) {
+      grading = 'Lama xaqiijin — xogtani waa tusaale';
+    } else if (h.gradings.isNotEmpty) {
+      grading = [
+        for (final g in h.gradings)
+          '${g.displayName}${g.label != null && g.grade != 'other' ? ' (${g.label})' : ''} — '
+              '${g.scholar} · ${g.sourceReference}${g.notes != null ? '\n${g.notes}' : ''}',
+      ].join('\n\n');
+    } else {
+      grading = h.grade ?? 'Darajo lama diiwaangelin';
+    }
     final rows = <(String, String)>[
       ('Kitaabka', repo.bookById(h.bookId)?.nameSomali ?? unavailable),
       ('Cutubka', chapter == null ? unavailable : 'Cutubka ${chapter.number} — ${chapter.titleSomali}'),
-      ('Lambarka xadiiska', h.isVerified ? '${h.number}' : '#${h.number} (booska xogta tusaalaha)'),
+      ('Lambarka xadiiska', h.isVerified ? h.displayNumber : '#${h.displayNumber} (booska xogta tusaalaha)'),
       ('Tixraac', repo.referenceLabel(h)),
-      ('Weriyaha', h.narrator ?? unavailable),
-      ('Darajada', h.isVerified ? (h.grade ?? unavailable) : 'Lama xaqiijin — xogtani waa tusaale'),
-      ('Xaaladda xogta', h.isVerified ? 'La xaqiijiyay' : 'Tusaale (lama xaqiijin)'),
+      ('Weriyaha', h.narrators.isNotEmpty ? h.narrators.join('، ') : (h.narrator ?? unavailable)),
+      ('Darajada', grading),
+      if (h.translator != null)
+        ('Tarjumaadda', '${h.translator}${h.translationSource != null ? ' · ${h.translationSource}' : ''}'),
+      ('Xaaladda xogta', h.isVerified ? 'La xaqiijiyay oo la daabacay' : 'Tusaale (lama xaqiijin)'),
       ('Isha', h.source ?? unavailable),
+      if (h.sourceUrl != null) ('Link-ga isha', h.sourceUrl!),
     ];
     return AppCard(
       child: Column(

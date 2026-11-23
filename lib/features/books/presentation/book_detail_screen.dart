@@ -14,7 +14,9 @@ class BookDetailScreen extends StatelessWidget {
   final String bookId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => CatalogBuilder(builder: _build);
+
+  Widget _build(BuildContext context) {
     final repo = context.services.repository;
     final book = repo.bookById(bookId);
     if (book == null) {
@@ -59,7 +61,7 @@ class BookDetailScreen extends StatelessWidget {
                         children: [
                           MetaChip(label: '${chapters.length} cutub (halkan)', icon: Icons.list_alt_rounded),
                           MetaChip(label: '$hadithCount xadiis (halkan)', icon: Icons.menu_book_outlined),
-                          if (!book.isVerified) const DemoContentBadge(),
+                          if (!book.isVerified && hadithCount > 0) const DemoContentBadge(),
                           OfflineStatusIndicator(
                             status: hadithCount > 0
                                 ? OfflineAvailability.availableLocally
@@ -85,7 +87,7 @@ class BookDetailScreen extends StatelessWidget {
                 child: EmptyStateWidget(
                   icon: Icons.list_alt_rounded,
                   title: 'Cutub lama helin',
-                  message: 'Kitaabkan weli cutub ama xadiis laguma darin noocan tijaabada ah.',
+                  message: 'Kitaabkan weli cutub ama xadiis laguma darin.',
                   actionLabel: 'Ku noqo kutubta',
                   onAction: () => context.go(AppRoutes.books),
                 ),

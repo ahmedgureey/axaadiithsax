@@ -4,6 +4,9 @@ import '../theme/app_spacing.dart';
 import '../theme/app_theme_colors.dart';
 import 'app_buttons.dart';
 
+/// Shown wherever hadith would appear but the app has no verified records.
+const noVerifiedHadithMessage = 'Weli ma jiraan xadiisyo la xaqiijiyey oo la soo bandhigi karo.';
+
 /// Centered progress indicator with optional message.
 class LoadingIndicator extends StatelessWidget {
   const LoadingIndicator({super.key, this.message, this.size = 32});

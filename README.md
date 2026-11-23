@@ -55,6 +55,41 @@ flutter run                     # connected device / emulator
 flutter run -d chrome           # web, for quick UI work
 ```
 
+## Supabase (optional, being connected)
+
+The Supabase client (`lib/core/backend/supabase_backend.dart`) supplies the
+**hadith catalogue** (books, chapters, hadith, topics) through
+`lib/data/remote/remote_catalog.dart`: at start-up the app downloads it (6 s
+timeout), caches it for offline reading, and falls back to the last download
+or to the catalogue bundled with the app. Favourites, memorisation and
+settings stay on the device.
+
+**Accounts:** with Supabase configured, login / registration / password reset
+use Supabase Auth (`lib/features/auth/supabase_auth_gateway.dart`); the demo
+account is hidden. E-mail links return to the app via
+`com.xadiithapp.app://login-callback` — add it under Authentication → URL
+Configuration → Redirect URLs. Without `supabase.json` the local demo flow runs
+(and the tests use it). Import tool for verified, licensed datasets: `tool/hadith_import/README.md`.
+
+Database design (v2): `docs/BACKEND_DESIGN.md`. Migrations in
+`supabase/migrations/2026112*_*.sql` (7 files: catalogue, users/roles, review
+workflow, RLS, read API, import tracking, app read views) — **not applied yet**; apply on a dev branch first and
+run `supabase/tests/v2_security_test.sql`. Records become public only after a
+reviewer verifies and publishes them via `review_record()`. The app's data layer
+reads v2 through `lib/data/remote/` (CatalogService + SupabaseCatalogApi): metadata at start, chapters page by page, details/favourites by id, server search, offline cache of published records, bookmark sync for signed-in accounts.
+
+1. Copy `supabase.example.json` to `supabase.json` (git-ignored) and fill in the
+   project URL and the **publishable** key (Project Settings → API Keys).
+   Never use a `sb_secret_…` / `service_role` key in the app; it is refused at startup.
+2. Run or build with the file:
+   ```bash
+   flutter run --dart-define-from-file=supabase.json
+   flutter build apk --release --dart-define-from-file=supabase.json
+   ```
+   Without it the backend stays `notConfigured` and nothing changes.
+3. Every table must have **Row Level Security** enabled before the app reads or
+   writes it.
+
 ## Development commands
 
 ```bash

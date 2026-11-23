@@ -1,0 +1,58 @@
+{
+  "format": "xadiith-import/1",
+  "provenance": {
+    "source_name": "<<Name of the source dataset or printed edition>>",
+    "source_edition": "<<Edition / version, e.g. printed edition and year>>",
+    "source_url": "https://<<where the data was obtained>>",
+    "license": "<<Licence or written permission reference for this data>>",
+    "source_language": "ar",
+    "retrieved_at": "<<date the data was obtained, e.g. 2026-11-23>>"
+  },
+  "collection": {
+    "id": "<<slug, e.g. bukhari>>",
+    "name_ar": "<<Arabic name of the collection>>",
+    "name_en": "<<English name>>",
+    "name_so": "<<Somali display name (optional, only if verified)>>",
+    "compiler_ar": "<<compiler (optional)>>",
+    "edition": "<<edition (optional)>>",
+    "source_reference": "<<bibliographic reference (optional)>>"
+  },
+  "numbering_scheme": "<<which numbering the hadith_number values follow>>",
+  "books": [
+    { "book_number": "<<as in the source>>", "title_ar": "<<Arabic title>>", "title_so": "<<optional>>", "sort_order": 1 }
+  ],
+  "chapters": [
+    { "book_number": "<<book it belongs to>>", "sort_order": 1, "chapter_number": "<<optional>>", "title_ar": "<<Arabic title>>" }
+  ],
+  "hadiths": [
+    {
+      "source_identifier": "<<id of this record in the source>>",
+      "hadith_number": "<<number exactly as the source gives it>>",
+      "source_position": 1,
+      "book_number": "<<optional>>",
+      "chapter_sort": 1,
+      "arabic_text": "<<Arabic text copied exactly from the source>>",
+      "arabic_text_vowelized": "<<optional: fully vowelized text from the source>>",
+      "narrator_text_ar": "<<optional: narrator as written in the source>>",
+      "source_url": "https://<<optional: link to this record>>",
+      "categories": ["<<optional category slug>>"],
+      "translations": [
+        {
+          "language": "so",
+          "text": "<<Somali translation>>",
+          "translator": "<<translator>>",
+          "translation_source": "<<publication / origin of the translation>>",
+          "is_primary": true
+        }
+      ],
+      "gradings": [
+        {
+          "grade": "<<sahih | hasan | hasan_sahih | daif | daif_jiddan | mawdu | other>>",
+          "grade_label_ar": "<<grade wording as the scholar gave it>>",
+          "scholar": "<<grading scholar>>",
+          "source_reference": "<<book / page where the grading is stated>>"
+        }
+      ]
+    }
+  ]
+}

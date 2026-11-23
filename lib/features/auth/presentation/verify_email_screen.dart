@@ -38,16 +38,67 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     router.go(AppRoutes.login);
   }
 
+  Future<void> _resend() async {
+    setState(() => _loading = true);
+    final failure = await context.services.auth.resendVerification();
+    if (!mounted) return;
+    setState(() => _loading = false);
+    AppSnackbar.show(
+      context,
+      failure?.message ?? 'Email-ka xaqiijinta mar kale ayaa la diray.',
+      type: failure == null ? AppSnackType.success : AppSnackType.error,
+    );
+  }
+
+  Future<void> _leaveRealVerification() async {
+    final router = GoRouter.of(context);
+    final auth = context.services.auth;
+    auth.clearPendingVerification();
+    if (auth.isSignedIn) await auth.signOut();
+    router.go(AppRoutes.login);
+  }
+
+  /// Real accounts: Supabase sent a confirmation e-mail. The account becomes
+  /// usable after the link is opened; then the user signs in.
+  Widget _buildReal(BuildContext context, String? masked) => AuthScaffold(
+    showBack: false,
+    icon: Icons.mark_email_unread_outlined,
+    title: 'Xaqiiji Email-ka',
+    subtitle: masked == null ? 'Waxaan kuu soo dirnay link xaqiijin ah.' : 'Waxaan link xaqiijin ah u dirnay $masked.',
+    children: [
+      Center(child: Icon(Icons.forward_to_inbox_rounded, size: 72, color: context.appColors.gold)),
+      AppSpacing.gapXl,
+      const FormValidationMessage(
+        type: FormMessageType.info,
+        message:
+            'Fur email-ka (eeg sidoo kale Spam), riix link-ga xaqiijinta telefoonkan, kadibna ku gal email-kaaga '
+            'iyo furahaaga sirta ah.',
+      ),
+      AppSpacing.gapXl,
+      PrimaryButton(
+        label: 'U gudub Gelitaanka',
+        icon: Icons.login_rounded,
+        onPressed: _loading ? null : _leaveRealVerification,
+      ),
+      AppSpacing.gapSm,
+      SecondaryButton(
+        label: 'Dib u dir email-ka',
+        icon: Icons.refresh_rounded,
+        onPressed: _loading ? null : _resend,
+        isLoading: _loading,
+      ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
     final masked = context.services.auth.maskedEmail;
+    if (context.services.auth.usesRealAccounts) return _buildReal(context, masked);
     return AuthScaffold(
       showBack: false,
       icon: Icons.mark_email_unread_outlined,
       title: 'Xaqiiji Email-ka',
-      subtitle: masked == null
-          ? 'Nidaam dhab ah wuxuu kuu diri lahaa link xaqiijin ah. Demo-gan wax email ah ma diro.'
-          : 'Nidaam dhab ah wuxuu link xaqiijin ah u diri lahaa $masked. Demo-gan wax email ah ma diro.',
+      subtitle: masked == null ? 'Demo-gan email xaqiijin ah ma diro.' : 'Demo-gan email xaqiijin ah uma diro $masked.',
       children: [
         Center(child: Icon(Icons.forward_to_inbox_rounded, size: 72, color: context.appColors.gold)),
         AppSpacing.gapXl,

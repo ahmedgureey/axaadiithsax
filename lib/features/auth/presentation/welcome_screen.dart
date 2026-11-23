@@ -26,8 +26,7 @@ class WelcomeScreen extends StatelessWidget {
                   Text('Ku soo dhowow', style: context.textStyles.headlineSmall, textAlign: TextAlign.center),
                   AppSpacing.gapXs,
                   HonorificText(
-                    'Akhri, raadi oo xifdi axaadiista Nabiga ﷺ — qoraalka Carabiga iyo '
-                    'tarjumaad Af-Soomaali ah, meel kasta oo aad joogto.',
+                    'Akhri, raadi oo xifdi axaadiista Nabiga ﷺ — Carabi iyo Af-Soomaali.',
                     style: context.textStyles.bodyLarge?.copyWith(color: context.appColors.textSecondary),
                     textAlign: TextAlign.center,
                   ),

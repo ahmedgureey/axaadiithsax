@@ -14,9 +14,11 @@ import 'package:xadiithapp/features/home/presentation/widgets/featured_books_sec
 import 'package:xadiithapp/features/home/presentation/widgets/home_search_shortcut.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/recent_hadiths_section.dart';
 
+import '../../support/test_library.dart';
+
 /// Fails the first [failures] times the home feed asks for the daily hadith.
 class _FlakyRepository extends HadithRepository {
-  _FlakyRepository(this.failures);
+  _FlakyRepository(this.failures) : super(chapters: TestLibrary.chapters, hadiths: TestLibrary.hadiths);
   int failures;
 
   @override
@@ -49,7 +51,7 @@ Future<AppServices> _pumpHome(
   tester.view.physicalSize = size * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
-  final services = await AppServices.create(
+  final services = await createTestServices(
     InMemorySettingsStore({
       'auth.onboardingSeen': true,
       'auth.status': status.name,
@@ -112,7 +114,7 @@ void main() {
       expect(find.text('Assalaamu Calaykum'), findsOneWidget);
       expect(find.text(HomeSearchShortcut.hint), findsOneWidget);
       expect(find.text('XADIISKA MAALINTA'), findsOneWidget);
-      for (final title in ['Si Degdeg ah u Gal', 'Kutubta Caanka ah', 'Mowduucyada']) {
+      for (final title in ['Si Degdeg ah u Gal', 'Kutubta Xadiithka', 'Mowduucyada']) {
         await _scrollTo(tester, find.text(title));
         expect(find.text(title), findsOneWidget);
       }
@@ -209,7 +211,7 @@ void main() {
 
     testWidgets('featured book opens its detail in the Kutubta tab', (tester) async {
       await _pumpHome(tester);
-      await _scrollTo(tester, find.text('Kutubta Caanka ah'));
+      await _scrollTo(tester, find.text('Kutubta Xadiithka'));
       final muslim = find.descendant(of: find.byType(FeaturedBooksSection), matching: find.text('Saxiix Muslim'));
       await tester.scrollUntilVisible(muslim, 200, scrollable: _booksRow);
       await tester.tap(muslim);
@@ -220,11 +222,11 @@ void main() {
 
     testWidgets('book without content is labelled and opens a clear empty state', (tester) async {
       await _pumpHome(tester);
-      await _scrollTo(tester, find.text('Kutubta Caanka ah'));
-      await tester.scrollUntilVisible(find.text('Sunan Abi Daawuud'), 200, scrollable: _booksRow);
+      await _scrollTo(tester, find.text('Kutubta Xadiithka'));
+      await tester.scrollUntilVisible(find.text('Sunan Abii Daawuud'), 200, scrollable: _booksRow);
       await tester.pumpAndSettle();
       expect(find.text('Weli lama darin'), findsWidgets);
-      await tester.tap(find.text('Sunan Abi Daawuud'));
+      await tester.tap(find.text('Sunan Abii Daawuud'));
       await tester.pumpAndSettle();
       expect(find.text('Cutub lama helin'), findsOneWidget);
     });
@@ -313,7 +315,7 @@ void main() {
         addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
         await _pumpHome(tester, size: size, theme: theme);
         // Scroll the horizontal books row to its end while it is built…
-        await _scrollTo(tester, find.text('Kutubta Caanka ah'));
+        await _scrollTo(tester, find.text('Kutubta Xadiithka'));
         await tester.drag(_booksRow, const Offset(-2000, 0));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);

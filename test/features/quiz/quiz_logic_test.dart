@@ -9,11 +9,13 @@ import 'package:xadiithapp/features/quiz/domain/quiz_generator.dart';
 import 'package:xadiithapp/features/quiz/domain/quiz_models.dart';
 import 'package:xadiithapp/features/quiz/domain/quiz_session.dart';
 
+import '../../support/test_library.dart';
+
 const _book = HadithBook(id: 'b', nameSomali: 'Kitaab', nameArabic: 'كتاب', author: 'A', description: '');
 const _chapter = Chapter(id: 'b-c1', bookId: 'b', number: 1, titleSomali: 'C', titleArabic: 'ب');
 
 void main() {
-  final repo = HadithRepository();
+  final repo = testRepository();
   QuizGenerator gen([HadithRepository? r]) => QuizGenerator(r ?? repo, random: Random(7));
 
   group('Generator', () {

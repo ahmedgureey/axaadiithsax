@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../core/settings/app_settings_controller.dart';
+import 'auth_gateway.dart';
 
 /// Session kinds. None of these are server-verified — see [AuthController].
 enum AuthStatus {
@@ -25,7 +28,28 @@ enum AuthStatus {
 /// Persisted locally: onboarding flag, session status (if "remember me"),
 /// display name, e-mail and the simulated verification flag.
 class AuthController extends ChangeNotifier {
-  AuthController(this._store);
+  /// With a [gateway] (Supabase) accounts are real; without one the local
+  /// demo flow below is used (tests, builds without a backend).
+  AuthController(this._store, {AuthGateway? gateway})
+    : _gateway = gateway; // ignore: prefer_initializing_formals — keeps the public parameter name `gateway`.
+
+  final AuthGateway? _gateway;
+  StreamSubscription<AuthGatewayEvent>? _events;
+
+  /// True when sign-in, registration and password reset use real accounts.
+  bool get usesRealAccounts => _gateway != null;
+
+  static const _rememberKey = 'auth.rememberSession';
+
+  String? _pendingVerificationEmail;
+  bool _recoveringPassword = false;
+
+  /// E-mail of an account that was registered but not yet confirmed (real
+  /// accounts only). The user is not signed in until they confirm.
+  String? get pendingVerificationEmail => _pendingVerificationEmail;
+
+  /// A password-recovery link was opened: the user must choose a new password.
+  bool get isRecoveringPassword => _recoveringPassword;
 
   // Published demo account (shown on the login screen and in docs).
   static const demoEmail = 'demo@xadiis.app';
@@ -65,7 +89,7 @@ class AuthController extends ChangeNotifier {
 
   /// e.g. `d***@xadiis.app` — for display on the verification screen.
   String? get maskedEmail {
-    final e = _email;
+    final e = _email ?? _pendingVerificationEmail;
     if (e == null || !e.contains('@')) return null;
     final [local, domain] = e.split('@');
     if (local.isEmpty) return '***@$domain';
@@ -84,7 +108,170 @@ class AuthController extends ChangeNotifier {
       // Storage unavailable: start signed out with onboarding.
       _status = AuthStatus.signedOut;
     }
+    final gateway = _gateway;
+    if (gateway != null) await _restoreRealSession(gateway);
     notifyListeners();
+  }
+
+  /// Real accounts: the backend's own session is the source of truth; a
+  /// locally saved "signedIn" without a backend session is not trusted.
+  Future<void> _restoreRealSession(AuthGateway gateway) async {
+    var user = gateway.currentUser;
+    final remember = await _read(() => _store.getBool(_rememberKey)) ?? true;
+    if (user != null && !remember) {
+      await _quiet(gateway.signOut);
+      user = null;
+    }
+    if (user != null) {
+      _applyUser(user);
+    } else if (_status == AuthStatus.signedIn) {
+      _status = AuthStatus.signedOut;
+      _displayName = _email = null;
+      _emailVerified = false;
+    }
+    _events = gateway.events.listen(_onGatewayEvent);
+  }
+
+  void _onGatewayEvent(AuthGatewayEvent event) {
+    switch (event.kind) {
+      case AuthGatewayEventKind.signedIn || AuthGatewayEventKind.userUpdated:
+        if (event.user != null) _applyUser(event.user!);
+      case AuthGatewayEventKind.passwordRecovery:
+        _recoveringPassword = true;
+        if (event.user != null) _applyUser(event.user!);
+      case AuthGatewayEventKind.signedOut:
+        if (_status == AuthStatus.signedIn) {
+          _status = AuthStatus.signedOut;
+          _displayName = _email = null;
+          _emailVerified = false;
+        }
+    }
+    notifyListeners();
+    unawaited(_safe(() => _store.setString(_statusKey, _status.name)));
+  }
+
+  /// Only the session status is saved locally for real accounts; e-mail and
+  /// name come from the backend session.
+  void _applyUser(AuthUser user) {
+    _status = AuthStatus.signedIn;
+    _email = user.email;
+    _displayName = user.displayName ?? user.email.split('@').first;
+    _emailVerified = user.emailVerified;
+    _pendingVerificationEmail = null;
+  }
+
+  // ---------------------------------------------------------------------
+  // Account actions — real accounts when a gateway exists, demo otherwise.
+  // Each returns null on success or an [AuthFailure] to show to the user.
+  // ---------------------------------------------------------------------
+
+  Future<AuthFailure?> signIn({required String email, required String password, bool rememberMe = true}) async {
+    final gateway = _gateway;
+    if (gateway == null) {
+      final ok = await signInDemo(email: email, password: password, rememberMe: rememberMe);
+      return ok ? null : const AuthFailure(AuthFailureKind.invalidCredentials);
+    }
+    try {
+      final user = await gateway.signIn(email: email, password: password);
+      _applyUser(user);
+      notifyListeners();
+      await _safe(() async {
+        await _store.setBool(_rememberKey, rememberMe);
+        await _store.setString(_statusKey, AuthStatus.signedIn.name);
+      });
+      return null;
+    } on AuthFailure catch (f) {
+      return f;
+    }
+  }
+
+  /// Real accounts: creates the account; when e-mail confirmation is on, the
+  /// user is NOT signed in and [pendingVerificationEmail] is set.
+  Future<AuthFailure?> register({required String name, required String email, required String password}) async {
+    final gateway = _gateway;
+    if (gateway == null) {
+      await registerDemo(name: name, email: email);
+      return null;
+    }
+    try {
+      final user = await gateway.signUp(name: name, email: email, password: password);
+      if (user != null) {
+        _applyUser(user);
+        await _safe(() => _store.setString(_statusKey, AuthStatus.signedIn.name));
+      } else {
+        _pendingVerificationEmail = email.trim().toLowerCase();
+      }
+      notifyListeners();
+      return null;
+    } on AuthFailure catch (f) {
+      return f;
+    }
+  }
+
+  /// Sends a reset e-mail (real accounts). The UI always shows the same
+  /// confirmation, so it never reveals whether the address has an account.
+  Future<AuthFailure?> requestPasswordReset(String email) async {
+    final gateway = _gateway;
+    if (gateway == null) return null;
+    try {
+      await gateway.sendPasswordReset(email);
+      return null;
+    } on AuthFailure catch (f) {
+      return f.kind == AuthFailureKind.network || f.kind == AuthFailureKind.rateLimited ? f : null;
+    }
+  }
+
+  /// Chooses a new password inside a recovery session (real accounts).
+  Future<AuthFailure?> completePasswordReset(String newPassword) async {
+    final gateway = _gateway;
+    if (gateway == null) return null;
+    try {
+      await gateway.updatePassword(newPassword);
+      _recoveringPassword = false;
+      notifyListeners();
+      return null;
+    } on AuthFailure catch (f) {
+      return f;
+    }
+  }
+
+  Future<AuthFailure?> resendVerification() async {
+    final gateway = _gateway;
+    final email = _pendingVerificationEmail ?? _email;
+    if (gateway == null || email == null) return null;
+    try {
+      await gateway.resendVerification(email);
+      return null;
+    } on AuthFailure catch (f) {
+      return f;
+    }
+  }
+
+  /// Leaves the "check your e-mail" step without an account session.
+  void clearPendingVerification() {
+    if (_pendingVerificationEmail == null) return;
+    _pendingVerificationEmail = null;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _events?.cancel();
+    super.dispose();
+  }
+
+  Future<T?> _read<T>(Future<T?> Function() read) async {
+    try {
+      return await read();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _quiet(Future<void> Function() call) async {
+    try {
+      await call();
+    } catch (_) {}
   }
 
   Future<void> completeOnboarding() async {
@@ -143,15 +330,27 @@ class AuthController extends ChangeNotifier {
     _displayName = clean;
     notifyListeners();
     await _safe(() => _store.setString(_nameKey, clean));
+    final gateway = _gateway;
+    if (gateway != null) await _quiet(() => gateway.updateDisplayName(clean));
     return true;
   }
 
   static const maxNameLength = 40;
 
-  Future<void> signOut() => _setSession(AuthStatus.signedOut, name: null, email: null, verified: false, persist: true);
+  Future<void> signOut() async {
+    final gateway = _gateway;
+    if (gateway != null && isSignedIn) await _quiet(gateway.signOut);
+    _recoveringPassword = false;
+    _pendingVerificationEmail = null;
+    await _setSession(AuthStatus.signedOut, name: null, email: null, verified: false, persist: true);
+  }
 
   /// Clears ALL demo auth state, including onboarding (for testing).
   Future<void> resetDemo() async {
+    final gateway = _gateway;
+    if (gateway != null && isSignedIn) await _quiet(gateway.signOut);
+    _recoveringPassword = false;
+    _pendingVerificationEmail = null;
     _onboardingSeen = false;
     _status = AuthStatus.signedOut;
     _displayName = null;
@@ -159,7 +358,7 @@ class AuthController extends ChangeNotifier {
     _emailVerified = false;
     notifyListeners();
     await _safe(() async {
-      for (final key in [_onboardingKey, _statusKey, _nameKey, _emailKey, _verifiedKey]) {
+      for (final key in [_onboardingKey, _statusKey, _nameKey, _emailKey, _verifiedKey, _rememberKey]) {
         await _store.remove(key);
       }
     });

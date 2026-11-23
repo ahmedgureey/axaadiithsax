@@ -52,7 +52,7 @@ class HadithSearchService {
             chapter.titleSomali,
             chapter.titleArabic,
             h.narrator ?? '',
-            '#${h.number}',
+            '#${h.displayNumber}',
             repo.referenceLabel(h),
             for (final t in topics) ...[t.nameSomali, t.nameArabic],
           ];
@@ -82,6 +82,10 @@ class HadithSearchService {
       for (final id in filters.categoryIds)
         if (_repo.categoryById(id) != null) id,
     },
+    grades: {
+      for (final g in filters.grades)
+        if (searchableGrades.containsKey(g)) g,
+    },
   );
 
   /// Every query token must appear (partial words allowed). An empty query
@@ -97,7 +101,10 @@ class HadithSearchService {
     final matches = _entries.where((e) {
       final h = e.hadith;
       if (f.bookIds.isNotEmpty && !f.bookIds.contains(h.bookId)) return false;
+      if (f.chapterIds.isNotEmpty && !f.chapterIds.contains(h.chapterId)) return false;
       if (f.categoryIds.isNotEmpty && !h.categoryIds.any(f.categoryIds.contains)) return false;
+      if (f.translatedOnly && !h.hasTranslation) return false;
+      if (f.grades.isNotEmpty && !h.gradings.any((g) => f.grades.contains(g.grade))) return false;
       switch (f.bookmark) {
         case BookmarkFilter.bookmarked when !favoriteIds.contains(h.id):
         case BookmarkFilter.notBookmarked when favoriteIds.contains(h.id):

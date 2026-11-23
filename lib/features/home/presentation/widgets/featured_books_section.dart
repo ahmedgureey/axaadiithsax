@@ -6,7 +6,7 @@ import '../../../../core/theme/theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../home_feed.dart';
 
-/// "Kutubta Caanka ah" — horizontally scrolling collection cards.
+/// "Kutubta Xadiithka" — horizontally scrolling collection cards.
 class FeaturedBooksSection extends StatelessWidget {
   const FeaturedBooksSection({super.key, required this.books});
 
@@ -23,7 +23,7 @@ class FeaturedBooksSection extends StatelessWidget {
       children: [
         AppPageBody(
           child: SectionHeader(
-            title: 'Kutubta Caanka ah',
+            title: 'Kutubta Xadiithka',
             actionLabel: 'Eeg dhammaan',
             onAction: () => context.go(AppRoutes.books),
           ),

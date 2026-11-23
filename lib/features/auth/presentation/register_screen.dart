@@ -36,14 +36,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _loading = true);
-    await Future<void>.delayed(AuthController.demoDelay);
+    final auth = context.services.auth;
+    if (!auth.usesRealAccounts) await Future<void>.delayed(AuthController.demoDelay);
     if (!mounted) return;
-    // Only name + e-mail are kept; the password is discarded here.
+    // Demo: only name + e-mail are kept. Real accounts: the password goes to
+    // Supabase only and is never stored by the app.
     // Capture the router first: the auth change triggers a redirect that may
     // dispose this screen before we navigate.
     final router = GoRouter.of(context);
-    await context.services.auth.registerDemo(name: _name.text, email: _email.text);
-    router.go(AppRoutes.verifyEmail);
+    final failure = await auth.register(name: _name.text, email: _email.text, password: _password.text);
+    if (!mounted) return;
+    if (failure != null) {
+      setState(() => _loading = false);
+      AppSnackbar.show(context, failure.message, type: AppSnackType.error);
+      return;
+    }
+    router.go(auth.isSignedIn && auth.emailVerified ? AppRoutes.home : AppRoutes.verifyEmail);
   }
 
   @override
@@ -52,7 +60,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return AuthScaffold(
       icon: Icons.person_add_alt_rounded,
       title: 'Samee Akoon',
-      subtitle: 'Akoon tijaabo ah oo ku kaydsan qalabkan oo keliya — ma jiro server.',
+      subtitle: context.services.auth.usesRealAccounts
+          ? 'Samee akoon si aad u gasho. Email xaqiijin ah ayaa laguu soo diri doonaa.'
+          : 'Akoon tijaabo ah oo ku kaydsan qalabkan oo keliya — ma jiro server.',
       children: [
         Form(
           key: _formKey,

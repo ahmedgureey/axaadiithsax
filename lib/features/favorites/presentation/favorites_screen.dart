@@ -7,6 +7,8 @@ import '../../../core/routing/route_leading.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/utils/arabic_normalizer.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../../data/remote/catalog_api.dart';
+import '../favorites_controller.dart';
 import '../../../data/models/hadith.dart';
 import '../../hadith/hadith_actions.dart';
 import 'widgets/favorites_empty_state.dart';
@@ -36,7 +38,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     final services = context.services;
     final favorites = services.favorites;
-    final repo = services.repository;
     return Scaffold(
       appBar: AppTopBar(title: context.tr(AppText.titleFavorites), leading: backOrHomeLeading(context)),
       body: ListenableBuilder(
@@ -50,39 +51,66 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               onRetry: favorites.load,
             );
           }
-          // Saved IDs that no longer exist in the dataset are skipped.
-          final items = [for (final id in favorites.ids) ?repo.hadithById(id)];
-          final missing = favorites.count - items.length;
-          if (items.isEmpty && missing == 0) return const FavoritesEmptyState();
-
-          final sorted = switch (_sort) {
-            FavoritesSort.recent => items,
-            FavoritesSort.book =>
-              [...items]..sort((a, b) {
-                // Case-insensitive, like the search screen's book sort.
-                final c = ArabicNormalizer.normalize(repo.bookById(a.bookId)?.nameSomali ?? '')
-                    .compareTo(ArabicNormalizer.normalize(repo.bookById(b.bookId)?.nameSomali ?? ''));
-                return c != 0 ? c : items.indexOf(a).compareTo(items.indexOf(b));
-              }),
-          };
-
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-            itemCount: sorted.length + 1,
-            itemBuilder: (context, i) {
-              if (i == 0) {
-                return _Header(count: items.length, missing: missing, sort: _sort, onSort: _setSort);
-              }
-              final h = sorted[i - 1];
-              return AppPageBody(
-                key: ValueKey(h.id),
-                padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
-                child: _FavoriteTile(hadith: h),
-              );
-            },
+          // Backend: download saved records first, so "missing" is never a
+          // network problem in disguise.
+          return EnsureHadiths(
+            ids: favorites.ids,
+            builder: (context, loading, failure, retry) => _list(context, favorites, loading, failure, retry),
           );
         },
       ),
+    );
+  }
+
+  Widget _list(
+    BuildContext context,
+    FavoritesController favorites,
+    bool loading,
+    CatalogFailure? failure,
+    VoidCallback retry,
+  ) {
+    final repo = context.services.repository;
+    // Saved IDs that no longer exist in the dataset are skipped.
+    final items = [for (final id in favorites.ids) ?repo.hadithById(id)];
+    final missing = favorites.count - items.length;
+    if (items.isEmpty && missing == 0) return const FavoritesEmptyState();
+    if (loading && missing > 0) return const LoadingIndicator(message: 'Kuwa la keydiyay waa la soo rarayaa…');
+    if (failure != null && items.isEmpty) {
+      return ErrorStateWidget(title: 'Kuwa la keydiyay lama soo rari karin', message: failure.message, onRetry: retry);
+    }
+
+    final sorted = switch (_sort) {
+      FavoritesSort.recent => items,
+      FavoritesSort.book =>
+        [...items]..sort((a, b) {
+          // Case-insensitive, like the search screen's book sort.
+          final c = ArabicNormalizer.normalize(repo.bookById(a.bookId)?.nameSomali ?? '')
+              .compareTo(ArabicNormalizer.normalize(repo.bookById(b.bookId)?.nameSomali ?? ''));
+          return c != 0 ? c : items.indexOf(a).compareTo(items.indexOf(b));
+        }),
+    };
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      itemCount: sorted.length + 1,
+      itemBuilder: (context, i) {
+        if (i == 0) {
+          // Unknown while downloading or after a failed download: only
+          // offer "remove missing" when the records truly don't exist.
+          return _Header(
+            count: items.length,
+            missing: failure == null && !loading ? missing : 0,
+            sort: _sort,
+            onSort: _setSort,
+          );
+        }
+        final h = sorted[i - 1];
+        return AppPageBody(
+          key: ValueKey(h.id),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
+          child: _FavoriteTile(hadith: h),
+        );
+      },
     );
   }
 

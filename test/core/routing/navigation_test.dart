@@ -8,8 +8,10 @@ import 'package:xadiithapp/core/widgets/widgets.dart';
 import 'package:xadiithapp/features/auth/auth_controller.dart';
 import 'package:xadiithapp/features/splash/presentation/splash_screen.dart';
 
+import '../../support/test_library.dart';
+
 Future<AppServices> _services({bool onboarded = true, AuthStatus status = AuthStatus.signedIn}) {
-  return AppServices.create(InMemorySettingsStore({'auth.onboardingSeen': onboarded, 'auth.status': status.name}));
+  return createTestServices(InMemorySettingsStore({'auth.onboardingSeen': onboarded, 'auth.status': status.name}));
 }
 
 Future<AppServices> _pumpApp(WidgetTester tester, {String initial = AppRoutes.home, AppServices? services}) async {

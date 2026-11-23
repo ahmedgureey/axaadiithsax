@@ -35,23 +35,20 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _error = null);
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _loading = true);
-    await Future<void>.delayed(AuthController.demoDelay);
+    final auth = context.services.auth;
+    if (!auth.usesRealAccounts) await Future<void>.delayed(AuthController.demoDelay);
     if (!mounted) return;
     // E-mail trimmed; password passed exactly as typed.
-    final ok = await context.services.auth.signInDemo(
-      email: _email.text,
-      password: _password.text,
-      rememberMe: _rememberMe,
-    );
+    final failure = await auth.signIn(email: _email.text, password: _password.text, rememberMe: _rememberMe);
     if (!mounted) return;
-    if (ok) {
+    if (failure == null) {
       context.go(AppRoutes.home);
     } else {
       setState(() {
         _loading = false;
-        _error =
-            'Email-ka ama furaha sirta ah kuma habboona akoonka demo-ga. '
-            'Isticmaal xogta demo-ga ee hoose.';
+        _error = auth.usesRealAccounts
+            ? failure.message
+            : 'Email-ka ama furaha sirta ah waa khalad. Isticmaal xogta demo-ga ee hoose.';
       });
     }
   }
@@ -80,8 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
       title: 'Ku soo dhowow mar kale',
       subtitle: 'Gal akoonkaaga si aad u sii wadato akhriska iyo xifdinta.',
       children: [
-        _DemoCredentialsCard(onFill: _loading ? null : _fillDemo),
-        AppSpacing.gapLg,
+        // The demo account only exists in demo mode (no backend configured).
+        if (!context.services.auth.usesRealAccounts) ...[
+          _DemoCredentialsCard(onFill: _loading ? null : _fillDemo),
+          AppSpacing.gapLg,
+        ],
         Form(
           key: _formKey,
           child: AutofillGroup(
@@ -139,12 +139,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (_error != null) ...[AppSpacing.gapSm, FormValidationMessage(message: _error!)],
                 AppSpacing.gapMd,
                 PrimaryButton(label: 'Gal', onPressed: _submit, isLoading: _loading),
-                AppSpacing.gapSm,
-                SecondaryButton(
-                  label: 'Tijaabi Demo-ga',
-                  icon: Icons.play_circle_outline_rounded,
-                  onPressed: _loading ? null : _tryDemo,
-                ),
+                if (!context.services.auth.usesRealAccounts) ...[
+                  AppSpacing.gapSm,
+                  SecondaryButton(
+                    label: 'Tijaabi Demo-ga',
+                    icon: Icons.play_circle_outline_rounded,
+                    onPressed: _loading ? null : _tryDemo,
+                  ),
+                ],
                 AppSpacing.gapMd,
                 AppTextButton(
                   label: 'Akoon ma lihid? Isdiiwaangeli',

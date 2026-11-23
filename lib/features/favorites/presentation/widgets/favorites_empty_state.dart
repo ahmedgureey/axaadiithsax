@@ -14,7 +14,7 @@ class FavoritesEmptyState extends StatelessWidget {
     return EmptyStateWidget(
       icon: Icons.bookmark_add_outlined,
       title: title,
-      message: 'Riix calaamadda keydinta ee xadiis kasta si aad mar dambe halkan uga hesho.',
+      message: 'Riix calaamadda keydinta si aad xadiiska halkan uga hesho.',
       actionLabel: 'Raadi Xadiisyo',
       onAction: () => context.go(AppRoutes.search),
     );

@@ -24,10 +24,15 @@ class PrivacyScreen extends StatelessWidget {
           'Furaha sirta ah marnaba lama kaydiyo.',
     ),
     (
-      Icons.cloud_off_rounded,
+      Icons.cloud_outlined,
       'Server iyo akoon',
-      'Noocan kuma xirna server ama adeeg akoon. Galitaanka iyo is-diiwaangelintu waa tijaabo (demo); '
-          'xogtaada qalabka lagama diro meel kale.',
+      'Liiska xadiisyada (kutub, cutubyo, xadiisyo) waxaa laga soo dejin karaa server-ka Supabase ee app-ka, '
+          'waxaana lagu kaydiyaa qalabkan si offline loogu akhriyo. Codsigaas kuma jiro wax xog shakhsi ah. '
+          'Haddii aad akoon sameysato, email-kaaga, magacaaga iyo furaha sirta ah (oo si ammaan ah loo xifdiyay, '
+          'app-kuna ma kaydiyo) waxaa haya Supabase Auth, si aad u gasho. Nooca aan server lahayn galitaanku waa demo. '
+          'Si kastaba, '
+          'kuwa aad keydisay, xifdintaada iyo dejintaada qalabka lagama diro meel kale. '
+          'Tirtiridda akoonka weli app-ka kuma jirto.',
     ),
     (Icons.analytics_outlined, 'Raadraac iyo analytics', 'App-ka kuma jiro wax analytics, xayeysiis ama raadraac ah.'),
     (
@@ -40,8 +45,8 @@ class PrivacyScreen extends StatelessWidget {
       Icons.language_rounded,
       'Nooca web-ka (browser)',
       'Marka app-ka lagu furo browser, Flutter wuxuu internet ka soo dejin karaa qaybo matoor ah (CanvasKit) '
-          'iyo font-yo dheeraad ah oo ka yimaada adeegyada Google. Nooca Android iyo iOS koodka app-ku '
-          'ma sameeyo codsiyo internet.',
+          'iyo font-yo dheeraad ah oo ka yimaada adeegyada Google. Marka laga reebo soo dejinta liiska xadiisyada, '
+          'koodka app-ku ma sameeyo codsiyo internet.',
     ),
     (
       Icons.delete_outline_rounded,

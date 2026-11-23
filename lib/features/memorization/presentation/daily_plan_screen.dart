@@ -21,7 +21,7 @@ class DailyPlanScreen extends StatelessWidget {
     return Scaffold(
       appBar: const AppTopBar(title: title),
       body: ListenableBuilder(
-        listenable: m,
+        listenable: Listenable.merge([m, context.services.repository]),
         builder: (context, _) {
           final plan = [for (final id in m.todayPlan) ?services.repository.hadithById(id)];
           return ListView(

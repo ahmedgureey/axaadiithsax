@@ -23,10 +23,33 @@ class MemorizeHadithScreen extends StatelessWidget {
     final m = services.memorization;
     final hadith = repo.hadithById(hadithId);
     if (hadith == null) {
-      return const NotFoundScreen(title: 'Xadiiskan lama helin', message: 'Xadiiska qorshaha kuma jiro xogta app-ka.');
+      if (services.catalog == null) {
+        return const NotFoundScreen(
+          title: 'Xadiiskan lama helin',
+          message: 'Xadiiska qorshaha kuma jiro xogta app-ka.',
+        );
+      }
+      // Backend: download it first; "not found" only if it truly isn't published.
+      return EnsureHadiths(
+        ids: [hadithId],
+        builder: (context, loading, failure, retry) {
+          if (repo.hadithById(hadithId) != null) return MemorizeHadithScreen(hadithId: hadithId);
+          if (loading) return const Scaffold(body: LoadingIndicator(message: 'Xadiiska waa la soo rarayaa'));
+          if (failure != null) {
+            return Scaffold(
+              appBar: AppBar(),
+              body: ErrorStateWidget(title: 'Xadiiska lama soo rari karin', message: failure.message, onRetry: retry),
+            );
+          }
+          return const NotFoundScreen(
+            title: 'Xadiiskan lama helin',
+            message: 'Xadiiskan kuma jiro, ama weli lama daabicin.',
+          );
+        },
+      );
     }
     return ListenableBuilder(
-      listenable: Listenable.merge([m, services.settings]),
+      listenable: Listenable.merge([m, services.settings, services.repository, ?services.catalog]),
       builder: (context, _) {
         final memorized = m.isMemorized(hadith.id);
         final record = m.recordOf(hadith.id);

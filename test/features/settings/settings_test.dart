@@ -17,6 +17,8 @@ import 'package:xadiithapp/features/settings/presentation/help_screen.dart';
 import 'package:xadiithapp/features/settings/presentation/notification_settings_screen.dart';
 import 'package:xadiithapp/features/settings/presentation/privacy_screen.dart';
 
+import '../../support/test_library.dart';
+
 InMemorySettingsStore _guestStore({String theme = 'light'}) =>
     InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest', 'settings.themeMode': theme});
 
@@ -40,7 +42,7 @@ Future<AppServices> _pump(
   tester.platformDispatcher.textScaleFactorTestValue = textScale;
   addTearDown(tester.view.reset);
   addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-  final services = await AppServices.create(store ?? _guestStore(), clock: () => DateTime(2026, 11, 18, 10));
+  final services = await createTestServices(store ?? _guestStore(), clock: () => DateTime(2026, 11, 18, 10));
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: initial));
   await tester.pumpAndSettle();
   return services;
@@ -159,7 +161,7 @@ void main() {
   group('Reset all local data', () {
     test('really deletes every stored key group', () async {
       final store = _signedInStore(theme: 'dark');
-      final s = await AppServices.create(store, clock: () => DateTime(2026, 11, 18, 10));
+      final s = await createTestServices(store, clock: () => DateTime(2026, 11, 18, 10));
       final id = s.repository.dailyHadith(DateTime(2026, 11, 18))!.id;
       await s.favorites.add(id);
       await s.memorization.markMemorized(id);
@@ -312,8 +314,8 @@ void main() {
     testWidgets('about shows the real version and a disclaimer', (tester) async {
       await _pump(tester, AppRoutes.about);
       expect(find.text(AboutScreen.versionLabel), findsOneWidget);
-      expect(find.text('Nooca 1.0.1 (build 2)'), findsOneWidget);
-      expect(find.textContaining('tusaale aan la xaqiijin'), findsOneWidget);
+      expect(find.text('Nooca 1.0.2 (build 3)'), findsOneWidget);
+      expect(find.textContaining('xadiisyo la xaqiijiyey'), findsOneWidget);
       expect(find.textContaining('(demo)'), findsNothing);
     });
   });

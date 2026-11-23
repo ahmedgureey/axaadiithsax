@@ -1,9 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xadiithapp/core/utils/arabic_normalizer.dart';
-import 'package:xadiithapp/data/repositories/hadith_repository.dart';
+
+import '../support/test_library.dart';
 
 void main() {
-  final repo = HadithRepository();
+  final repo = testRepository();
 
   test('unknown IDs return null instead of throwing', () {
     expect(repo.bookById('nope'), isNull);

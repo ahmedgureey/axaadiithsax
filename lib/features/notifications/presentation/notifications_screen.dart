@@ -17,9 +17,7 @@ class NotificationsScreen extends StatelessWidget {
       body: EmptyStateWidget(
         icon: Icons.notifications_none_rounded,
         title: 'Ogeysiis ma jiro',
-        message:
-            'Halkan waxaa ka soo muuqan doona xasuusinta xadiiska maalinta iyo xifdinta '
-            'marka ogeysiisyadu diyaar noqdaan.',
+        message: 'Xasuusinta xadiiska maalinta iyo xifdinta halkan ayay ka soo muuqan doonaan.',
         actionLabel: 'Dejinta ogeysiisyada',
         onAction: () => context.push(AppRoutes.settingsNotifications),
       ),

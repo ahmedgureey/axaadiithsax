@@ -82,9 +82,7 @@ class DemoAuthNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     return const FormValidationMessage(
       type: FormMessageType.info,
-      message:
-          'Tani waa tijaabo (demo). Ma jiro server ama xaqiijin dhab ah, '
-          'furaha sirta ahna lama kaydiyo.',
+      message: 'Tani waa tijaabo (demo): ma jiro server, furaha sirta ahna lama kaydiyo.',
     );
   }
 }

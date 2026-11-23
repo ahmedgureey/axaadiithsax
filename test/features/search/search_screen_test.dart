@@ -10,6 +10,8 @@ import 'package:xadiithapp/features/search/presentation/search_screen.dart';
 import 'package:xadiithapp/features/search/presentation/widgets/search_result_card.dart';
 import 'package:xadiithapp/features/search/presentation/widgets/search_states.dart';
 
+import '../../support/test_library.dart';
+
 Future<AppServices> _pump(
   WidgetTester tester, {
   String initial = AppRoutes.search,
@@ -19,7 +21,7 @@ Future<AppServices> _pump(
   tester.view.physicalSize = size * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
-  final services = await AppServices.create(
+  final services = await createTestServices(
     InMemorySettingsStore({'auth.onboardingSeen': true, 'auth.status': 'guest', 'settings.themeMode': theme}),
   );
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: initial));
@@ -75,7 +77,7 @@ void main() {
         of: find.descendant(of: card, matching: find.byType(ArabicText)),
         matching: find.byType(Text),
       );
-      expect(Directionality.of(tester.element(arabic)), TextDirection.rtl);
+      expect(Directionality.of(tester.element(arabic.first)), TextDirection.rtl);
       expect(Directionality.of(tester.element(card)), TextDirection.ltr);
     });
 

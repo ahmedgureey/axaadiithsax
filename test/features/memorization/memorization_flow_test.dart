@@ -10,6 +10,8 @@ import 'package:xadiithapp/features/memorization/presentation/review_screen.dart
 import 'package:xadiithapp/features/quiz/domain/quiz_models.dart';
 import 'package:xadiithapp/features/quiz/presentation/widgets/quiz_question_card.dart';
 
+import '../../support/test_library.dart';
+
 final _day0 = DateTime(2026, 11, 18, 10);
 
 Future<AppServices> _pump(
@@ -24,7 +26,7 @@ Future<AppServices> _pump(
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   final s = store ?? _store(theme: theme);
-  final services = await AppServices.create(s, clock: () => now ?? _day0);
+  final services = await createTestServices(s, clock: () => now ?? _day0);
   await tester.pumpWidget(XadiisApp(services: services, initialLocation: initial));
   await tester.pumpAndSettle();
   return services;
@@ -116,7 +118,7 @@ void main() {
   group('Review and persistence', () {
     testWidgets('memorised yesterday → due today → review completes once', (tester) async {
       final store = _store();
-      final first = await AppServices.create(store, clock: () => _day0);
+      final first = await createTestServices(store, clock: () => _day0);
       await first.memorization.markMemorized('bukhari-c1-h1');
 
       final s = await _pump(

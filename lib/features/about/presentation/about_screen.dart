@@ -40,8 +40,7 @@ class AboutScreen extends StatelessWidget {
           AppSpacing.gapXl,
           AppPageBody(
             child: HonorificText(
-              '${AppInfo.name} waxay kaa caawinaysaa inaad akhrido, barato oo xifdiso axaadiista Nabiga ﷺ, '
-              'adigoo helaya qoraalka Carabiga iyo tarjumaad Af-Soomaali ah.',
+              '${AppInfo.name}: akhri, baro oo xifdi axaadiista Nabiga ﷺ — Carabi iyo tarjumaad Af-Soomaali ah.',
               style: context.textStyles.bodyLarge,
             ),
           ),
@@ -50,7 +49,7 @@ class AboutScreen extends StatelessWidget {
             child: FormValidationMessage(
               type: FormMessageType.info,
               message:
-                  'Xogta xadiiska ee noocan waa tusaale aan la xaqiijin. Mar walba ka hubi waxyaabaha diinta '
+                  '$noVerifiedHadithMessage Mar walba ka hubi waxyaabaha diinta '
                   'ilo la isku halleyn karo iyo culimo.',
             ),
           ),

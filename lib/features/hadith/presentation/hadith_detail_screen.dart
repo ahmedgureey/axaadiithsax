@@ -8,6 +8,7 @@ import '../../../core/routing/route_leading.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/hadith.dart';
+import '../../../data/remote/catalog_api.dart';
 import '../hadith_actions.dart';
 import '../../favorites/presentation/widgets/hadith_bookmark_button.dart';
 import 'widgets/arabic_font_controls.dart';
@@ -31,24 +32,47 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
   void initState() {
     super.initState();
     // Record after the frame so other tabs don't rebuild during this build.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final services = context.services;
-      if (services.repository.hadithById(widget.hadithId) != null) {
-        services.history.record(widget.hadithId);
-      }
+      // Backend: fetch the full published record (translations, gradings,
+      // narrators). Only a record that exists is added to history.
+      final found = services.catalog == null
+          ? services.repository.hadithById(widget.hadithId)
+          : await services.catalog!.ensureDetail(widget.hadithId);
+      if (mounted && found != null) services.history.record(widget.hadithId);
     });
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => CatalogBuilder(builder: _build);
+
+  Widget _build(BuildContext context) {
     final services = context.services;
     final repo = services.repository;
     final hadith = repo.hadithById(widget.hadithId);
+    final catalog = services.catalog;
     if (hadith == null) {
+      final load = catalog?.detailState(widget.hadithId);
+      if (load != null && !load.isFailed) {
+        return Scaffold(
+          appBar: AppBar(leading: backOrHomeLeading(context)),
+          body: const LoadingIndicator(message: 'Xadiiska waa la soo rarayaa'),
+        );
+      }
+      if (load != null && load.failure?.kind != CatalogFailureKind.notFound) {
+        return Scaffold(
+          appBar: AppBar(leading: backOrHomeLeading(context)),
+          body: ErrorStateWidget(
+            title: 'Xadiiska lama soo rari karin',
+            message: load.failure!.message,
+            onRetry: () => catalog!.ensureDetail(widget.hadithId, force: true),
+          ),
+        );
+      }
       return const NotFoundScreen(
         title: 'Xadiiskan lama helin',
-        message: 'Xadiiska aad furtay kuma jiro xogta app-ka.',
+        message: 'Xadiiska aad furtay kuma jiro, ama weli lama daabicin.',
       );
     }
     final book = repo.bookById(hadith.bookId);
@@ -70,7 +94,7 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
               children: [
                 Text(book?.nameSomali ?? 'Xadiis', maxLines: 1, overflow: TextOverflow.ellipsis),
                 Text(
-                  '${chapter?.titleSomali ?? ''} · #${hadith.number}',
+                  '${chapter?.titleSomali ?? ''} · #${hadith.displayNumber}',
                   style: context.textStyles.bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -107,7 +131,23 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                         children: [
                           MetaChip(label: book?.nameSomali ?? '—', icon: Icons.menu_book_rounded),
                           if (chapter != null) MetaChip(label: chapter.titleSomali, color: context.appColors.goldText),
-                          if (hadith.isVerified && hadith.grade != null)
+                          if (hadith.isVerified && hadith.gradings.isNotEmpty)
+                            // One chip only when every documented grading
+                            // agrees; otherwise point to the full list.
+                            {for (final g in hadith.gradings) g.grade}.length == 1
+                                ? MetaChip(
+                                    label: hadith.gradings.length == 1
+                                        ? '${hadith.gradings.first.displayName} · ${hadith.gradings.first.scholar}'
+                                        : hadith.gradings.first.displayName,
+                                    icon: Icons.verified_rounded,
+                                    color: context.appColors.success,
+                                  )
+                                : MetaChip(
+                                    label: 'Darajooyin kala duwan — eeg Tixraaca',
+                                    icon: Icons.balance_rounded,
+                                    color: context.appColors.goldText,
+                                  )
+                          else if (hadith.isVerified && hadith.grade != null)
                             MetaChip(
                               label: hadith.grade!,
                               icon: Icons.verified_rounded,

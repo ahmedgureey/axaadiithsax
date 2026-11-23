@@ -32,7 +32,11 @@ class _SearchFilterSheetState extends State<_SearchFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final search = context.services.search;
+    final services = context.services;
+    final search = services.search;
+    final hasBackend = services.catalog != null;
+    // Chapters are offered only within the selected collections.
+    final chapters = [for (final id in _draft.bookIds) ...services.repository.chaptersOf(id)];
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
       child: Column(
@@ -58,11 +62,38 @@ class _SearchFilterSheetState extends State<_SearchFilterSheet> {
                         FilterChip(
                           label: Text(b.nameSomali),
                           selected: _draft.bookIds.contains(b.id),
-                          onSelected: (_) =>
-                              setState(() => _draft = _draft.copyWith(bookIds: _toggle(_draft.bookIds, b.id))),
+                          onSelected: (_) => setState(() {
+                            final books = _toggle(_draft.bookIds, b.id);
+                            // Drop chapters of collections that are no longer selected.
+                            final repo = services.repository;
+                            _draft = _draft.copyWith(
+                              bookIds: books,
+                              chapterIds: {
+                                for (final id in _draft.chapterIds)
+                                  if (books.contains(repo.chapterById(id)?.bookId)) id,
+                              },
+                            );
+                          }),
                         ),
                     ],
                   ),
+                  if (chapters.isNotEmpty) ...[
+                    AppSpacing.gapLg,
+                    const _Label('Cutubka'),
+                    Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        for (final ch in chapters)
+                          FilterChip(
+                            label: Text(ch.titleSomali, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            selected: _draft.chapterIds.contains(ch.id),
+                            onSelected: (_) =>
+                                setState(() => _draft = _draft.copyWith(chapterIds: _toggle(_draft.chapterIds, ch.id))),
+                          ),
+                      ],
+                    ),
+                  ],
                   AppSpacing.gapLg,
                   const _Label('Mowduuca'),
                   Wrap(
@@ -78,7 +109,36 @@ class _SearchFilterSheetState extends State<_SearchFilterSheet> {
                         ),
                     ],
                   ),
-                  AppSpacing.gapLg,
+                  if (hasBackend) ...[
+                    AppSpacing.gapLg,
+                    const _Label('Darajada (culimada la diiwaangeliyay)'),
+                    Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        for (final g in searchableGrades.entries)
+                          FilterChip(
+                            label: Text(g.value),
+                            selected: _draft.grades.contains(g.key),
+                            onSelected: (_) =>
+                                setState(() => _draft = _draft.copyWith(grades: _toggle(_draft.grades, g.key))),
+                          ),
+                      ],
+                    ),
+                    AppSpacing.gapXxs,
+                    Text(
+                      'Waxaa la soo bandhigaa oo keliya xadiisyada leh daraja la daabacay oo culimo iyo tixraac leh.',
+                      style: context.textStyles.bodySmall,
+                    ),
+                  ],
+                  AppSpacing.gapMd,
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Tarjumaad Soomaali leh oo keliya'),
+                    value: _draft.translatedOnly,
+                    onChanged: (v) => setState(() => _draft = _draft.copyWith(translatedOnly: v)),
+                  ),
+                  AppSpacing.gapMd,
                   const _Label('Kuwa la keydiyay'),
                   SegmentedButton<BookmarkFilter>(
                     showSelectedIcon: false,
@@ -94,8 +154,9 @@ class _SearchFilterSheetState extends State<_SearchFilterSheet> {
                   ),
                   AppSpacing.gapMd,
                   Text(
-                    'Shaandhaynta weriyaha iyo darajada lama heli karo: xogta tusaalaha '
-                    'kuma jiraan magacyo weriye ama daraja la xaqiijiyay.',
+                    hasBackend
+                        ? 'Shaandhaynta weriyaha weli lama heli karo app-ka.'
+                        : 'Shaandhaynta weriyaha iyo darajada lama heli karo weli.',
                     style: context.textStyles.bodySmall,
                   ),
                   AppSpacing.gapMd,

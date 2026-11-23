@@ -12,9 +12,7 @@ class NotificationSettingsScreen extends StatelessWidget {
   const NotificationSettingsScreen({super.key});
 
   static const title = 'Ogeysiisyada';
-  static const notice =
-      'Doorbid oo keliya: app-ku weli ma laha adeeg ogeysiis, sidaas darteed xasuusin lama diro. '
-      'Doorashadaada waa la keydiyaa si loo isticmaalo marka ogeysiisyadu diyaar noqdaan.';
+  static const notice = 'Doorbid oo keliya: weli xasuusin lama diro. Doorashadaada waa la keydiyaa.';
 
   @override
   Widget build(BuildContext context) {

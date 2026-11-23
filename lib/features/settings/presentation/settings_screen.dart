@@ -121,9 +121,9 @@ class SettingsScreen extends StatelessWidget {
                           context,
                           title: 'Tirtir dhammaan xogta?',
                           message:
-                              'Waxaa si joogto ah looga tirtirayaa qalabkan: xadiisyada la keydiyay, horumarka xifdinta, '
-                              'dib-u-eegista, taariikhda imtixaannada, raadinta iyo akhriska, dejinta, iyo session-ka demo-ga. '
-                              'Waxaad dib ugu laaban doontaa bogga hordhaca. Lagama noqon karo.',
+                              'Qalabkan waxaa looga tirtirayaa: kuwa la keydiyay, xifdinta, dib-u-eegista, imtixaannada, '
+                              'raadinta, akhriska, dejinta iyo session-ka demo-ga. '
+                              'Waxaad ku laaban doontaa bogga hordhaca. Lagama noqon karo.',
                           confirmLabel: 'Tirtir',
                           action: services.resetAllLocalData,
                         ),

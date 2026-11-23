@@ -24,7 +24,7 @@ class RecentHadithsSection extends StatelessWidget {
     final services = context.services;
     final repo = services.repository;
     return ListenableBuilder(
-      listenable: services.history,
+      listenable: Listenable.merge([services.history, services.repository]),
       builder: (context, _) {
         final recent = [for (final id in services.history.recentIds) ?repo.hadithById(id)].take(3).toList();
         final hasHistory = recent.isNotEmpty;
@@ -37,12 +37,14 @@ class RecentHadithsSection extends StatelessWidget {
               actionLabel: context.tr(AppText.seeAll),
               onAction: () => context.go(AppRoutes.books),
             ),
-            if (!hasHistory)
+            // Only call items "examples" when there are items to show.
+            if (!hasHistory && items.isNotEmpty)
               Text('Weli wax xadiis ah ma aadan akhrin — kuwan waa tusaalooyin.', style: context.textStyles.bodySmall),
             AppSpacing.gapSm,
-            if (items.isEmpty)
-              Text('Xadiis lama helin.', style: context.textStyles.bodySmall)
-            else
+            if (items.isEmpty) ...[
+              Text('Xadiis lama helin.', style: context.textStyles.bodySmall),
+              Text(noVerifiedHadithMessage, style: context.textStyles.bodySmall),
+            ] else
               for (final h in items)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),

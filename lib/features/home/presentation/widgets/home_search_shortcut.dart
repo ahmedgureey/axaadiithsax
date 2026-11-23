@@ -9,7 +9,7 @@ import '../../../../core/theme/theme.dart';
 class HomeSearchShortcut extends StatelessWidget {
   const HomeSearchShortcut({super.key});
 
-  static const hint = 'Raadi xadiis, mowduuc ama kitaab...';
+  static const hint = 'Raadi';
 
   @override
   Widget build(BuildContext context) {

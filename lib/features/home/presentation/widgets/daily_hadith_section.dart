@@ -24,7 +24,7 @@ class DailyHadithSection extends StatelessWidget {
           child: EmptyStateWidget(
             icon: Icons.menu_book_outlined,
             title: 'Xadiiska maalinta lama heli karo',
-            message: 'Weli xadiis laguma darin app-ka.',
+            message: noVerifiedHadithMessage,
           ),
         ),
       );

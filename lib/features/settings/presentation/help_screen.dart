@@ -14,8 +14,8 @@ class HelpScreen extends StatelessWidget {
     (
       Icons.search_rounded,
       'Sidee xadiis u helaa?',
-      'Fur tab-ka "Raadinta", ku qor eray Carabi ama Soomaali ah, ama dooro mowduuc. '
-          'Badhanka shaandhaynta wuxuu kuu oggolaanayaa inaad doorato kitaab ama mowduuc.',
+      'Fur "Raadinta", qor eray Carabi ama Soomaali ah, ama dooro mowduuc. '
+          'Shaandhaynta ka dooro kitaab ama mowduuc.',
     ),
     (
       Icons.bookmark_add_outlined,
@@ -31,8 +31,8 @@ class HelpScreen extends StatelessWidget {
     (
       Icons.psychology_outlined,
       'Sidee u sameeyaa qorshe xifdin?',
-      'Tab-ka "Xifdinta" dooro inta xadiis ee maalintii, kadibna riix "Bilow qorshaha maanta". '
-          'Xadiiska aad xifdisay wuxuu ku soo noqonayaa dib-u-eegis 1, 3, 7… maalmood kadib.',
+      'Gal "Xifdinta", dooro inta xadiis ee maalintii, kadib riix "Bilow qorshaha maanta". '
+          'Dib-u-eegistu waxay timaadaa 1, 3, 7… maalmood kadib.',
     ),
     (
       Icons.quiz_outlined,
@@ -47,7 +47,7 @@ class HelpScreen extends StatelessWidget {
     (
       Icons.science_outlined,
       'Maxay ka dhigan tahay "tusaale" ama "demo"?',
-      'Xadiisyada noocan waa xog tusaale ah oo aan la xaqiijin. Galitaanka waa tijaabo, ogeysiisyadu waa '
+      '$noVerifiedHadithMessage Galitaanka waa tijaabo, ogeysiisyadu waa '
           'doorbid oo keliya, codkuna weli ma jiro. Dhammaan xogtaadu waxay ku jirtaa qalabkan.',
     ),
   ];

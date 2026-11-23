@@ -31,7 +31,8 @@ class HomeFeed {
   /// the first hadith of each book that has content (max 3).
   final List<Hadith> featuredHadiths;
 
-  factory HomeFeed.build(HadithRepository repo, DateTime today) {
+  /// [daily] overrides the local choice (backend: server-picked record).
+  factory HomeFeed.build(HadithRepository repo, DateTime today, {Hadith? daily}) {
     final books = [for (final b in repo.books) FeaturedBook(b, repo.hadithCountOfBook(b.id))];
     final categories = [for (final c in repo.categories) CategorySummary(c, repo.hadithCountOfCategory(c.id))];
     final featured = <Hadith>[];
@@ -43,7 +44,7 @@ class HomeFeed {
       if (featured.length == 3) break;
     }
     return HomeFeed(
-      daily: repo.dailyHadith(today),
+      daily: daily ?? repo.dailyHadith(today),
       books: List.unmodifiable(books),
       categories: List.unmodifiable(categories),
       featuredHadiths: List.unmodifiable(featured),

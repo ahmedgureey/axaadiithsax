@@ -95,7 +95,7 @@ Future<void> showDailyTargetSheet(BuildContext context, MemorizationController c
           ),
           AppSpacing.gapSm,
           Text(
-            'Haddii xadiisyada la heli karo ay ka yar yihiin hadafka, qorshuhu wuu gaabanayaa — xadiis lama sameeyo.',
+            'Haddii xadiisyadu ka yar yihiin hadafka, qorshuhu wuu gaabanayaa.',
             style: sheetContext.textStyles.bodySmall,
           ),
         ],

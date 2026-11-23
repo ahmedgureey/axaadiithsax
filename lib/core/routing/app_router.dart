@@ -63,8 +63,14 @@ String? appRedirect(AuthController auth, String location) {
   }
   if (AppRoutes.publicRoutes.contains(location)) return null;
 
+  // A password-recovery e-mail link was opened: choose a new password first.
+  if (auth.isRecoveringPassword) {
+    return location == AppRoutes.resetPassword ? null : AppRoutes.resetPassword;
+  }
+
   if (location == AppRoutes.verifyEmail) {
     if (auth.isSignedIn && !auth.emailVerified) return null;
+    if (auth.pendingVerificationEmail != null) return null; // "check your e-mail" after real sign-up
     return auth.canUseApp ? AppRoutes.home : AppRoutes.welcome;
   }
 

@@ -5,6 +5,7 @@ import '../../../app/app_services.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../../data/remote/catalog_service.dart';
 
 /// Tab 2 — "Kutubta Xadiiska". Every number shown is counted from the local
 /// dataset; nothing implies a collection is complete.
@@ -14,12 +15,17 @@ class BooksScreen extends StatelessWidget {
   static const title = 'Kutubta Xadiiska';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => CatalogBuilder(builder: _build);
+
+  Widget _build(BuildContext context) {
     final repo = context.services.repository;
+    final catalog = context.services.catalog;
     final books = repo.books;
     return Scaffold(
       appBar: AppTopBar(title: context.tr(AppText.titleBooks), showOrnament: true),
-      body: books.isEmpty
+      body: books.isEmpty && catalog?.origin == CatalogOrigin.unavailable
+          ? const CatalogUnavailableState()
+          : books.isEmpty
           ? const EmptyStateWidget(
               icon: Icons.auto_stories_outlined,
               title: 'Maktabaddu waa madhan tahay',
@@ -32,12 +38,22 @@ class BooksScreen extends StatelessWidget {
               separatorBuilder: (_, _) => AppSpacing.gapSm,
               itemBuilder: (context, i) {
                 if (i == 0) {
-                  return const AppPageBody(
-                    child: FormValidationMessage(
-                      type: FormMessageType.info,
-                      message:
-                          'Kutubtan waa tusaale: kaliya xadiisyo kooban oo tijaabo ah ayaa ku jira, '
-                          'mana aha kutubta oo dhammaystiran.',
+                  return AppPageBody(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const CatalogStatusBanner(),
+                        FormValidationMessage(
+                          type: FormMessageType.info,
+                          message: repo.totalHadithCount == 0
+                              ? noVerifiedHadithMessage
+                              : catalog != null
+                              ? 'Xadiisyada halkan ku jira waa kuwa dib-u-eegis lagu sameeyey oo la daabacay; '
+                                    'mid kasta wuxuu leeyahay isha iyo lambarkiisa asalka ah.'
+                              : 'Kutubtan waa tusaale: kaliya xadiisyo kooban oo tijaabo ah ayaa ku jira, '
+                                    'mana aha kutubta oo dhammaystiran.',
+                        ),
+                      ],
                     ),
                   );
                 }

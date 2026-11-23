@@ -76,7 +76,7 @@ class CategoryResultsScreen extends StatelessWidget {
                   child: EmptyStateWidget(
                     icon: Icons.inbox_outlined,
                     title: 'Weli xadiis lama hayo',
-                    message: 'Mowduucan hadda kuma jiraan xadiisyo maxalli ah oo la heli karo.',
+                    message: 'Mowduucan weli xadiis kuma jiro.',
                     actionLabel: 'Eeg mowduucyada kale',
                     onAction: () => context.go(AppRoutes.categories),
                   ),

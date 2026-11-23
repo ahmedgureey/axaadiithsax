@@ -19,9 +19,7 @@ class HadithAudioPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     // Even if a record lists an asset, playback is not implemented yet, so
     // the controls stay disabled and the label says why.
-    final message = hadith.hasAudio
-        ? 'Codka xadiiskan wuxuu iman doonaa marka ciyaarta codka la dhammaystiro.'
-        : 'Xadiiskan weli cod lama duubin. Halkan waxaa ka muuqan doona dhegeysiga marka cod la helo.';
+    final message = hadith.hasAudio ? 'Dhegeysiga codka weli lama diyaarin.' : 'Xadiiskan weli cod looma duubin.';
     final c = context.appColors;
     return AppCard(
       child: Column(

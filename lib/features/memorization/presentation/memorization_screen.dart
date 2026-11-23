@@ -25,7 +25,7 @@ class MemorizationScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppTopBar(title: context.tr(AppText.titleMemorization), showOrnament: true),
       body: ListenableBuilder(
-        listenable: m,
+        listenable: Listenable.merge([m, context.services.repository]),
         builder: (context, _) {
           if (!m.isLoaded) return const LoadingIndicator(message: 'Waa la soo rarayaa…');
           if (m.loadFailed) {
@@ -39,7 +39,7 @@ class MemorizationScreen extends StatelessWidget {
             return const EmptyStateWidget(
               icon: Icons.psychology_outlined,
               title: 'Xadiis lama heli karo',
-              message: 'Weli xadiis laguma darin app-ka, sidaas darteed qorshe xifdin lama samayn karo.',
+              message: noVerifiedHadithMessage,
             );
           }
           final due = m.dueForReview.length;
@@ -51,8 +51,8 @@ class MemorizationScreen extends StatelessWidget {
               AppPageBody(
                 child: Text(
                   m.hasAnyActivity
-                      ? 'Si fiican ayaad u socotaa — tallaabo yar maalin kasta ayaa xifdi dheer keenta.'
-                      : 'Ku bilow xadiis keliya maanta. Horumarkaaga halkan ayaa lagu diiwaangelin doonaa.',
+                      ? 'Si fiican ayaad u socotaa — sii wad maalin kasta.'
+                      : 'Ku bilow xadiis keliya maanta.',
                   style: context.textStyles.bodyLarge,
                 ),
               ),

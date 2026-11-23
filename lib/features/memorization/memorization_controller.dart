@@ -16,11 +16,12 @@ import 'domain/review_schedule.dart';
 class MemorizationController extends ChangeNotifier {
   MemorizationController(
     this._store, {
-    required List<String> candidateIds,
+    List<String> candidateIds = const [],
+    this.candidatesProvider,
     bool Function(String id)? exists,
     DateTime Function()? clock,
     this.schedule = const ReviewSchedule(),
-  }) : _candidates = List.unmodifiable(candidateIds),
+  }) : _fixedCandidates = List.unmodifiable(candidateIds),
        _exists = exists ?? ((_) => true),
        _clock = clock ?? DateTime.now;
 
@@ -31,8 +32,12 @@ class MemorizationController extends ChangeNotifier {
 
   final SettingsStore _store;
 
-  /// All hadith IDs that can be memorised, in reading order.
-  final List<String> _candidates;
+  /// All hadith IDs that can be memorised, in reading order. With a backend
+  /// the provider returns the records loaded so far (the list grows as the
+  /// user browses); offline/bundled data uses the fixed list.
+  final List<String> _fixedCandidates;
+  final List<String> Function()? candidatesProvider;
+  List<String> get _candidates => candidatesProvider?.call() ?? _fixedCandidates;
   final bool Function(String id) _exists;
   final DateTime Function() _clock;
   final ReviewSchedule schedule;

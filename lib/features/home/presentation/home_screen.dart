@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_services.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../../data/models/hadith.dart';
 import '../home_feed.dart';
 import 'widgets/daily_hadith_section.dart';
 import 'widgets/featured_books_section.dart';
@@ -24,18 +25,32 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   HomeFeed? _feed;
   bool _failed = false;
+  Hadith? _serverDaily;
+  bool _dailyRequested = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_feed == null && !_failed) _load();
+    if (!_dailyRequested) {
+      _dailyRequested = true;
+      _loadServerDaily();
+    }
   }
 
-  /// Local data is synchronous; a failure (e.g. a corrupt dataset) shows a
-  /// friendly error with retry instead of a raw exception.
+  /// Backend: the hadith of the day is chosen by the server, so it is the
+  /// same for everyone and exists in the published data.
+  Future<void> _loadServerDaily() async {
+    final catalog = context.services.catalog;
+    if (catalog == null) return;
+    final h = await catalog.daily(DateTime.now());
+    if (mounted && h != null) setState(() => _serverDaily = h);
+  }
+
+  /// Rebuilt whenever records arrive. A failure (e.g. a corrupt dataset)
+  /// shows a friendly error with retry instead of a raw exception.
   void _load() {
     try {
-      _feed = HomeFeed.build(context.services.repository, DateTime.now());
+      _feed = HomeFeed.build(context.services.repository, DateTime.now(), daily: _serverDaily);
       _failed = false;
     } catch (error) {
       debugPrint('Home feed failed to load: $error');
@@ -45,7 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => CatalogBuilder(builder: _build);
+
+  Widget _build(BuildContext context) {
+    if (!_failed) _load();
     final feed = _feed;
     return Scaffold(
       appBar: const HomeAppBar(),
@@ -53,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ? ErrorStateWidget(
               title: 'Xogta lama soo rari karin',
               message: 'Fadlan isku day mar kale.',
-              onRetry: () => setState(_load),
+              onRetry: () => setState(() => _failed = false),
             )
           : ListView(
               padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.xxl),

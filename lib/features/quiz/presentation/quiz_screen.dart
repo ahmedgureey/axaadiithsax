@@ -41,10 +41,7 @@ class _QuizScreenState extends State<QuizScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Su\'aalaha waxaa laga sameeyaa xogta app-ka oo keliya. Natiijadu ma cabbirayso aqoontaada diineed oo dhan.',
-                  style: context.textStyles.bodyMedium,
-                ),
+                Text('Su\'aalaha waxaa laga sameeyaa xogta app-ka oo keliya.', style: context.textStyles.bodyMedium),
                 AppSpacing.gapLg,
                 Text('Tirada su\'aalaha', style: context.textStyles.titleSmall),
                 AppSpacing.gapXs,
