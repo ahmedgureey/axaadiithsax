@@ -133,7 +133,7 @@ void main() {
       await _type(tester, 'tusaale');
       await _tap(tester, find.byTooltip('Shaandhee'));
       expect(find.text('Shaandhaynta'), findsOneWidget);
-      expect(find.textContaining('weriyaha iyo darajada lama heli karo'), findsOneWidget);
+      expect(find.textContaining('Weriyaha iyo darajada weli lama shaandheyn karo'), findsOneWidget);
       await _tap(tester, find.widgetWithText(FilterChip, 'Saxiix Muslim'));
       final salaad = find.byWidgetPredicate((w) => w is FilterChip && (w.label as Text).data!.startsWith('Salaadda'));
       await _tap(tester, salaad);

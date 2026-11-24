@@ -4,7 +4,13 @@ enum QuizQuestionType {
   meaning('Macnaha'),
   book('Kitaabka'),
   topic('Mowduuca'),
-  narrator('Weriyaha');
+  narrator('Weriyaha'),
+
+  // From study notes (bundled collections):
+  word('Erayga Carabiga'),
+  companion('Saxaabiga weriyey'),
+  collection('Yaa wariyey'),
+  understanding('Fahanka guud');
 
   const QuizQuestionType(this.label);
   final String label;
@@ -41,6 +47,8 @@ class QuizQuestion {
     required this.correctIndex,
     required this.explanation,
     this.arabicExcerpt,
+    this.contextText,
+    this.arabicOptions = false,
   });
 
   final QuizQuestionType type;
@@ -49,6 +57,12 @@ class QuizQuestion {
 
   /// Arabic text shown with the question (RTL), if any.
   final String? arabicExcerpt;
+
+  /// Somali text shown with the question (e.g. the hadith's words), if any.
+  final String? contextText;
+
+  /// Options are Arabic (shown right-to-left).
+  final bool arabicOptions;
   final List<String> options;
   final int correctIndex;
 

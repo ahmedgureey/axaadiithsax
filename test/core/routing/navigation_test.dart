@@ -149,14 +149,6 @@ void main() {
       expect(_selectedTab(tester), 0);
     });
 
-    testWidgets('home topic chip opens search tab filtered by category', (tester) async {
-      await _pumpApp(tester);
-      await tester.scrollUntilVisible(find.text('Salaadda'), 300, scrollable: find.byType(Scrollable).first);
-      await _tap(tester, find.text('Salaadda'));
-      expect(_selectedTab(tester), 2);
-      expect(find.textContaining('natiijo'), findsOneWidget);
-    });
-
     testWidgets('favorite toggled on detail appears in favorites screen', (tester) async {
       final services = await _pumpApp(tester);
       await _tap(tester, find.byType(DailyHadithCard));

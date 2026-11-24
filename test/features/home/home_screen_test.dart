@@ -6,7 +6,6 @@ import 'package:xadiithapp/core/routing/app_routes.dart';
 import 'package:xadiithapp/core/services/share_service.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/widgets/widgets.dart';
-import 'package:xadiithapp/features/home/presentation/widgets/hadith_categories_section.dart';
 import 'package:xadiithapp/data/models/hadith.dart';
 import 'package:xadiithapp/data/repositories/hadith_repository.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/featured_books_section.dart';
@@ -79,35 +78,13 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
 int _tab(WidgetTester tester) => tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex;
 
 void main() {
-  group('Topic tiles', () {
-    for (final size in [const Size(390, 844), const Size(320, 568)]) {
-      testWidgets('all tiles have the same height and aligned icons (${size.width.toInt()} wide)', (tester) async {
-        await _pumpHome(tester, size: size);
-        final section = find.byType(HadithCategoriesSection);
-        await _scrollTo(tester, find.text('Tawbad keenka'));
-        await tester.ensureVisible(find.text('Tawbad keenka'));
-        await tester.pumpAndSettle();
-        final cards = find.descendant(of: section, matching: find.byType(AppCard));
-        expect(cards, findsWidgets);
-        final heights = {for (final e in cards.evaluate()) tester.getSize(find.byWidget(e.widget)).height};
-        expect(heights, hasLength(1), reason: 'tile heights: $heights');
-        // Icon tops in the same row line up (one distinct top per row).
-        final icons = find.descendant(of: section, matching: find.byType(Icon));
-        final iconTops = {for (final e in icons.evaluate()) tester.getTopLeft(find.byWidget(e.widget)).dy.round()};
-        final rowTops = {for (final e in cards.evaluate()) tester.getTopLeft(find.byWidget(e.widget)).dy.round()};
-        expect(iconTops.length, rowTops.length);
-        expect(tester.takeException(), isNull);
-      });
-    }
-  });
-
   group('Layout', () {
     testWidgets('shows all sections inside the single app shell', (tester) async {
       await _pumpHome(tester);
       expect(find.text('Assalaamu Calaykum'), findsOneWidget);
       expect(find.text(HomeSearchShortcut.hint), findsOneWidget);
       expect(find.text('XADIISKA MAALINTA'), findsOneWidget);
-      for (final title in ['Si Degdeg ah u Gal', 'Kutubta Xadiithka', 'Mowduucyada']) {
+      for (final title in ['Si Degdeg ah u Gal', 'Kutubta Xadiithka']) {
         await _scrollTo(tester, find.text(title));
         expect(find.text(title), findsOneWidget);
       }
@@ -134,7 +111,8 @@ void main() {
     testWidgets('everyone is greeted the same way (no accounts)', (tester) async {
       await _pumpHome(tester);
       expect(find.text('Ku soo dhowow Xadiith App'), findsOneWidget);
-      expect(find.descendant(of: find.byType(AppBar), matching: find.byTooltip('Aniga')), findsOneWidget);
+      expect(find.descendant(of: find.byType(AppBar), matching: find.byTooltip('Cusboonaysii')), findsOneWidget);
+      expect(find.descendant(of: find.byType(AppBar), matching: find.byTooltip('Aniga')), findsNothing);
     });
 
     testWidgets('notifications opens an honest empty state', (tester) async {
@@ -144,11 +122,24 @@ void main() {
       expect(find.text('Ogeysiis ma jiro'), findsOneWidget);
     });
 
-    testWidgets('profile shortcut opens the Aniga tab', (tester) async {
+    testWidgets('refresh button reloads home and confirms', (tester) async {
       await _pumpHome(tester);
-      await tester.tap(find.descendant(of: find.byType(AppBar), matching: find.byTooltip('Aniga')));
+      await tester.tap(find.descendant(of: find.byType(AppBar), matching: find.byTooltip('Cusboonaysii')));
       await tester.pumpAndSettle();
-      expect(_tab(tester), 4);
+      expect(find.text('Waa la cusboonaysiiyay'), findsOneWidget);
+      expect(_tab(tester), 0, reason: 'stays on Guriga');
+    });
+
+    testWidgets('daily hadith card has Arabic text-size controls', (tester) async {
+      final s = await _pumpHome(tester);
+      final before = s.settings.arabicFontSize;
+      await tester.tap(find.byTooltip('Weyneey qoraalka Carabiga').first);
+      await tester.pumpAndSettle();
+      expect(s.settings.arabicFontSize, before + 2);
+      await tester.tap(find.byTooltip('Yaree qoraalka Carabiga').first);
+      await tester.pumpAndSettle();
+      expect(s.settings.arabicFontSize, before);
+      expect(find.byTooltip('Dib u deji cabbirka'), findsNothing, reason: 'compact control on the card');
     });
   });
 
@@ -218,13 +209,6 @@ void main() {
       expect(find.text('Cutub lama helin'), findsOneWidget);
     });
 
-    testWidgets('topic opens Search filtered by that category', (tester) async {
-      await _pumpHome(tester);
-      await _tap(tester, find.text('Dulqaadka'));
-      expect(_tab(tester), 2);
-      expect(find.textContaining('natiijo'), findsOneWidget);
-    });
-
     final quickActions = {'Raadso Xadiis': 2, 'Qorshaha Xifdinta': 3};
     for (final MapEntry(key: label, value: tab) in quickActions.entries) {
       testWidgets('quick action "$label" opens tab $tab', (tester) async {
@@ -269,14 +253,10 @@ void main() {
         size: const Size(390, 1800),
         repository: HadithRepository(books: [], chapters: [], hadiths: [], categories: []),
       );
-      for (final text in [
-        'Xadiiska maalinta lama heli karo',
-        'Kutub lama helin.',
-        'Mowduuc lama helin.',
-        'Xadiis lama helin.',
-      ]) {
+      for (final text in ['Xadiiska maalinta lama heli karo', 'Kutub lama helin.', 'Xadiis lama helin.']) {
         expect(find.text(text), findsOneWidget, reason: text);
       }
+      expect(find.text('Mowduucyada'), findsNothing, reason: 'topics section removed from Home');
       expect(tester.takeException(), isNull);
     });
 

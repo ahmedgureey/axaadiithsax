@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/routing/route_leading.dart';
 import '../../../core/theme/theme.dart';
@@ -9,6 +10,17 @@ class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
 
   static const title = 'Caawimaad';
+
+  /// Support contact (WhatsApp), Somalia +252.
+  static const whatsAppDisplay = '0612341376';
+  static final whatsAppUri = Uri.parse('https://wa.me/252612341376');
+
+  Future<void> _openWhatsApp(BuildContext context) async {
+    final ok = await launchUrl(whatsAppUri, mode: LaunchMode.externalApplication).catchError((Object _) => false);
+    if (!ok && context.mounted) {
+      AppSnackbar.show(context, 'WhatsApp lama furi karo. Lambarka: $whatsAppDisplay', type: AppSnackType.error);
+    }
+  }
 
   static const topics = <(IconData, String, String)>[
     (
@@ -76,7 +88,25 @@ class HelpScreen extends StatelessWidget {
               ),
             ),
           AppPageBody(
-            child: Text('Weli ma jiro kanaal taageero (email ama website).', style: context.textStyles.bodySmall),
+            child: AppCard(
+              onTap: () => _openWhatsApp(context),
+              child: Row(
+                children: [
+                  Icon(Icons.chat_rounded, color: context.appColors.success),
+                  AppSpacing.gapSm,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Nala soo xiriir — WhatsApp', style: context.textStyles.titleSmall),
+                        Text(HelpScreen.whatsAppDisplay, style: context.textStyles.bodyMedium),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.open_in_new_rounded, size: AppSizes.iconSm),
+                ],
+              ),
+            ),
           ),
         ],
       ),

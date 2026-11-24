@@ -4,39 +4,39 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/app_services.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../../core/utils/arabic_normalizer.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../data/models/hadith.dart';
 import '../../../favorites/presentation/widgets/hadith_bookmark_button.dart';
 import '../../../hadith/hadith_actions.dart';
 
-/// Splits [text] into spans, emphasising case-insensitive matches of the
-/// Latin [tokens]. Arabic is not highlighted: matching ignores diacritics, so
-/// character offsets in the original text would not line up reliably.
+/// Splits [text] into spans, colouring every match of the search [tokens]
+/// (Arabic or Somali). Matching uses the same normalisation as search
+/// (diacritics and letter variants ignored), but the ORIGINAL text is shown.
 List<TextSpan> highlightSpans(String text, List<String> tokens, TextStyle highlight) {
-  final latin = tokens.where((t) => RegExp(r'^[\x00-\x7F]+$').hasMatch(t)).toList();
-  if (latin.isEmpty) return [TextSpan(text: text)];
-  final lower = text.toLowerCase();
+  final ranges = ArabicNormalizer.matchRanges(text, tokens);
+  if (ranges.isEmpty) return [TextSpan(text: text)];
   final spans = <TextSpan>[];
   var i = 0;
-  while (i < text.length) {
-    var bestStart = -1;
-    var bestLength = 0;
-    for (final t in latin) {
-      final at = lower.indexOf(t, i);
-      if (at >= 0 && (bestStart < 0 || at < bestStart || (at == bestStart && t.length > bestLength))) {
-        bestStart = at;
-        bestLength = t.length;
-      }
-    }
-    if (bestStart < 0) {
-      spans.add(TextSpan(text: text.substring(i)));
-      break;
-    }
-    if (bestStart > i) spans.add(TextSpan(text: text.substring(i, bestStart)));
-    spans.add(TextSpan(text: text.substring(bestStart, bestStart + bestLength), style: highlight));
-    i = bestStart + bestLength;
+  for (final (start, end) in ranges) {
+    if (start > i) spans.add(TextSpan(text: text.substring(i, start)));
+    spans.add(TextSpan(text: text.substring(start, end), style: highlight));
+    i = end;
   }
+  if (i < text.length) spans.add(TextSpan(text: text.substring(i)));
   return spans;
+}
+
+/// When the first match is far into [text], starts the excerpt shortly
+/// before it (at a word boundary, prefixed with "… ") so the matched word is
+/// visible in the few lines a result card shows.
+String excerptAroundMatch(String text, List<String> tokens, {int lead = 40}) {
+  final ranges = ArabicNormalizer.matchRanges(text, tokens);
+  if (ranges.isEmpty || ranges.first.$1 <= lead) return text;
+  var start = ranges.first.$1 - lead;
+  final space = text.indexOf(' ', start);
+  if (space >= 0 && space < ranges.first.$1) start = space + 1;
+  return '… ${text.substring(start)}';
 }
 
 /// Short grade label for a result card, from documented gradings only:
@@ -69,7 +69,7 @@ class SearchResultCard extends StatelessWidget {
     final book = repo.bookById(hadith.bookId);
     final topics = [for (final id in hadith.categoryIds) ?repo.categoryById(id)];
     final highlight = TextStyle(
-      backgroundColor: c.goldSubtle,
+      backgroundColor: c.gold.withValues(alpha: 0.35),
       fontWeight: FontWeight.w700,
       color: context.colors.onSurface,
     );
@@ -97,12 +97,29 @@ class SearchResultCard extends StatelessWidget {
             ArabicText(narrator, maxLines: 1, fontSize: 15),
           ],
           AppSpacing.gapSm,
-          ArabicText(hadith.arabicText, maxLines: 2, fontSize: 20),
+          if (tokens.isEmpty)
+            ArabicText(hadith.arabicText, maxLines: 2, fontSize: 20)
+          else
+            // Matches are coloured here only; the Hadith screen shows plain text.
+            Directionality(
+              textDirection: TextDirection.rtl,
+              child: SizedBox(
+                width: double.infinity,
+                child: Text.rich(
+                  TextSpan(children: highlightSpans(excerptAroundMatch(hadith.arabicText, tokens), tokens, highlight)),
+                  style: ArabicTextStyles.hadith(context, fontSize: 20),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textDirection: TextDirection.rtl,
+                  locale: const Locale('ar'),
+                ),
+              ),
+            ),
           AppSpacing.gapXs,
           Text.rich(
             TextSpan(
               children: hadith.hasTranslation
-                  ? highlightSpans(hadith.somaliText!, tokens, highlight)
+                  ? highlightSpans(excerptAroundMatch(hadith.somaliText!, tokens, lead: 60), tokens, highlight)
                   : [
                       TextSpan(
                         text: missingTranslationText,

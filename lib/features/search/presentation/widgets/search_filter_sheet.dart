@@ -126,10 +126,7 @@ class _SearchFilterSheetState extends State<_SearchFilterSheet> {
                       ],
                     ),
                     AppSpacing.gapXxs,
-                    Text(
-                      'Waxaa la soo bandhigaa oo keliya xadiisyada leh daraja la daabacay oo culimo iyo tixraac leh.',
-                      style: context.textStyles.bodySmall,
-                    ),
+                    Text('Kaliya darajooyin culimo iyo tixraac leh.', style: context.textStyles.bodySmall),
                   ],
                   AppSpacing.gapMd,
                   SwitchListTile(
@@ -155,8 +152,8 @@ class _SearchFilterSheetState extends State<_SearchFilterSheet> {
                   AppSpacing.gapMd,
                   Text(
                     hasBackend
-                        ? 'Shaandhaynta weriyaha weli lama heli karo app-ka.'
-                        : 'Shaandhaynta weriyaha iyo darajada lama heli karo weli.',
+                        ? 'Shaandhaynta weriyaha weli ma jirto.'
+                        : 'Weriyaha iyo darajada weli lama shaandheyn karo.',
                     style: context.textStyles.bodySmall,
                   ),
                   AppSpacing.gapMd,

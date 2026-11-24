@@ -43,7 +43,13 @@ Future<AppServices> _servicesFrom(SettingsStore store) async {
 Future<HadithRepository?> _bundledRepository() async {
   final data = await loadBundledDataset(rootBundle);
   if (data == null || data.hadiths.isEmpty) return null;
-  return HadithRepository(books: [data.book], chapters: [data.chapter], hadiths: data.hadiths, categories: const []);
+  return HadithRepository(
+    books: [data.book],
+    chapters: [data.chapter],
+    hadiths: data.hadiths,
+    categories: const [],
+    studyNotes: await loadBundledStudy(rootBundle),
+  );
 }
 
 /// OFL requires the license to ship with the font; this makes it appear in

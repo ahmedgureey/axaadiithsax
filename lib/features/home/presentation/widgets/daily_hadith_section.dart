@@ -7,6 +7,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../../../data/models/hadith.dart';
 import '../../../favorites/favorite_actions.dart';
 import '../../../hadith/hadith_actions.dart';
+import '../../../hadith/presentation/widgets/arabic_font_controls.dart';
 
 /// "Xadiiska Maalinta" — uses the shared favorites controller for bookmarks.
 class DailyHadithSection extends StatelessWidget {
@@ -54,6 +55,10 @@ class DailyHadithSection extends StatelessWidget {
           onRead: open,
           onShare: () => shareHadith(context, h),
           onBookmark: () => toggleFavoriteWithFeedback(context, h.id),
+          fontControls: ListenableBuilder(
+            listenable: services.settings,
+            builder: (context, _) => ArabicFontControls(settings: services.settings, showReset: false),
+          ),
         );
       },
     );

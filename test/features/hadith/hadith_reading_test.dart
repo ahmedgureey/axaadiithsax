@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:xadiithapp/features/hadith/presentation/widgets/arabic_font_controls.dart';
+import 'package:xadiithapp/features/hadith/presentation/widgets/hadith_audio_player.dart';
 import 'package:xadiithapp/app/app.dart';
 import 'package:xadiithapp/app/app_services.dart';
 import 'package:xadiithapp/core/routing/app_routes.dart';
@@ -108,23 +110,29 @@ void main() {
   });
 
   group('Hadith detail', () {
-    testWidgets('renders header, narrator, Arabic (RTL), translation and reference', (tester) async {
+    testWidgets('renders header, narrator, audio, Arabic (RTL), translation and a short reference', (tester) async {
       await _pump(tester, AppRoutes.hadith('bukhari-c1-h2'));
       expect(find.text('Cutub tusaale 1 · #2'), findsOneWidget);
       expect(find.text('Weriyaha'), findsWidgets);
+      expect(
+        find.text(HadithAudioPlayer.unavailableLabel),
+        findsOneWidget,
+        reason: 'audio where the narrator line was',
+      );
       expect(Directionality.of(tester.element(_arabicBody)), TextDirection.rtl);
       expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
       expect(find.byType(DemoContentBadge), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('Isha'), 200, scrollable: find.byType(Scrollable).first);
-      expect(find.text('Lama xaqiijin — xogtani waa tusaale'), findsOneWidget);
-      expect(find.text('Tusaale (lama xaqiijin)'), findsOneWidget);
-      expect(find.text(TestLibrary.demoSource), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Lambarka xadiiska'), 200, scrollable: find.byType(Scrollable).first);
+      for (final removed in ['Darajada', 'Xaaladda xogta', 'Isha', 'Link-ga isha', 'Darajo lama diiwaangelin']) {
+        expect(find.text(removed), findsNothing, reason: removed);
+      }
     });
 
-    testWidgets('missing translation and narrator show explicit messages', (tester) async {
+    testWidgets('missing translation and narrator: no narrator placeholder, audio card instead', (tester) async {
       await _pump(tester, AppRoutes.hadith('${TestLibrary.incompleteChapterId}-h3'));
       expect(find.text(missingTranslationText), findsOneWidget);
-      expect(find.text('Weriyaha lama hayo.'), findsOneWidget);
+      expect(find.text('Weriyaha lama hayo.'), findsNothing);
+      expect(find.text(HadithAudioPlayer.unavailableLabel), findsOneWidget);
       expect(find.text('Koobiyee tarjumaadda'), findsNothing);
     });
 
@@ -184,7 +192,10 @@ void main() {
       await h.services.settings.setArabicFontSize(ArabicFontSize.max);
       await tester.pumpAndSettle();
       final grow = tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.text_increase_rounded));
-      expect(grow.onPressed, isNull, reason: 'disabled at the maximum');
+      await tester.tap(find.byWidget(grow));
+      await tester.pump();
+      expect(find.text(ArabicFontControls.largest), findsOneWidget, reason: 'refuses at the maximum and says why');
+      expect(arabicSize(), ArabicFontSize.max);
     });
 
     testWidgets('previous / next page through the book, crossing chapters', (tester) async {

@@ -7,7 +7,6 @@ import '../../../data/models/hadith.dart';
 import '../home_feed.dart';
 import 'widgets/daily_hadith_section.dart';
 import 'widgets/featured_books_section.dart';
-import 'widgets/hadith_categories_section.dart';
 import 'widgets/home_app_bar.dart';
 import 'widgets/home_progress_section.dart';
 import 'widgets/home_search_shortcut.dart';
@@ -27,6 +26,27 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _failed = false;
   Hadith? _serverDaily;
   bool _dailyRequested = false;
+
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  /// Refresh button: rebuilds the feed from the current data (and asks the
+  /// server again for the hadith of the day when a backend is used), then
+  /// returns to the top.
+  Future<void> _refresh() async {
+    setState(() => _failed = false);
+    await _loadServerDaily();
+    if (!mounted) return;
+    if (_scroll.hasClients) {
+      await _scroll.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+    }
+    if (mounted) AppSnackbar.show(context, 'Waa la cusboonaysiiyay', type: AppSnackType.success);
+  }
 
   @override
   void didChangeDependencies() {
@@ -66,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!_failed) _load();
     final feed = _feed;
     return Scaffold(
-      appBar: const HomeAppBar(),
+      appBar: HomeAppBar(onRefresh: _refresh),
       body: feed == null
           ? ErrorStateWidget(
               title: 'Xogta lama soo rari karin',
@@ -74,6 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onRetry: () => setState(() => _failed = false),
             )
           : ListView(
+              controller: _scroll,
               padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.xxl),
               children: [
                 const AppPageBody(child: HomeSearchShortcut()),
@@ -88,8 +109,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 const AppPageBody(child: ReadingReminderCard()),
                 AppSpacing.gapXl,
                 FeaturedBooksSection(books: feed.books),
-                AppSpacing.gapXl,
-                AppPageBody(child: HadithCategoriesSection(categories: feed.categories)),
                 AppSpacing.gapXl,
                 AppPageBody(child: RecentHadithsSection(featured: feed.featuredHadiths)),
               ],

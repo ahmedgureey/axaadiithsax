@@ -6,6 +6,7 @@ import '../models/chapter.dart';
 import '../models/hadith.dart';
 import '../models/hadith_book.dart';
 import '../models/hadith_category.dart';
+import '../models/study_notes.dart';
 
 /// Synchronous access to books, chapters, hadith and categories.
 ///
@@ -21,15 +22,21 @@ class HadithRepository extends ChangeNotifier {
     List<Chapter>? chapters,
     List<Hadith>? hadiths,
     List<HadithCategory>? categories,
+    Map<String, StudyNotes> studyNotes = const {},
   }) : _books = List.of(books ?? MockLibrary.books),
        _chapters = List.of(chapters ?? MockLibrary.chapters),
        _hadiths = List.of(hadiths ?? MockLibrary.hadiths),
-       _categories = List.of(categories ?? MockLibrary.categories);
+       _categories = List.of(categories ?? MockLibrary.categories),
+       _studyNotes = Map.of(studyNotes);
 
   final List<HadithBook> _books;
   final List<Chapter> _chapters;
   final List<Hadith> _hadiths;
   final List<HadithCategory> _categories;
+  final Map<String, StudyNotes> _studyNotes;
+
+  /// Quiz/study notes for a hadith (companion, collection, topic, words).
+  StudyNotes? studyOf(String hadithId) => _studyNotes[hadithId];
 
   /// Published counts from the backend (collection id / chapter id → count),
   /// so counts are right before records are downloaded.
@@ -45,6 +52,7 @@ class HadithRepository extends ChangeNotifier {
     required List<HadithBook> books,
     required List<Chapter> chapters,
     List<HadithCategory>? categories,
+    Map<String, StudyNotes> studyNotes = const {},
     Map<String, int> bookCounts = const {},
     Map<String, int> chapterCounts = const {},
   }) {

@@ -234,6 +234,7 @@ class DailyHadithCard extends StatelessWidget {
     this.onRead,
     this.onShare,
     this.onBookmark,
+    this.fontControls,
   });
 
   final String arabicText;
@@ -259,6 +260,9 @@ class DailyHadithCard extends StatelessWidget {
   final VoidCallback? onRead;
   final VoidCallback? onShare;
   final VoidCallback? onBookmark;
+
+  /// Optional Arabic text-size control shown next to the title.
+  final Widget? fontControls;
 
   @override
   Widget build(BuildContext context) {
@@ -303,6 +307,12 @@ class DailyHadithCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (fontControls != null)
+                      // Solid light pill so the control stays readable on the dark hero.
+                      DecoratedBox(
+                        decoration: BoxDecoration(color: scheme.surface, borderRadius: AppRadius.pillAll),
+                        child: fontControls,
+                      ),
                   ],
                 ),
                 if (narrator != null) ...[

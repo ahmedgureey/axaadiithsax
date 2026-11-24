@@ -23,7 +23,7 @@ class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key, this.initialQuery, this.initialCategoryId, this.initialBookId});
 
   static const title = 'Raadi Xadiis';
-  static const hint = 'Raadi xadiis, Carabi ama Soomaali...';
+  static const hint = 'Raadi xadiis';
 
   /// Short pause after typing before searching (fewer rebuilds while typing).
   static const debounce = Duration(milliseconds: 250);
@@ -480,7 +480,7 @@ class _RemoteResultsState extends State<_RemoteResults> {
       return const EmptyStateWidget(
         icon: Icons.keyboard_rounded,
         title: 'Qor ugu yaraan 2 xaraf',
-        message: 'Qor eray Carabi ama Soomaali ah si aad u raadiso, ama isticmaal shaandhaynta oo keliya.',
+        message: 'Qor eray Carabi ama Soomaali ah.',
       );
     }
     if (_failure != null && _results.isEmpty) {

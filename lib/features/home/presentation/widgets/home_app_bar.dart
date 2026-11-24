@@ -5,10 +5,13 @@ import '../../../../core/routing/app_routes.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../core/widgets/widgets.dart';
 
-/// Greeting, logo, notifications and profile shortcut. No accounts: the
+/// Greeting, logo, notifications and a refresh button. No accounts: the
 /// greeting is the same for everyone.
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const HomeAppBar({super.key});
+  const HomeAppBar({super.key, this.onRefresh});
+
+  /// Reloads the home screen (and server data when a backend is used).
+  final VoidCallback? onRefresh;
 
   static const greeting = 'Assalaamu Calaykum';
 
@@ -62,11 +65,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.notifications_none_rounded),
           onPressed: () => context.push(AppRoutes.notifications),
         ),
-        IconButton(
-          tooltip: 'Aniga',
-          onPressed: () => context.go(AppRoutes.profile),
-          icon: const Icon(Icons.account_circle_outlined),
-        ),
+        IconButton(tooltip: 'Cusboonaysii', onPressed: onRefresh, icon: const Icon(Icons.refresh_rounded)),
         const SizedBox(width: AppSpacing.xxs),
       ],
     );

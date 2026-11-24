@@ -29,13 +29,18 @@ void main() {
         expect(q.correctIndex, inInclusiveRange(0, q.options.length - 1));
         switch (q.type) {
           case QuizQuestionType.meaning:
-            expect(q.correctAnswer, h.somaliText);
+            fail('whole-translation questions are no longer used');
           case QuizQuestionType.book:
             expect(q.correctAnswer, repo.bookById(h.bookId)!.nameSomali);
           case QuizQuestionType.topic:
             expect(q.correctAnswer, repo.categoryById(h.categoryIds.first)!.nameSomali);
           case QuizQuestionType.narrator:
             fail('demo narrators are identical placeholders — no narrator question may be made');
+          case QuizQuestionType.word ||
+              QuizQuestionType.companion ||
+              QuizQuestionType.collection ||
+              QuizQuestionType.understanding:
+            fail('test records have no study notes');
         }
         expect(q.explanation, contains('(xog tusaale ah)'));
       }

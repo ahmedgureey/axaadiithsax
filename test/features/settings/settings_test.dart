@@ -195,6 +195,13 @@ void main() {
       await tester.tap(find.text(HelpScreen.topics.first.$2));
       await tester.pumpAndSettle();
       expect(find.text(HelpScreen.topics.first.$3), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text(HelpScreen.whatsAppDisplay),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Nala soo xiriir — WhatsApp'), findsOneWidget);
+      expect(HelpScreen.whatsAppUri.toString(), 'https://wa.me/252612341376');
     });
   });
 
@@ -273,11 +280,13 @@ void main() {
       expect(find.textContaining('CanvasKit'), findsOneWidget);
     });
 
-    testWidgets('about shows the real version and a disclaimer', (tester) async {
+    testWidgets('about shows the real version and what the app offers (no warning, no library list)', (tester) async {
       await _pump(tester, AppRoutes.about);
       expect(find.text(AboutScreen.versionLabel), findsOneWidget);
-      expect(find.text('Nooca 1.0.3 (build 4)'), findsOneWidget);
-      expect(find.textContaining('xadiisyo la xaqiijiyey'), findsOneWidget);
+      expect(find.text('Nooca 1.0.5 (build 6)'), findsOneWidget);
+      expect(find.textContaining('xadiisyo la xaqiijiyey'), findsNothing);
+      expect(find.text('Waxyaabaha la isticmaalay'), findsNothing);
+      expect(find.text('Waxa app-ka ku jira'), findsOneWidget);
       expect(find.textContaining('(demo)'), findsNothing);
     });
   });

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../../../data/models/hadith.dart';
+import '../../../data/models/study_notes.dart';
 import '../../../data/repositories/hadith_repository.dart';
 import 'quiz_models.dart';
 
@@ -17,6 +18,17 @@ class QuizGenerator {
 
   final HadithRepository _repo;
   final Random _random;
+  static const _studyTypes = [
+    QuizQuestionType.word,
+    QuizQuestionType.companion,
+    QuizQuestionType.collection,
+    QuizQuestionType.understanding,
+  ];
+  static const _dataTypes = [QuizQuestionType.book, QuizQuestionType.topic, QuizQuestionType.narrator];
+
+  /// Hadith with study notes get word / companion / collection /
+  /// understanding questions; others the questions their data supports.
+  List<QuizQuestionType> _typesFor(Hadith h) => _repo.studyOf(h.id) != null ? _studyTypes : _dataTypes;
 
   QuizBuild generate(QuizConfig config, {Set<String> favoriteIds = const {}, Set<String> memorizedIds = const {}}) {
     var pool = _repo.allHadiths.toList();
@@ -43,10 +55,10 @@ class QuizGenerator {
     final questions = <QuizQuestion>[];
     final used = <String>{};
     // Round-robin over hadith and types for variety; stop at the target.
-    for (var round = 0; round < QuizQuestionType.values.length && questions.length < config.questionCount; round++) {
+    for (var round = 0; round < _studyTypes.length && questions.length < config.questionCount; round++) {
       for (final h in pool) {
         if (questions.length >= config.questionCount) break;
-        final types = [...QuizQuestionType.values]..shuffle(_random);
+        final types = [..._typesFor(h)]..shuffle(_random);
         for (final type in types) {
           final key = '${h.id}:${type.name}';
           if (used.contains(key)) continue;
@@ -70,6 +82,10 @@ class QuizGenerator {
     QuizQuestionType.book => _book(h),
     QuizQuestionType.topic => _topic(h),
     QuizQuestionType.narrator => _narrator(h),
+    QuizQuestionType.word => _word(h),
+    QuizQuestionType.companion => _companion(h),
+    QuizQuestionType.collection => _collection(h),
+    QuizQuestionType.understanding => _understanding(h),
   };
 
   String _ref(Hadith h) {
@@ -147,6 +163,117 @@ class QuizGenerator {
       correct: narrator,
       distractors: others,
       explanation: 'Weriyaha ku qoran xogta xadiiskan waa: $narrator. Tixraac: ${_ref(h)}.',
+      arabicOptions: true,
+    );
+  }
+
+  // ---- study-note questions -------------------------------------------------
+
+  /// The Prophet's words from the Somali translation: from the first quote to
+  /// before the attribution ("Waxaa wariyey …", "Xadiis xasan …"), so the
+  /// narrator and collection are not given away.
+  String? _matn(Hadith h) {
+    final s = h.somaliText;
+    if (s == null || s.trim().isEmpty) return null;
+    var start = s.indexOf('"');
+    if (start < 0) start = 0;
+    var end = s.length;
+    for (final marker in ['[Waxaa wariyey', 'Waxaa wariyey', 'Xadiis xasan', 'Riwaayad']) {
+      final at = s.indexOf(marker, start + 1);
+      if (at > start && at < end) end = at;
+    }
+    var text = s.substring(start, end).trim();
+    text = _short(text);
+    return text.isEmpty ? null : text;
+  }
+
+  /// Keeps questions short: the first sentence (or ~130 characters, cut at a
+  /// word boundary).
+  static String _short(String text, {int max = 130}) {
+    final sentence = RegExp(r'^.{20,}?[.?!](?=\s|"|$)').firstMatch(text)?.group(0);
+    var s = sentence ?? text;
+    if (s.length > max) {
+      final cut = s.lastIndexOf(' ', max);
+      s = '${s.substring(0, cut > 40 ? cut : max).trimRight()}…';
+    }
+    if (s.startsWith('"') && !s.substring(1).contains('"')) s = s.substring(1);
+    return s.trim();
+  }
+
+  QuizQuestion? _word(Hadith h) {
+    final notes = _repo.studyOf(h.id);
+    if (notes == null || notes.words.isEmpty) return null;
+    final word = notes.words[_random.nextInt(notes.words.length)];
+    final answer = word.somali.toLowerCase();
+    final others = {
+      for (final o in _repo.allHadiths)
+        for (final w in _repo.studyOf(o.id)?.words ?? const <StudyWord>[])
+          // Avoid near-identical distractors (e.g. "xumaan" vs "xumaanta").
+          if (!w.somali.toLowerCase().contains(answer) && !answer.contains(w.somali.toLowerCase())) w.somali,
+    }.toList();
+    return _assemble(
+      type: QuizQuestionType.word,
+      hadith: h,
+      prompt: 'Erayga Carabiga ah ee xadiiskan ku jira, macnihiisu waa maxay?',
+      arabic: word.arabic,
+      correct: word.somali,
+      distractors: others,
+      explanation: '«${word.arabic}» macnihiisu waa «${word.somali}». Tixraac: ${_ref(h)}.',
+    );
+  }
+
+  QuizQuestion? _companion(Hadith h) {
+    final notes = _repo.studyOf(h.id);
+    if (notes == null) return null;
+    final others = {
+      for (final o in _repo.allHadiths)
+        if (_repo.studyOf(o.id)?.companion case final c? when c != notes.companion) c,
+    }.toList();
+    return _assemble(
+      type: QuizQuestionType.companion,
+      hadith: h,
+      prompt: 'Yaa xadiiskan ka weriyey Nabiga (NNKH)?',
+      context: _matn(h),
+      correct: notes.companion,
+      distractors: others,
+      explanation: 'Xadiiskan waxaa ka weriyey ${notes.companion}. Tixraac: ${_ref(h)}.',
+    );
+  }
+
+  QuizQuestion? _collection(Hadith h) {
+    final collection = _repo.studyOf(h.id)?.collection;
+    if (collection == null) return null;
+    final others = {
+      for (final o in _repo.allHadiths)
+        if (_repo.studyOf(o.id)?.collection case final c? when c != collection) c,
+    }.toList();
+    return _assemble(
+      type: QuizQuestionType.collection,
+      hadith: h,
+      prompt: 'Xadiiskan yaa wariyey (rawaahu)?',
+      context: _matn(h),
+      correct: collection,
+      distractors: others,
+      explanation: 'Xadiiskan waxaa wariyey: $collection. Tixraac: ${_ref(h)}.',
+    );
+  }
+
+  QuizQuestion? _understanding(Hadith h) {
+    final notes = _repo.studyOf(h.id);
+    final matn = _matn(h);
+    if (notes == null || matn == null) return null;
+    final others = {
+      for (final o in _repo.allHadiths)
+        if (_repo.studyOf(o.id)?.topic case final t? when t != notes.topic) t,
+    }.toList();
+    return _assemble(
+      type: QuizQuestionType.understanding,
+      hadith: h,
+      prompt: 'Fahanka guud: xadiiskan wuxuu ku saabsan yahay?',
+      context: matn,
+      correct: notes.topic,
+      distractors: others,
+      explanation: 'Mowduuca xadiiskan: ${notes.topic}. Tixraac: ${_ref(h)}.',
     );
   }
 
@@ -155,7 +282,9 @@ class QuizGenerator {
     required QuizQuestionType type,
     required Hadith hadith,
     required String prompt,
-    required String arabic,
+    String? arabic,
+    String? context,
+    bool arabicOptions = false,
     required String correct,
     required List<String> distractors,
     required String explanation,
@@ -168,6 +297,8 @@ class QuizGenerator {
       hadithId: hadith.id,
       prompt: prompt,
       arabicExcerpt: arabic,
+      contextText: context,
+      arabicOptions: arabicOptions,
       options: options,
       correctIndex: options.indexOf(correct),
       explanation: explanation,

@@ -33,7 +33,7 @@ class SearchInitialView extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                   child: Text(
-                    'Ku qor eray Carabi ama Soomaali ah, ama dooro mowduuc hoose.',
+                    'Qor eray, ama dooro mowduuc.',
                     style: context.textStyles.bodyMedium?.copyWith(color: context.appColors.textSecondary),
                   ),
                 ),

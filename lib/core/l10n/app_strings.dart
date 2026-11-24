@@ -107,7 +107,7 @@ abstract final class AppStrings {
       AppText.homeRecent: 'Xadiisyadii Ugu Dambeeyey',
       AppText.homeFeatured: 'Xadiisyo la soo Xulay',
       AppText.seeAll: 'Eeg Dhammaan',
-      AppText.searchHint: 'Raadi xadiis, Carabi ama Soomaali...',
+      AppText.searchHint: 'Raadi xadiis',
       AppText.readerNarrator: 'Weriyaha',
       AppText.readerArabic: 'Qoraalka Carabiga',
       AppText.readerTranslation: 'Tarjumaadda Af Soomaaliga',

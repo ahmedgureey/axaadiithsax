@@ -9,22 +9,20 @@ import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../splash/presentation/splash_screen.dart';
 
-/// About: purpose, version (from pubspec via AppInfo), honest disclaimer and
-/// credits only for components actually used. No invented developer,
-/// organisation, website or date.
+/// About: purpose, version (from pubspec via AppInfo) and what the app offers.
+/// No invented developer, organisation, website or date.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   static const title = 'Ku saabsan';
   static String get versionLabel => 'Nooca ${AppInfo.version} (build ${AppInfo.buildNumber})';
 
-  static const credits = [
-    ('Flutter', 'Qalabka lagu dhisay app-ka'),
-    ('go_router', 'Navigation'),
-    ('shared_preferences', 'Kaydinta maxalliga ah'),
-    ('share_plus', 'Wadaagista'),
-    ('flutter_localizations', 'Qoraallada nidaamka ee luqadaha'),
-    ('Amiri font', 'Font-ka Carabiga — The Amiri Project Authors (SIL OFL 1.1)'),
+  static const features = [
+    (Icons.menu_book_rounded, 'Al-Arbaciin an-Nawawiyya', '42 xadiis oo Carabi ah iyo tarjumaaddooda Af-Soomaaliga'),
+    (Icons.search_rounded, 'Raadin', 'Ku raadi eray Carabi ama Soomaali ah'),
+    (Icons.psychology_outlined, 'Xifdin iyo imtixaan', 'Qorshe xifdin maalinle ah iyo su\'aalo'),
+    (Icons.bookmarks_outlined, 'Kaydin', 'Xadiisyada aad jeceshahay ku keydso'),
+    (Icons.cloud_off_outlined, 'Internet la\'aan', 'Wuu shaqeeyaa internet la\'aan, akoonna looma baahna'),
   ];
 
   @override
@@ -45,30 +43,18 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
           AppSpacing.gapLg,
-          const AppPageBody(
-            child: FormValidationMessage(
-              type: FormMessageType.info,
-              message:
-                  '$noVerifiedHadithMessage Mar walba ka hubi waxyaabaha diinta '
-                  'ilo la isku halleyn karo iyo culimo.',
-            ),
-          ),
-          AppSpacing.gapXl,
           AppPageBody(
             child: SettingsSection(
-              title: 'Waxyaabaha la isticmaalay',
+              title: 'Waxa app-ka ku jira',
               children: [
-                for (final (name, role) in credits) ListTile(dense: true, title: Text(name), subtitle: Text(role)),
+                for (final (icon, name, detail) in features)
+                  ListTile(
+                    dense: true,
+                    leading: Icon(icon, color: context.appColors.goldText),
+                    title: Text(name),
+                    subtitle: Text(detail),
+                  ),
               ],
-            ),
-          ),
-          AppSpacing.gapLg,
-          AppPageBody(
-            child: SecondaryButton(
-              label: 'Shatiyada (licenses)',
-              icon: Icons.description_outlined,
-              onPressed: () =>
-                  showLicensePage(context: context, applicationName: AppInfo.name, applicationVersion: versionLabel),
             ),
           ),
           if (kDebugMode) ...[

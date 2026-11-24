@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:xadiithapp/features/hadith/presentation/widgets/arabic_font_controls.dart';
 import 'package:xadiithapp/app/app.dart';
 import 'package:xadiithapp/app/app_services.dart';
 import 'package:xadiithapp/core/routing/app_routes.dart';
@@ -310,7 +311,10 @@ void main() {
       await s.settings.setArabicFontSize(ArabicFontSize.min);
       await tester.pumpAndSettle();
       final shrink = tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.text_decrease_rounded));
-      expect(shrink.onPressed, isNull);
+      await tester.tap(find.byWidget(shrink));
+      await tester.pump();
+      expect(find.text(ArabicFontControls.smallest), findsOneWidget, reason: 'refuses and says why');
+      expect(s.settings.arabicFontSize, ArabicFontSize.min);
       await s.settings.setArabicFontSize(ArabicFontSize.min - 10);
       expect(s.settings.arabicFontSize, ArabicFontSize.min);
     });

@@ -26,7 +26,19 @@ class QuizQuestionCard extends StatelessWidget {
         Semantics(header: true, child: Text(question.prompt, style: context.textStyles.titleLarge)),
         if (question.arabicExcerpt != null) ...[
           AppSpacing.gapSm,
-          AppCard(child: ArabicText(question.arabicExcerpt!, maxLines: 6, fontSize: 22)),
+          AppCard(
+            child: ArabicText(
+              question.arabicExcerpt!,
+              maxLines: 6,
+              // A single word is shown large and centred.
+              fontSize: question.type == QuizQuestionType.word ? 30 : 22,
+              textAlign: question.type == QuizQuestionType.word ? TextAlign.center : TextAlign.start,
+            ),
+          ),
+        ],
+        if (question.contextText != null) ...[
+          AppSpacing.gapSm,
+          AppCard(child: Text(question.contextText!, style: context.textStyles.bodyMedium)),
         ],
         AppSpacing.gapMd,
         for (var i = 0; i < question.options.length; i++)
@@ -35,7 +47,7 @@ class QuizQuestionCard extends StatelessWidget {
             child: QuizAnswerOption(
               letter: String.fromCharCode(65 + i),
               text: question.options[i],
-              arabic: question.type == QuizQuestionType.narrator,
+              arabic: question.arabicOptions,
               state: !answered
                   ? AnswerState.idle
                   : i == question.correctIndex

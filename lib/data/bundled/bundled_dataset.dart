@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../models/chapter.dart';
 import '../models/hadith.dart';
 import '../models/hadith_book.dart';
+import '../models/study_notes.dart';
 
 /// Hadith collections that ship inside the app (assets), so they work online
 /// and offline without any database.
@@ -94,6 +95,48 @@ Future<({HadithBook book, Chapter chapter, List<Hadith> hadiths})?> loadBundledD
   } catch (e) {
     debugPrint('Bundled dataset not loaded: $e');
     return null;
+  }
+}
+
+/// Asset with quiz/study notes for the bundled collection.
+const bundledStudyAsset = 'assets/data/nawawi40_study.json';
+
+/// Parses study notes (`xadiith-study/1`) into a map keyed by hadith id
+/// (`<collection>-<number>`, the ids [BundledDataset.parse] creates).
+Map<String, StudyNotes> parseStudyNotes(Map<String, dynamic> json) {
+  if (json['format'] != 'xadiith-study/1') return const {};
+  final collection = json['collection'];
+  final hadiths = json['hadiths'];
+  if (collection is! String || hadiths is! Map) return const {};
+  final result = <String, StudyNotes>{};
+  hadiths.forEach((number, value) {
+    if (value is! Map) return;
+    final companion = value['companion'];
+    final topic = value['topic'];
+    if (companion is! String || companion.trim().isEmpty || topic is! String || topic.trim().isEmpty) return;
+    final c = value['collection'];
+    result['$collection-$number'] = StudyNotes(
+      companion: companion,
+      topic: topic,
+      collection: c is String && c.trim().isNotEmpty ? c : null,
+      words: [
+        for (final w in (value['words'] as List? ?? const []))
+          if (w is Map && w['ar'] is String && w['so'] is String)
+            StudyWord(arabic: w['ar'] as String, somali: w['so'] as String),
+      ],
+    );
+  });
+  return result;
+}
+
+/// Loads the study notes; empty when the asset is missing or invalid.
+Future<Map<String, StudyNotes>> loadBundledStudy(AssetBundle bundle) async {
+  try {
+    final decoded = jsonDecode(await bundle.loadString(bundledStudyAsset));
+    return decoded is Map<String, dynamic> ? parseStudyNotes(decoded) : const {};
+  } catch (e) {
+    debugPrint('Study notes not loaded: $e');
+    return const {};
   }
 }
 

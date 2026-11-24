@@ -26,7 +26,7 @@ abstract final class AppFonts {
 
 /// Reading-size limits for Arabic hadith text (logical pixels).
 abstract final class ArabicFontSize {
-  static const double min = 20;
+  static const double min = 5;
   static const double max = 40;
   static const double defaultSize = 26;
 }

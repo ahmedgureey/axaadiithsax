@@ -164,11 +164,13 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                       ),
                       _BookPosition(order: repo.readingOrderOf(hadith.bookId), current: hadith),
                       AppSpacing.gapLg,
-                      _SectionLabel(context.tr(AppText.readerNarrator)),
-                      if (hadith.narrator != null)
-                        ArabicText(hadith.narrator!, variant: ArabicTextVariant.narrator)
-                      else
-                        const _MissingText('Weriyaha lama hayo.'),
+                      if (hadith.narrator != null) ...[
+                        _SectionLabel(context.tr(AppText.readerNarrator)),
+                        ArabicText(hadith.narrator!, variant: ArabicTextVariant.narrator),
+                        AppSpacing.gapMd,
+                      ],
+                      // Recitation where the narrator line used to be.
+                      HadithAudioPlayer(key: ValueKey('audio-${hadith.id}'), hadith: hadith),
                       AppSpacing.gapLg,
                       Row(
                         children: [
@@ -217,8 +219,6 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                         const _MissingText(missingTranslationText),
                       AppSpacing.gapMd,
                       HadithReadingActions(hadith: hadith),
-                      AppSpacing.gapLg,
-                      HadithAudioPlayer(key: ValueKey('audio-${hadith.id}'), hadith: hadith),
                       AppSpacing.gapLg,
                       // Same progress record as the Xifdinta tab.
                       SecondaryButton(
