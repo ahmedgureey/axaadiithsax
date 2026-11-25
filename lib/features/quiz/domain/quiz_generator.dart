@@ -20,9 +20,11 @@ class QuizGenerator {
   final Random _random;
   static const _studyTypes = [
     QuizQuestionType.word,
+    QuizQuestionType.wordArabic,
     QuizQuestionType.companion,
     QuizQuestionType.collection,
     QuizQuestionType.understanding,
+    QuizQuestionType.arabicUnderstanding,
   ];
   static const _dataTypes = [QuizQuestionType.book, QuizQuestionType.topic, QuizQuestionType.narrator];
 
@@ -52,12 +54,17 @@ class QuizGenerator {
     }
 
     pool.shuffle(_random);
+    // A few general questions in a full quiz (1 in 5), when available.
+    final general = config.source == QuizSource.all && config.categoryId == null
+        ? (_generalQuestions()..shuffle(_random)).take(config.questionCount ~/ 5).toList()
+        : const <QuizQuestion>[];
+    final target = config.questionCount - general.length;
     final questions = <QuizQuestion>[];
     final used = <String>{};
     // Round-robin over hadith and types for variety; stop at the target.
-    for (var round = 0; round < _studyTypes.length && questions.length < config.questionCount; round++) {
+    for (var round = 0; round < _studyTypes.length && questions.length < target; round++) {
       for (final h in pool) {
-        if (questions.length >= config.questionCount) break;
+        if (questions.length >= target) break;
         final types = [..._typesFor(h)]..shuffle(_random);
         for (final type in types) {
           final key = '${h.id}:${type.name}';
@@ -74,6 +81,9 @@ class QuizGenerator {
     if (questions.isEmpty) {
       return const QuizBuild([], problem: 'Xogta la heli karo kuma filna su\'aalo sax ah.');
     }
+    for (final g in general) {
+      questions.insert(_random.nextInt(questions.length + 1), g);
+    }
     return QuizBuild(questions);
   }
 
@@ -83,9 +93,12 @@ class QuizGenerator {
     QuizQuestionType.topic => _topic(h),
     QuizQuestionType.narrator => _narrator(h),
     QuizQuestionType.word => _word(h),
+    QuizQuestionType.wordArabic => _wordArabic(h),
     QuizQuestionType.companion => _companion(h),
     QuizQuestionType.collection => _collection(h),
     QuizQuestionType.understanding => _understanding(h),
+    QuizQuestionType.arabicUnderstanding => _arabicUnderstanding(h),
+    QuizQuestionType.general => null,
   };
 
   String _ref(Hadith h) {
@@ -214,7 +227,7 @@ class QuizGenerator {
     return _assemble(
       type: QuizQuestionType.word,
       hadith: h,
-      prompt: 'Erayga Carabiga ah ee xadiiskan ku jira, macnihiisu waa maxay?',
+      prompt: 'Erayga Carabiga ah, Soomaali maxaa lagu wadaa?',
       arabic: word.arabic,
       correct: word.somali,
       distractors: others,
@@ -269,12 +282,124 @@ class QuizGenerator {
     return _assemble(
       type: QuizQuestionType.understanding,
       hadith: h,
-      prompt: 'Fahanka guud: xadiiskan wuxuu ku saabsan yahay?',
+      prompt: 'Macnaha guud, muxuu xadiisku ka hadlayaa?',
       context: matn,
       correct: notes.topic,
       distractors: others,
       explanation: 'Mowduuca xadiiskan: ${notes.topic}. Tixraac: ${_ref(h)}.',
     );
+  }
+
+  /// Somali meaning → which Arabic word?
+  QuizQuestion? _wordArabic(Hadith h) {
+    final notes = _repo.studyOf(h.id);
+    if (notes == null || notes.words.isEmpty) return null;
+    final word = notes.words[_random.nextInt(notes.words.length)];
+    final others = {
+      for (final o in _repo.allHadiths)
+        for (final w in _repo.studyOf(o.id)?.words ?? const <StudyWord>[])
+          if (w.arabic != word.arabic && w.somali.toLowerCase() != word.somali.toLowerCase()) w.arabic,
+    }.toList();
+    return _assemble(
+      type: QuizQuestionType.wordArabic,
+      hadith: h,
+      prompt: '«${word.somali}» — Carabigiisa maxaa lagu wadaa?',
+      correct: word.arabic,
+      distractors: others,
+      arabicOptions: true,
+      explanation: '«${word.somali}» Carabigiisu waa «${word.arabic}». Tixraac: ${_ref(h)}.',
+    );
+  }
+
+  /// The hadith's Arabic words (without the chain) → its general subject.
+  QuizQuestion? _arabicUnderstanding(Hadith h) {
+    final notes = _repo.studyOf(h.id);
+    final arabic = arabicMatn(h.arabicText);
+    if (notes == null || arabic == null) return null;
+    final others = {
+      for (final o in _repo.allHadiths)
+        if (_repo.studyOf(o.id)?.topic case final t? when t != notes.topic) t,
+    }.toList();
+    return _assemble(
+      type: QuizQuestionType.arabicUnderstanding,
+      hadith: h,
+      prompt: 'Qoraalkan Carabiga ah, macnaha guud muxuu ka hadlayaa?',
+      arabic: arabic,
+      correct: notes.topic,
+      distractors: others,
+      explanation: 'Mowduuca xadiiskan: ${notes.topic}. Tixraac: ${_ref(h)}.',
+    );
+  }
+
+  /// The Prophet's words from the Arabic text: after "صلى الله عليه وسلم …:"
+  /// (skipping the chain of narrators), cut to ~110 characters at a word.
+  static String? arabicMatn(String text, {int max = 110}) {
+    var start = 0;
+    final salla = text.indexOf('صلى الله عليه');
+    if (salla >= 0) {
+      final colon = text.indexOf(':', salla);
+      if (colon > 0 && colon - salla < 40) start = colon + 1;
+    }
+    var s = text.substring(start).replaceAll(RegExp('^[\\s"«“]+'), '').trim();
+    if (s.length < 15) return null;
+    if (s.length > max) {
+      final cut = s.lastIndexOf(' ', max);
+      s = '${s.substring(0, cut > 40 ? cut : max).trimRight()} …';
+    }
+    return s;
+  }
+
+  // ---- general questions ----------------------------------------------------
+
+  /// Well-known facts around the bundled collection. Each is attached to the
+  /// hadith it comes from and only used when that hadith exists.
+  List<QuizQuestion> _generalQuestions() {
+    final out = <QuizQuestion>[];
+    void add(String hadithId, String prompt, String correct, List<String> wrong, String explanation) {
+      final h = _repo.hadithById(hadithId);
+      if (h == null || _repo.studyOf(h.id) == null) return;
+      final q = _assemble(
+        type: QuizQuestionType.general,
+        hadith: h,
+        prompt: prompt,
+        correct: correct,
+        distractors: wrong,
+        explanation: explanation,
+      );
+      if (q != null) out.add(q);
+    }
+
+    final book = _repo.bookById('nawawi40');
+    if (book != null) {
+      final count = _repo.hadithCountOfBook(book.id);
+      add('nawawi40-1', 'Kitaabka «${book.nameSomali}» yaa ururiyey?', book.author, const [
+        'Imaam al-Bukhaari',
+        'Imaam Muslim',
+        'Imaam Maalik',
+      ], '«${book.nameSomali}» waxaa ururiyey ${book.author}.');
+      if (count > 0) {
+        add('nawawi40-1', '«${book.nameSomali}» imisa xadiis ayuu ka kooban yahay?', '$count', [
+          for (final n in const [30, 40, 45, 50])
+            if (n != count) '$n',
+        ], 'Magaciisu waa «Afartanka», laakiin wuxuu ka kooban yahay $count xadiis.');
+      }
+    }
+    add('nawawi40-3', 'Tiirarka Islaamku waa imisa?', '5', const [
+      '3',
+      '6',
+      '7',
+    ], 'Islaamka waxaa lagu dhisay shan tiir (Xadiiska 3).');
+    add('nawawi40-2', 'Tiirarka Iimaanku waa imisa?', '6', const [
+      '4',
+      '5',
+      '7',
+    ], 'Iimaanku waa lix: Allah, malaa\'igta, kutubta, rusulka, maalinta aakhiro iyo qadarka (Xadiiska 2).');
+    add('nawawi40-1', 'Labada «Saxiix» (Saxiixayn) waa kuwee?', 'Al-Bukhaari iyo Muslim', const [
+      'Abuu Daawuud iyo at-Tirmidhi',
+      'An-Nasaa\'i iyo Ibnu Maajah',
+      'Maalik iyo Axmad',
+    ], 'Saxiixayn waa Saxiix al-Bukhaari iyo Saxiix Muslim (Xadiiska 1).');
+    return out;
   }
 
   /// Needs at least one distinct distractor; otherwise the question is invalid.

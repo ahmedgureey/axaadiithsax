@@ -8,9 +8,14 @@ enum QuizQuestionType {
 
   // From study notes (bundled collections):
   word('Erayga Carabiga'),
+  wordArabic('Carabigiisa'),
   companion('Saxaabiga weriyey'),
   collection('Yaa wariyey'),
-  understanding('Fahanka guud');
+  understanding('Fahanka guud'),
+  arabicUnderstanding('Fahanka Carabiga'),
+
+  /// General knowledge around the collection (not one hadith's wording).
+  general('Su\'aal guud');
 
   const QuizQuestionType(this.label);
   final String label;

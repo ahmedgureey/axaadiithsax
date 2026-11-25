@@ -1,7 +1,7 @@
 {
-  "latest_build": 11,
-  "min_build": 11,
-  "version": "1.0.10",
-  "apk_url": "https://github.com/ahmedgureey/axaadiithsax/releases/latest",
-  "message": "Nooc cusub oo app-ka ah ayaa diyaar ah. Fadlan cusboonaysii."
+  "latest_build": 12,
+  "min_build": 12,
+  "version": "1.0.11",
+  "apk_url": "https://raw.githubusercontent.com/ahmedgureey/axaadiithsax/main/apk/Xadiith-App.apk",
+  "message": "Nooc cusub oo app-ka ah ayaa diyaar ah. Fadlan cusboonaysii si aad u sii isticmaasho."
 }

@@ -37,9 +37,12 @@ void main() {
           case QuizQuestionType.narrator:
             fail('demo narrators are identical placeholders — no narrator question may be made');
           case QuizQuestionType.word ||
+              QuizQuestionType.wordArabic ||
               QuizQuestionType.companion ||
               QuizQuestionType.collection ||
-              QuizQuestionType.understanding:
+              QuizQuestionType.understanding ||
+              QuizQuestionType.arabicUnderstanding ||
+              QuizQuestionType.general:
             fail('test records have no study notes');
         }
         expect(q.explanation, contains('(xog tusaale ah)'));

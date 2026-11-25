@@ -119,7 +119,7 @@ class QuizAnswerOption extends StatelessWidget {
               AppSpacing.gapSm,
               Expanded(
                 child: arabic
-                    ? ArabicText(text, variant: ArabicTextVariant.label)
+                    ? ArabicText(text, variant: ArabicTextVariant.label, fontSize: 22)
                     : Text(text, style: context.textStyles.bodyMedium),
               ),
               if (icon != null) ...[

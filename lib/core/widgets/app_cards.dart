@@ -620,36 +620,86 @@ class BookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = context.colors;
     final c = context.appColors;
+    final isDark = scheme.brightness == Brightness.dark;
+    final coverTop = isDark ? scheme.primaryContainer : scheme.primary;
+    final coverBottom = isDark ? scheme.surfaceContainerHighest : scheme.tertiary;
     return AppCard(
       onTap: onTap,
       semanticLabel: titleSomali,
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 56,
-            height: 72,
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              borderRadius: AppRadius.smAll,
-              border: Border.all(color: c.gold.withValues(alpha: 0.6)),
+          // Book cover: dark green with a gold frame.
+          ExcludeSemantics(
+            child: Container(
+              width: 64,
+              height: 88,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [coverTop, coverBottom],
+                ),
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(4), right: Radius.circular(10)),
+                boxShadow: [
+                  BoxShadow(color: coverBottom.withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 3)),
+                ],
+              ),
+              padding: const EdgeInsets.all(5),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: AppRadius.smAll,
+                  border: Border.all(color: c.gold.withValues(alpha: 0.7)),
+                ),
+                child: Center(child: Icon(Icons.auto_stories_rounded, color: c.gold, size: 26)),
+              ),
             ),
-            alignment: Alignment.center,
-            child: Icon(Icons.auto_stories_rounded, color: scheme.onPrimaryContainer),
           ),
           AppSpacing.gapMd,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(titleSomali, style: context.textStyles.titleMedium),
-                if (titleArabic != null) ArabicText(titleArabic!, variant: ArabicTextVariant.label, maxLines: 1),
-                if (author != null) Text(author!, style: context.textStyles.bodySmall),
+                Text(
+                  titleSomali,
+                  style: context.textStyles.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (titleArabic != null)
+                  // `end` in the RTL region = aligned with the Somali text on the left.
+                  ArabicText(
+                    titleArabic!,
+                    variant: ArabicTextVariant.label,
+                    maxLines: 1,
+                    textAlign: TextAlign.end,
+                    color: c.goldText,
+                  ),
+                if (author != null) ...[
+                  AppSpacing.gapXxs,
+                  Row(
+                    children: [
+                      Icon(Icons.person_outline_rounded, size: 14, color: c.textSecondary),
+                      const SizedBox(width: AppSpacing.xxs),
+                      Flexible(
+                        child: Text(
+                          author!,
+                          style: context.textStyles.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 if (description != null) ...[
                   AppSpacing.gapXxs,
-                  Text(description!, style: context.textStyles.bodySmall, maxLines: 3, overflow: TextOverflow.ellipsis),
+                  Text(description!, style: context.textStyles.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
                 ],
                 if (countLabel != null || badges.isNotEmpty) ...[
-                  AppSpacing.gapXs,
+                  AppSpacing.gapSm,
                   Wrap(
                     spacing: AppSpacing.xxs,
                     runSpacing: AppSpacing.xxs,
@@ -662,7 +712,13 @@ class BookCard extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded, color: c.textSecondary),
+          AppSpacing.gapXs,
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(color: scheme.primary.withValues(alpha: 0.08), shape: BoxShape.circle),
+            child: Icon(Icons.chevron_right_rounded, size: 20, color: scheme.primary),
+          ),
         ],
       ),
     );

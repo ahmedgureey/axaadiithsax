@@ -13,9 +13,12 @@ class QuizResultsScreen extends StatelessWidget {
   /// Null when opened without a quiz (deep link / refresh).
   final QuizResult? result;
 
+  /// Shown when most answers are correct.
+  static const successMessage = 'Jazakallahu khairan, waad ku guuleysatay! Mar kasta ku dadaal.';
+
   static String messageFor(int percentage) => switch (percentage) {
-    >= 80 => 'Aad baad u fiicantahay! Sii wad dib-u-eegista.',
-    >= 50 => 'Waa bilow wanaagsan. Dib u eeg kuwa aad khaldantay.',
+    >= 60 => successMessage,
+    >= 40 => 'Waa bilow wanaagsan. Dib u eeg kuwa aad khaldantay.',
     _ => 'Ha quusan — dib u akhri xadiisyada oo mar kale isku day.',
   };
 
