@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'app/app.dart';
 import 'app/app_services.dart';
 import 'core/backend/supabase_backend.dart';
+import 'core/notifications/notification_gateway.dart';
+import 'core/update/update_checker.dart';
+import 'core/routing/app_routes.dart';
 import 'core/settings/app_settings_controller.dart';
 import 'data/bundled/bundled_dataset.dart';
 import 'data/remote/catalog_api.dart';
@@ -15,8 +18,22 @@ Future<void> main() async {
   _registerFontLicenses();
   // Optional backend: no-op unless built with --dart-define-from-file=supabase.json.
   await SupabaseBackend.initialize();
-  runApp(XadiisApp(services: await _createServices()));
+  final services = await _createServices();
+  // Reminders: schedules from the real data; a tap on a reminder that
+  // launched the app opens its page directly.
+  await services.reminders.start();
+  final launchRoute = await services.reminders.launchRoute();
+  runApp(XadiisApp(services: services, initialLocation: launchRoute ?? AppRoutes.splash));
 }
+
+/// Device notifications on Android / iOS; none on the web.
+/// Update check on the phone app only (the APK is what gets updated).
+UpdateChecker? get _updateChecker => kIsWeb ? null : UpdateChecker();
+
+NotificationGateway get _notificationGateway =>
+    !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)
+    ? LocalNotificationGateway()
+    : const NoopNotificationGateway();
 
 /// Local storage can fail (corrupt prefs, platform channel error). The app
 /// must still start: fall back to in-memory storage with default settings.
@@ -35,9 +52,21 @@ Future<AppServices> _createServices() async {
 /// does the app fall back to the Supabase catalogue (when configured).
 Future<AppServices> _servicesFrom(SettingsStore store) async {
   final bundled = await _bundledRepository();
-  if (bundled != null) return AppServices.create(store, repository: bundled);
+  if (bundled != null) {
+    return AppServices.create(
+      store,
+      repository: bundled,
+      notificationGateway: _notificationGateway,
+      updateChecker: _updateChecker,
+    );
+  }
   final client = SupabaseBackend.client;
-  return AppServices.create(store, catalogApi: client == null ? null : SupabaseCatalogApi(client));
+  return AppServices.create(
+    store,
+    catalogApi: client == null ? null : SupabaseCatalogApi(client),
+    notificationGateway: _notificationGateway,
+    updateChecker: _updateChecker,
+  );
 }
 
 Future<HadithRepository?> _bundledRepository() async {

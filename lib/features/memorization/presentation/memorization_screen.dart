@@ -49,15 +49,6 @@ class MemorizationScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
             children: [
               AppPageBody(
-                child: Text(
-                  m.hasAnyActivity
-                      ? 'Si fiican ayaad u socotaa — sii wad maalin kasta.'
-                      : 'Ku bilow xadiis keliya maanta.',
-                  style: context.textStyles.bodyLarge,
-                ),
-              ),
-              AppSpacing.gapMd,
-              AppPageBody(
                 child: DailyGoalCard(
                   controller: m,
                   onStart: () {
@@ -65,62 +56,66 @@ class MemorizationScreen extends StatelessWidget {
                     context.go(next == null ? AppRoutes.memorizationPlan : AppRoutes.memorizeHadith(next));
                   },
                   onChangeTarget: () => showDailyTargetSheet(context, m),
-                ),
-              ),
-              AppSpacing.gapSm,
-              AppPageBody(
-                child: AppTextButton(
-                  label: 'Eeg qorshaha maanta',
-                  icon: Icons.list_alt_rounded,
-                  onPressed: () => context.go(AppRoutes.memorizationPlan),
+                  onOpenPlan: () => context.go(AppRoutes.memorizationPlan),
                 ),
               ),
               AppSpacing.gapMd,
               AppPageBody(
-                child: _StatsGrid(
-                  items: [
-                    _Stat(Icons.menu_book_rounded, '${m.memorizedCount} / ${m.totalAvailable}', 'Wadarta la xifdiyey'),
-                    _Stat(Icons.history_rounded, '$due', 'Dib-u-eegis sugaya'),
-                    _Stat(
-                      Icons.local_fire_department_rounded,
-                      m.streak == 0 ? '—' : '${m.streak}',
-                      m.streak == 0 ? 'Weli silsilad ma jirto' : 'Maalmood oo isku xiga',
-                    ),
-                    _Stat(Icons.task_alt_rounded, '${m.reviewsCompletedToday}', 'Dib-u-eegis maanta'),
-                  ],
-                ),
-              ),
-              AppSpacing.gapSm,
-              AppPageBody(
-                child: Semantics(
-                  label: 'Horumarka guud: ${(m.overallProgress * 100).round()} boqolkiiba',
-                  excludeSemantics: true,
-                  child: ClipRRect(
-                    borderRadius: AppRadius.pillAll,
-                    child: LinearProgressIndicator(value: m.overallProgress, minHeight: 6),
-                  ),
-                ),
-              ),
-              AppSpacing.gapLg,
-              AppPageBody(
                 child: Row(
                   children: [
                     Expanded(
-                      child: SecondaryButton(
-                        label: due == 0 ? 'Dib-u-eegis' : 'Dib-u-eegis ($due)',
+                      child: _ActionTile(
                         icon: Icons.replay_rounded,
-                        onPressed: () => context.go(AppRoutes.memorizationReview),
+                        title: 'Dib-u-eegis',
+                        subtitle: due == 0 ? 'Ma jiro mid sugaya' : '$due ayaa sugaya',
+                        highlight: due > 0,
+                        onTap: () => context.go(AppRoutes.memorizationReview),
                       ),
                     ),
                     AppSpacing.gapSm,
                     Expanded(
-                      child: SecondaryButton(
-                        label: 'Imtixaan',
+                      child: _ActionTile(
                         icon: Icons.quiz_outlined,
-                        onPressed: () => context.push(AppRoutes.quiz),
+                        title: 'Imtixaan',
+                        subtitle: 'Is tijaabi',
+                        onTap: () => context.push(AppRoutes.quiz),
                       ),
                     ),
                   ],
+                ),
+              ),
+              AppSpacing.gapXl,
+              const AppPageBody(child: SectionHeader(title: 'Horumarkaaga')),
+              AppSpacing.gapXs,
+              AppPageBody(
+                child: AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _StatsRow(
+                        items: [
+                          _Stat(Icons.menu_book_rounded, '${m.memorizedCount}/${m.totalAvailable}', 'La xifdiyey'),
+                          _Stat(Icons.history_rounded, '$due', 'Sugaya'),
+                          _Stat(Icons.local_fire_department_rounded, m.streak == 0 ? '—' : '${m.streak}', 'Silsilad'),
+                          _Stat(Icons.task_alt_rounded, '${m.reviewsCompletedToday}', 'Maanta'),
+                        ],
+                      ),
+                      AppSpacing.gapMd,
+                      Semantics(
+                        label: 'Horumarka guud: ${(m.overallProgress * 100).round()} boqolkiiba',
+                        excludeSemantics: true,
+                        child: ClipRRect(
+                          borderRadius: AppRadius.pillAll,
+                          child: LinearProgressIndicator(value: m.overallProgress, minHeight: 6),
+                        ),
+                      ),
+                      AppSpacing.gapXxs,
+                      Text(
+                        '${(m.overallProgress * 100).round()}% ee ${m.totalAvailable}-ka xadiis',
+                        style: context.textStyles.labelSmall,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               AppSpacing.gapXl,
@@ -134,7 +129,7 @@ class MemorizationScreen extends StatelessWidget {
               AppSpacing.gapSm,
               AppPageBody(
                 child: quizzes.isEmpty
-                    ? Text('Weli imtixaan ma aadan gelin.', style: context.textStyles.bodySmall)
+                    ? Text('Weli imtixaan ma jiro.', style: context.textStyles.bodySmall)
                     : Column(
                         children: [
                           for (final q in quizzes)
@@ -148,10 +143,10 @@ class MemorizationScreen extends StatelessWidget {
                       ),
               ),
               AppSpacing.gapXl,
-              const AppPageBody(child: SectionHeader(title: 'Kuwii aan dhawaan xifdiyey')),
+              const AppPageBody(child: SectionHeader(title: 'Dhawaan la xifdiyey')),
               AppSpacing.gapSm,
               if (recent.isEmpty)
-                AppPageBody(child: Text('Weli xadiis ma aadan xifdin.', style: context.textStyles.bodySmall))
+                AppPageBody(child: Text('Weli xadiis ma xifdin.', style: context.textStyles.bodySmall))
               else
                 for (final h in recent)
                   AppPageBody(
@@ -183,50 +178,82 @@ class _Stat {
   final String label;
 }
 
-class _StatsGrid extends StatelessWidget {
-  const _StatsGrid({required this.items});
+/// Four numbers side by side (icon, value, short label).
+class _StatsRow extends StatelessWidget {
+  const _StatsRow({required this.items});
   final List<_Stat> items;
 
   @override
   Widget build(BuildContext context) {
-    Widget tile(_Stat s) => Semantics(
-      label: '${s.label}: ${s.value}',
-      excludeSemantics: true,
-      child: AppCard(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        child: Row(
-          children: [
-            Icon(s.icon, color: context.appColors.goldText),
-            AppSpacing.gapSm,
-            Expanded(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final s in items)
+          Expanded(
+            child: Semantics(
+              label: '${s.label}: ${s.value}',
+              excludeSemantics: true,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(s.value, style: context.textStyles.titleMedium),
-                  Text(s.label, style: context.textStyles.labelSmall),
+                  Icon(s.icon, size: 20, color: context.appColors.goldText),
+                  AppSpacing.gapXxs,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(s.value, style: context.textStyles.titleMedium),
+                  ),
+                  Text(
+                    s.label,
+                    style: context.textStyles.labelSmall,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-    return Column(
-      children: [
-        for (var i = 0; i < items.length; i += 2) ...[
-          if (i > 0) AppSpacing.gapSm,
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: tile(items[i])),
-                AppSpacing.gapSm,
-                Expanded(child: i + 1 < items.length ? tile(items[i + 1]) : const SizedBox()),
-              ],
-            ),
           ),
-        ],
       ],
+    );
+  }
+}
+
+/// Large tappable tile for the main actions (review, quiz).
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.highlight = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = context.colors;
+    return AppCard(
+      onTap: onTap,
+      semanticLabel: '$title: $subtitle',
+      color: highlight ? scheme.primaryContainer : null,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.xs),
+            decoration: BoxDecoration(color: scheme.primary.withValues(alpha: 0.10), borderRadius: AppRadius.smAll),
+            child: Icon(icon, size: 20, color: scheme.primary),
+          ),
+          AppSpacing.gapSm,
+          Text(title, style: context.textStyles.titleSmall),
+          Text(subtitle, style: context.textStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ],
+      ),
     );
   }
 }

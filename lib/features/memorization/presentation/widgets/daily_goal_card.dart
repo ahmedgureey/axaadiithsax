@@ -6,11 +6,20 @@ import '../../memorization_controller.dart';
 
 /// Today's goal: planned vs completed with a labelled progress bar.
 class DailyGoalCard extends StatelessWidget {
-  const DailyGoalCard({super.key, required this.controller, required this.onStart, required this.onChangeTarget});
+  const DailyGoalCard({
+    super.key,
+    required this.controller,
+    required this.onStart,
+    required this.onChangeTarget,
+    this.onOpenPlan,
+  });
 
   final MemorizationController controller;
   final VoidCallback onStart;
   final VoidCallback onChangeTarget;
+
+  /// Opens today's list ("Qorshaha maanta").
+  final VoidCallback? onOpenPlan;
 
   @override
   Widget build(BuildContext context) {
@@ -18,38 +27,65 @@ class DailyGoalCard extends StatelessWidget {
     final planned = c.plannedToday;
     final done = c.completedToday;
     final percent = (c.dailyProgress * 100).round();
+    final scheme = context.colors;
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Wrap: the target button drops below the title on narrow screens.
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
+          Row(
             children: [
-              Text('Hadafka maanta', style: context.textStyles.titleMedium),
-              AppTextButton(label: '${c.dailyTarget} maalintii', icon: Icons.tune_rounded, onPressed: onChangeTarget),
+              Semantics(
+                label: 'Horumarka maanta: $percent boqolkiiba',
+                excludeSemantics: true,
+                child: SizedBox.square(
+                  dimension: 64,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox.expand(
+                        child: CircularProgressIndicator(
+                          value: c.dailyProgress,
+                          strokeWidth: 6,
+                          backgroundColor: scheme.primary.withValues(alpha: 0.10),
+                          strokeCap: StrokeCap.round,
+                        ),
+                      ),
+                      Text(
+                        '$percent%',
+                        style: context.textStyles.labelLarge?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              AppSpacing.gapMd,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Hadafka maanta', style: context.textStyles.titleMedium),
+                    Text(
+                      planned == 0 ? 'Xadiis kale ma jiro.' : '$done / $planned la xifdiyey maanta',
+                      style: context.textStyles.bodySmall,
+                    ),
+                    AppSpacing.gapXxs,
+                    ActionChip(
+                      avatar: const Icon(Icons.tune_rounded, size: 16),
+                      label: Text('${c.dailyTarget} maalintii'),
+                      onPressed: onChangeTarget,
+                      tooltip: 'Beddel hadafka',
+                    ),
+                  ],
+                ),
+              ),
             ],
-          ),
-          Text(
-            planned == 0 ? 'Xadiis kale oo la xifdiyo ma jiro.' : '$done / $planned xadiis ayaa la xifdiyey maanta',
-            style: context.textStyles.bodyMedium,
-          ),
-          AppSpacing.gapSm,
-          Semantics(
-            label: 'Horumarka maanta: $percent boqolkiiba',
-            excludeSemantics: true,
-            child: ClipRRect(
-              borderRadius: AppRadius.pillAll,
-              child: LinearProgressIndicator(value: c.dailyProgress, minHeight: 10),
-            ),
           ),
           if (c.planLimitedByData && planned > 0) ...[
             AppSpacing.gapXs,
-            Text(
-              'Hadafkaagu wuxuu ka badan yahay xadiisyada weli la heli karo ($planned).',
-              style: context.textStyles.bodySmall,
-            ),
+            Text('Hadafku wuu ka badan yahay xadiisyada jira ($planned).', style: context.textStyles.bodySmall),
           ],
           AppSpacing.gapMd,
           if (c.isTodayComplete)
@@ -58,7 +94,25 @@ class DailyGoalCard extends StatelessWidget {
               message: 'Hambalyo! Waad dhammaysay qorshaha maanta.',
             )
           else if (planned > 0)
-            PrimaryButton(label: 'Bilow qorshaha maanta', icon: Icons.play_arrow_rounded, onPressed: onStart),
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButton(
+                    label: 'Bilow qorshaha maanta',
+                    icon: Icons.play_arrow_rounded,
+                    onPressed: onStart,
+                  ),
+                ),
+                if (onOpenPlan != null) ...[
+                  AppSpacing.gapSm,
+                  IconButton.outlined(
+                    tooltip: 'Eeg qorshaha maanta',
+                    onPressed: onOpenPlan,
+                    icon: const Icon(Icons.list_alt_rounded),
+                  ),
+                ],
+              ],
+            ),
         ],
       ),
     );

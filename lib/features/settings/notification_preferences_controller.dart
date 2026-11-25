@@ -2,41 +2,57 @@ import 'package:flutter/material.dart';
 
 import '../../core/settings/app_settings_controller.dart';
 
+/// The reminders the app can schedule on the device. Each one is checked
+/// against the app's real data before it is scheduled (see
+/// `ReminderPlanner`).
 enum ReminderKind {
-  dailyHadith('Xadiiska maalinta', 'Xasuusin maalinle ah oo ku tusaysa xadiiska maanta'),
-  memorization('Xasuusinta xifdinta', 'Xasuusin si aad u gaarto hadafkaaga maalinlaha ah'),
-  review('Xasuusinta dib-u-eegista', 'Marka xadiisyo dib-u-eegis sugayaan'),
-  announcements('Wararka app-ka', 'Cusboonaysiinta iyo astaamaha cusub');
+  dailyHadith('Xadiiska maalinta', 'Maalin kasta xadiiska maanta', TimeOfDay(hour: 8, minute: 0)),
+  memorization('Xasuusinta xifdinta', 'Haddii qorshaha maanta aan la dhammaystirin', TimeOfDay(hour: 19, minute: 0)),
+  review('Xasuusinta dib-u-eegista', 'Marka xadiisyo dib-u-eegis sugayaan', TimeOfDay(hour: 17, minute: 0));
 
-  const ReminderKind(this.label, this.description);
+  const ReminderKind(this.label, this.description, this.defaultTime);
   final String label;
   final String description;
+  final TimeOfDay defaultTime;
 }
 
-/// Notification PREFERENCES only. The app has no notification service yet,
-/// so nothing is scheduled or delivered and no system permission is
-/// requested — the UI says so explicitly.
+/// Reminder preferences (on/off and time per reminder), persisted locally.
+/// Scheduling is done by `ReminderService`, which listens to this.
 class NotificationPreferencesController extends ChangeNotifier {
   NotificationPreferencesController(this._store);
 
-  static const defaultTime = TimeOfDay(hour: 8, minute: 0);
   static const _prefix = 'notifications.';
-  static const _timeKey = 'notifications.time';
+
+  /// Time key of the daily hadith (kept from the single-time version).
+  static const _legacyTimeKey = 'notifications.time';
+
+  /// Set once the system permission prompt was shown (never asked again).
+  static const permissionAskedKey = 'notifications.permissionAsked';
 
   final SettingsStore _store;
   final Map<ReminderKind, bool> _enabled = {for (final k in ReminderKind.values) k: false};
-  TimeOfDay _time = defaultTime;
+  final Map<ReminderKind, TimeOfDay> _times = {for (final k in ReminderKind.values) k: k.defaultTime};
+  bool _permissionAsked = false;
 
   bool isEnabled(ReminderKind kind) => _enabled[kind] ?? false;
-  TimeOfDay get reminderTime => _time;
+  TimeOfDay timeOf(ReminderKind kind) => _times[kind] ?? kind.defaultTime;
   int get enabledCount => _enabled.values.where((v) => v).length;
+  bool get permissionAsked => _permissionAsked;
+
+  /// Time of the daily hadith reminder (compatibility getter).
+  TimeOfDay get reminderTime => timeOf(ReminderKind.dailyHadith);
+
+  static String _timeKey(ReminderKind k) => k == ReminderKind.dailyHadith ? _legacyTimeKey : '$_prefix${k.name}.time';
 
   Future<void> load() async {
     try {
       for (final k in ReminderKind.values) {
         _enabled[k] = await _store.getBool('$_prefix${k.name}') ?? false;
+        _times[k] = parseTime(await _store.getString(_timeKey(k))) ?? k.defaultTime;
       }
-      _time = parseTime(await _store.getString(_timeKey)) ?? defaultTime;
+      _permissionAsked = await _store.getBool(permissionAskedKey) ?? false;
+      // The removed "app news" reminder needed a server; clear its old flag.
+      await _store.remove('${_prefix}announcements');
     } catch (_) {
       // Keep defaults (everything off) if storage is unreadable.
     }
@@ -50,23 +66,32 @@ class NotificationPreferencesController extends ChangeNotifier {
     await _safe(() => _store.setBool('$_prefix${kind.name}', value));
   }
 
-  Future<void> setReminderTime(TimeOfDay time) async {
-    _time = time;
+  Future<void> setTime(ReminderKind kind, TimeOfDay time) async {
+    _times[kind] = time;
     notifyListeners();
-    await _safe(() => _store.setString(_timeKey, formatTime(time)));
+    await _safe(() => _store.setString(_timeKey(kind), formatTime(time)));
+  }
+
+  /// Daily hadith time (compatibility).
+  Future<void> setReminderTime(TimeOfDay time) => setTime(ReminderKind.dailyHadith, time);
+
+  Future<void> markPermissionAsked() async {
+    if (_permissionAsked) return;
+    _permissionAsked = true;
+    await _safe(() => _store.setBool(permissionAskedKey, true));
   }
 
   Future<void> reset() async {
     for (final k in ReminderKind.values) {
       _enabled[k] = false;
+      _times[k] = k.defaultTime;
     }
-    _time = defaultTime;
     notifyListeners();
     await _safe(() async {
       for (final k in ReminderKind.values) {
         await _store.remove('$_prefix${k.name}');
+        await _store.remove(_timeKey(k));
       }
-      await _store.remove(_timeKey);
     });
   }
 

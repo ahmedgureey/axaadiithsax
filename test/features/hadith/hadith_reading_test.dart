@@ -133,7 +133,11 @@ void main() {
       expect(find.text(missingTranslationText), findsOneWidget);
       expect(find.text('Weriyaha lama hayo.'), findsNothing);
       expect(find.text(HadithAudioPlayer.unavailableLabel), findsOneWidget);
-      expect(find.text('Koobiyee tarjumaadda'), findsNothing);
+      expect(
+        tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.copy_rounded)).onPressed,
+        isNull,
+        reason: 'no translation to copy',
+      );
     });
 
     testWidgets('bookmark uses the shared favorites state', (tester) async {
@@ -148,14 +152,14 @@ void main() {
       final copied = _mockClipboard(tester);
       final h = await _pump(tester, AppRoutes.hadith('muslim-c1-h1'));
       final record = h.services.repository.hadithById('muslim-c1-h1')!;
-      await _tap(tester, find.text('Koobiyee Carabiga'));
-      await _tap(tester, find.text('Koobiyee tarjumaadda'));
+      await _tap(tester, find.byTooltip('Koobiyee Carabiga'));
+      await _tap(tester, find.byTooltip('Koobiyee tarjumaadda'));
       expect(copied, [record.arabicText, record.somaliText]);
     });
 
     testWidgets('share sends text with a demo disclaimer', (tester) async {
       final h = await _pump(tester, AppRoutes.hadith('muslim-c1-h1'));
-      await _tap(tester, find.byTooltip('La wadaag'));
+      await _tap(tester, find.byTooltip('La wadaag').last);
       expect(h.share.shared, hasLength(1));
       expect(h.share.shared.single, contains('Xog tusaale ah — ma aha xadiis la xaqiijiyay'));
       expect(h.share.shared.single, contains('Saxiix Muslim'));
@@ -164,7 +168,7 @@ void main() {
     testWidgets('share falls back to copying when unavailable', (tester) async {
       final copied = _mockClipboard(tester);
       await _pump(tester, AppRoutes.hadith('muslim-c1-h1'), shareOutcome: ShareOutcome.unavailable);
-      await _tap(tester, find.byTooltip('La wadaag'));
+      await _tap(tester, find.byTooltip('La wadaag').last);
       expect(copied, hasLength(1));
       expect(find.textContaining('waa la koobiyeeyay'), findsOneWidget);
     });

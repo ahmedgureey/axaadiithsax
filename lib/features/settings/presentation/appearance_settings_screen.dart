@@ -52,7 +52,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
                 ),
                 AppSpacing.gapLg,
                 SecondaryButton(
-                  label: 'Doorbidyada akhriska',
+                  label: 'Habka akhriska',
                   icon: Icons.text_fields_rounded,
                   onPressed: () => context.push(AppRoutes.settingsReading),
                 ),

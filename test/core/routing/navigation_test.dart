@@ -155,12 +155,8 @@ void main() {
       await _tap(tester, find.byTooltip('Ku dar kuwa la jecel yahay'));
       expect(services.favorites.ids, hasLength(1));
       await _systemBack(tester);
-      await tester.scrollUntilVisible(
-        find.text('Xadiisyada aan Kaydiyey'),
-        250,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await _tap(tester, find.text('Xadiisyada aan Kaydiyey'));
+      await _tap(tester, _tab('Aniga'));
+      await _tap(tester, find.text('Xadiisyada kaydsan'));
       expect(find.byType(FavoriteHadithCard), findsOneWidget);
       await _tap(tester, find.byType(FavoriteHadithCard));
       expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
@@ -190,7 +186,7 @@ void main() {
 
     testWidgets('profile → settings → appearance switches theme', (tester) async {
       final services = await _pumpApp(tester, initial: AppRoutes.profile);
-      await _tap(tester, find.text('Dejinta oo dhan'));
+      await _tap(tester, find.text('Dejinta'));
       await _tap(tester, find.text('Muuqaalka'));
       await _tap(tester, find.text('Mugdi'));
       expect(services.settings.themeMode, ThemeMode.dark);

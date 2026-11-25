@@ -6,6 +6,7 @@ import '../../../core/app_info.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/routing/route_leading.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/update/update_prompt.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../splash/presentation/splash_screen.dart';
 
@@ -18,11 +19,12 @@ class AboutScreen extends StatelessWidget {
   static String get versionLabel => 'Nooca ${AppInfo.version} (build ${AppInfo.buildNumber})';
 
   static const features = [
-    (Icons.menu_book_rounded, 'Al-Arbaciin an-Nawawiyya', '42 xadiis oo Carabi ah iyo tarjumaaddooda Af-Soomaaliga'),
-    (Icons.search_rounded, 'Raadin', 'Ku raadi eray Carabi ama Soomaali ah'),
-    (Icons.psychology_outlined, 'Xifdin iyo imtixaan', 'Qorshe xifdin maalinle ah iyo su\'aalo'),
-    (Icons.bookmarks_outlined, 'Kaydin', 'Xadiisyada aad jeceshahay ku keydso'),
-    (Icons.cloud_off_outlined, 'Internet la\'aan', 'Wuu shaqeeyaa internet la\'aan, akoonna looma baahna'),
+    (Icons.menu_book_rounded, '42 xadiis'),
+    (Icons.translate_rounded, 'Carabi · Soomaali'),
+    (Icons.search_rounded, 'Raadin'),
+    (Icons.psychology_outlined, 'Xifdin'),
+    (Icons.quiz_outlined, 'Imtixaan'),
+    (Icons.cloud_off_outlined, 'Internet la\'aan'),
   ];
 
   @override
@@ -33,28 +35,55 @@ class AboutScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
         children: [
           const AppLogo(),
-          AppSpacing.gapXs,
-          Center(child: Text(versionLabel, style: context.textStyles.bodySmall)),
-          AppSpacing.gapXl,
+          AppSpacing.gapSm,
+          Center(
+            child: MetaChip(label: versionLabel, icon: Icons.verified_outlined),
+          ),
+          AppSpacing.gapLg,
           AppPageBody(
             child: HonorificText(
-              '${AppInfo.name}: akhri, baro oo xifdi axaadiista Nabiga ﷺ — Carabi iyo tarjumaad Af-Soomaali ah.',
+              'Akhri, baro oo xifdi axaadiista Nabiga ﷺ.',
               style: context.textStyles.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          AppSpacing.gapXl,
+          AppPageBody(
+            child: GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: AppSpacing.sm,
+              crossAxisSpacing: AppSpacing.sm,
+              childAspectRatio: 2.6,
+              children: [
+                for (final (icon, label) in features)
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    child: Row(
+                      children: [
+                        Icon(icon, color: context.appColors.goldText),
+                        AppSpacing.gapSm,
+                        Expanded(
+                          child: Text(
+                            label,
+                            style: context.textStyles.titleSmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
           AppSpacing.gapLg,
           AppPageBody(
-            child: SettingsSection(
-              title: 'Waxa app-ka ku jira',
-              children: [
-                for (final (icon, name, detail) in features)
-                  ListTile(
-                    dense: true,
-                    leading: Icon(icon, color: context.appColors.goldText),
-                    title: Text(name),
-                    subtitle: Text(detail),
-                  ),
-              ],
+            child: SecondaryButton(
+              label: 'Hubi cusboonaysiin',
+              icon: Icons.system_update_rounded,
+              onPressed: () => showUpdateCheck(context),
             ),
           ),
           if (kDebugMode) ...[

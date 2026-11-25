@@ -55,7 +55,7 @@ void main() {
       expect(find.widgetWithText(AppBar, SearchScreen.title), findsOneWidget);
       expect(find.text(SearchScreen.hint), findsOneWidget);
       expect(find.byType(SearchInitialView), findsOneWidget);
-      expect(find.text('Mowduucyo la soo jeediyay'), findsOneWidget);
+      expect(find.text('Mowduucyo'), findsOneWidget);
       expect(find.text('Salaadda'), findsOneWidget);
     });
 

@@ -33,7 +33,7 @@ class SearchInitialView extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                   child: Text(
-                    'Qor eray, ama dooro mowduuc.',
+                    'Qor eray Carabi ama Soomaali ah.',
                     style: context.textStyles.bodyMedium?.copyWith(color: context.appColors.textSecondary),
                   ),
                 ),
@@ -64,29 +64,72 @@ class SearchInitialView extends StatelessWidget {
             );
           },
         ),
-        AppPageBody(
-          child: SectionHeader(
-            title: 'Mowduucyo la soo jeediyay',
-            actionLabel: 'Dhammaan',
-            onAction: onBrowseCategories,
+        // Only words that really return results are suggested.
+        if (_workingSuggestions(context) case final words when words.isNotEmpty) ...[
+          const AppPageBody(child: SectionHeader(title: suggestionsTitle)),
+          AppSpacing.gapXs,
+          AppPageBody(
+            child: Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                for (final w in words)
+                  ActionChip(
+                    avatar: const Icon(Icons.search_rounded, size: 18),
+                    label: Text(w),
+                    onPressed: () => onTerm(w),
+                  ),
+              ],
+            ),
           ),
-        ),
-        AppPageBody(
-          child: Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
-            children: [
-              for (final c in services.search.categories)
-                ActionChip(
-                  avatar: Icon(categoryIcon(c.iconKey), size: 18),
-                  label: Text(c.nameSomali),
-                  onPressed: () => onCategory(c.id),
-                ),
-            ],
+          AppSpacing.gapLg,
+        ],
+        if (services.search.categories.isNotEmpty) ...[
+          AppPageBody(
+            child: SectionHeader(title: 'Mowduucyo', actionLabel: 'Dhammaan', onAction: onBrowseCategories),
           ),
-        ),
+          AppPageBody(
+            child: Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                for (final c in services.search.categories)
+                  ActionChip(
+                    avatar: Icon(categoryIcon(c.iconKey), size: 18),
+                    label: Text(c.nameSomali),
+                    onPressed: () => onCategory(c.id),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
+  }
+
+  static const suggestionsTitle = 'Erayo la raadiyo';
+
+  /// Candidate words, in display order.
+  static const suggestions = [
+    'Niyad',
+    'Salaad',
+    'Iimaan',
+    'Jannada',
+    'Sadaqo',
+    'Zakada',
+    'Walaal',
+    'Naxariis',
+    'Taqwa',
+    'Dulmi',
+    'Sunnada',
+  ];
+
+  List<String> _workingSuggestions(BuildContext context) {
+    final search = context.services.search;
+    return [
+      for (final w in suggestions)
+        if (search.search(query: w).isNotEmpty) w,
+    ];
   }
 }
 

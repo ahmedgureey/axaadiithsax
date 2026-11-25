@@ -103,7 +103,9 @@ void main() {
       for (final lang in ['so', 'en', 'ar']) {
         final services = await _pump(tester, AppRoutes.home, store: _store(language: lang));
         final hadith = services.repository.dailyHadith(DateTime(2026, 11, 18))!;
-        await tester.pumpWidget(XadiisApp(services: services, initialLocation: AppRoutes.hadith(hadith.id)));
+        await tester.pumpWidget(
+          XadiisApp(key: UniqueKey(), services: services, initialLocation: AppRoutes.hadith(hadith.id)),
+        );
         await tester.pumpAndSettle();
         final arabic = find.byType(ArabicText);
         expect(arabic, findsWidgets);

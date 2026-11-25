@@ -61,7 +61,7 @@ abstract final class BundledDataset {
           number: position.toInt(),
           numberLabel: number,
           arabicText: arabic,
-          reference: '$nameEn, xadiiska $number',
+          reference: 'Xadiiska $number',
           source: source,
           sourceUrl: r['source_url'] as String?,
           somaliText: somali?['text'] as String?,
@@ -75,12 +75,12 @@ abstract final class BundledDataset {
     final translated = hadiths.where((h) => h.hasTranslation).length;
     final book = HadithBook(
       id: id,
-      nameSomali: nameEn,
+      nameSomali: (collection['name_so'] as String?) ?? nameEn,
       nameArabic: nameAr,
-      author: (collection['compiler_en'] as String?) ?? '',
+      author: (collection['compiler_so'] as String?) ?? (collection['compiler_en'] as String?) ?? '',
       description: translated == hadiths.length
-          ? 'Kitaabka Imaam an-Nawawi: ${hadiths.length} xadiis oo Carabi ah iyo tarjumaaddooda Af-Soomaaliga.'
-          : 'Kitaabka Imaam an-Nawawi: ${hadiths.length} xadiis oo Carabi ah.',
+          ? '${hadiths.length} xadiis oo Carabi ah iyo Af-Soomaali.'
+          : '${hadiths.length} xadiis oo Carabi ah.',
       isSourced: true,
     );
     return (book: book, chapter: chapter, hadiths: hadiths);

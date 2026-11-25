@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../update/update_prompt.dart';
 import '../widgets/widgets.dart';
 
 /// Persistent shell for the five main tabs.
@@ -28,11 +29,13 @@ class MainShell extends StatelessWidget {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) navigationShell.goBranch(0);
       },
-      child: Scaffold(
-        body: navigationShell,
-        bottomNavigationBar: AppBottomNavBar(
-          currentIndex: navigationShell.currentIndex,
-          onDestinationSelected: _onTabSelected,
+      child: UpdatePrompt(
+        child: Scaffold(
+          body: navigationShell,
+          bottomNavigationBar: AppBottomNavBar(
+            currentIndex: navigationShell.currentIndex,
+            onDestinationSelected: _onTabSelected,
+          ),
         ),
       ),
     );

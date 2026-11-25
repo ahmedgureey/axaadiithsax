@@ -21,11 +21,11 @@ enum FavoritesSort {
   final String label;
 }
 
-/// "Xadiisyada aan Kaydiyey" — reads the shared favourites controller.
+/// "Xadiisyada kaydsan" — reads the shared favourites controller.
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
 
-  static const title = 'Xadiisyada aan Kaydiyey';
+  static const title = 'Xadiisyada kaydsan';
 
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();

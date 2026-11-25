@@ -14,7 +14,6 @@ import 'package:xadiithapp/features/memorization/memorization_controller.dart';
 import 'package:xadiithapp/features/settings/notification_preferences_controller.dart';
 import 'package:xadiithapp/features/settings/presentation/help_screen.dart';
 import 'package:xadiithapp/features/settings/presentation/notification_settings_screen.dart';
-import 'package:xadiithapp/features/settings/presentation/privacy_screen.dart';
 
 import '../../support/test_library.dart';
 
@@ -170,15 +169,15 @@ void main() {
   });
 
   group('Profile screen', () {
-    testWidgets('no account UI: device notice, zero stats, links', (tester) async {
+    testWidgets('no notice card, no privacy; renamed reading items; stats and links', (tester) async {
       await _pump(tester, AppRoutes.profile);
-      expect(find.textContaining('Akoon looma baahna'), findsOneWidget);
+      expect(find.textContaining('Akoon looma baahna'), findsNothing);
+      expect(find.text('Arrimaha gaarka ah'), findsNothing);
       expect(_statSemantics('La keydiyay: 0'), findsOneWidget);
-      expect(find.text('Gal ama is diiwaangeli'), findsNothing);
-      expect(find.text('Ka bax'), findsNothing);
-      expect(find.byTooltip('Beddel magaca'), findsNothing);
-      await tester.scrollUntilVisible(find.text('Caawimaad'), 200, scrollable: find.byType(Scrollable).first);
-      expect(find.text('Dejinta oo dhan'), findsOneWidget);
+      expect(find.text('Xadiisyada kaydsan'), findsOneWidget);
+      expect(find.text('Habka akhriska'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text(HelpScreen.title), 200, scrollable: find.byType(Scrollable).first);
+      expect(find.text('Dejinta'), findsOneWidget);
     });
 
     testWidgets('stats reflect real favourites', (tester) async {
@@ -188,20 +187,19 @@ void main() {
       expect(_statSemantics('La keydiyay: 1'), findsOneWidget);
     });
 
-    testWidgets('profile → help and settings navigation', (tester) async {
+    testWidgets('profile → illustrated user guide: pages, skip, WhatsApp on the last page', (tester) async {
       await _pump(tester, AppRoutes.profile);
-      await _tap(tester, find.text('Caawimaad'));
-      expect(find.widgetWithText(AppBar, HelpScreen.title), findsOneWidget);
-      await tester.tap(find.text(HelpScreen.topics.first.$2));
-      await tester.pumpAndSettle();
-      expect(find.text(HelpScreen.topics.first.$3), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.text(HelpScreen.whatsAppDisplay),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Nala soo xiriir — WhatsApp'), findsOneWidget);
+      await _tap(tester, find.text(HelpScreen.title));
+      expect(find.text('HAGAHA ISTICMAALKA  1 / ${HelpScreen.pages.length}'), findsOneWidget);
+      expect(find.text(HelpScreen.pages.first.$1), findsOneWidget);
+      for (var i = 1; i < HelpScreen.pages.length; i++) {
+        await _tap(tester, find.text('Xiga'));
+        expect(find.text(HelpScreen.pages[i].$1), findsOneWidget);
+      }
+      expect(find.textContaining(HelpScreen.whatsAppDisplay), findsOneWidget);
       expect(HelpScreen.whatsAppUri.toString(), 'https://wa.me/252612341376');
+      await _tap(tester, find.text('Dhammee'));
+      expect(find.text(HelpScreen.pages.first.$1), findsNothing, reason: 'guide closed');
     });
   });
 
@@ -256,37 +254,30 @@ void main() {
       expect(s.settings.readingIsDefault, isTrue);
     });
 
-    testWidgets('notifications: honest notice, toggle + persistence', (tester) async {
+    testWidgets('notifications: three reminders with their own time; unsupported platform says so', (tester) async {
       final store = _guestStore();
       final s = await _pump(tester, AppRoutes.settingsNotifications, store: store);
-      expect(find.text(NotificationSettingsScreen.notice), findsOneWidget);
-      expect(find.textContaining('Dansan'), findsNWidgets(ReminderKind.values.length));
+      expect(find.text(NotificationSettingsScreen.unsupportedNotice), findsOneWidget, reason: 'tests use no device');
+      for (final k in ReminderKind.values) {
+        expect(find.text(k.label), findsOneWidget);
+      }
+      expect(find.text('08:00'), findsOneWidget);
+      expect(find.text('19:00'), findsOneWidget);
+      expect(find.text('17:00'), findsOneWidget);
       await tester.tap(find.text(ReminderKind.memorization.label));
       await tester.pumpAndSettle();
       expect(s.notifications.isEnabled(ReminderKind.memorization), isTrue);
       expect(await store.getBool('notifications.memorization'), isTrue);
-      expect(find.text('08:00'), findsOneWidget);
-    });
-
-    testWidgets('privacy explains local storage and web downloads accurately', (tester) async {
-      await _pump(tester, AppRoutes.settingsPrivacy);
-      expect(find.widgetWithText(AppBar, PrivacyScreen.title), findsOneWidget);
-      expect(find.text('Waxa qalabkan lagu kaydiyo'), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.text('Nooca web-ka (browser)'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.textContaining('CanvasKit'), findsOneWidget);
     });
 
     testWidgets('about shows the real version and what the app offers (no warning, no library list)', (tester) async {
       await _pump(tester, AppRoutes.about);
       expect(find.text(AboutScreen.versionLabel), findsOneWidget);
-      expect(find.text('Nooca 1.0.5 (build 6)'), findsOneWidget);
+      expect(find.text('Nooca 1.0.9 (build 10)'), findsOneWidget);
       expect(find.textContaining('xadiisyo la xaqiijiyey'), findsNothing);
       expect(find.text('Waxyaabaha la isticmaalay'), findsNothing);
-      expect(find.text('Waxa app-ka ku jira'), findsOneWidget);
+      expect(find.text('42 xadiis'), findsOneWidget);
+      expect(find.text("Internet la'aan"), findsOneWidget);
       expect(find.textContaining('(demo)'), findsNothing);
     });
   });
@@ -332,7 +323,6 @@ void main() {
       AppRoutes.settingsLanguage,
       AppRoutes.settingsReading,
       AppRoutes.settingsNotifications,
-      AppRoutes.settingsPrivacy,
       AppRoutes.settingsAppearance,
       AppRoutes.help,
       AppRoutes.about,

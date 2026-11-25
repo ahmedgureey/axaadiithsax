@@ -8,7 +8,6 @@ import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/theme/app_typography.dart';
 import 'package:xadiithapp/data/models/hadith.dart';
 import 'package:xadiithapp/features/hadith/reading_history_controller.dart';
-import 'package:xadiithapp/features/settings/notification_preferences_controller.dart';
 
 import '../support/test_library.dart';
 
@@ -95,35 +94,18 @@ void main() {
   });
 
   group('Home progress cards', () {
-    testWidgets('continue reading is hidden until something was read, then opens it', (tester) async {
-      expect(find.text('Sii wad akhriska'), findsNothing);
+    testWidgets('no continue-reading or reminder card on Home, even after reading', (tester) async {
       final h = await _middleHadith();
       await _pump(tester, AppRoutes.home, store: _store(history: [h.id]));
-      await _scrollTo(tester, find.text('Sii wad akhriska'));
-      expect(find.textContaining('#${h.number}'), findsWidgets);
-      await tester.tap(find.text('Sii wad akhriska'));
-      await tester.pumpAndSettle();
-      expect(find.text(h.arabicText), findsOneWidget);
-    });
-
-    testWidgets('no history → no continue card', (tester) async {
-      await _pump(tester, AppRoutes.home);
+      await _scrollTo(tester, find.text('Xifdinta maanta'));
       expect(find.text('Sii wad akhriska'), findsNothing);
+      expect(find.text('Xasuusinta akhriska'), findsNothing);
     });
 
-    testWidgets('memorization summary uses real numbers; reminder is honest', (tester) async {
+    testWidgets('memorization summary uses real numbers', (tester) async {
       final s = await _pump(tester, AppRoutes.home);
-      await _scrollTo(tester, find.text('Horumarka xifdinta'));
-      expect(find.text('0 / ${s.memorization.plannedToday} xadiis la xifdiyay'), findsOneWidget);
-      await _scrollTo(tester, find.text('Xasuusinta akhriska'));
-      expect(find.textContaining('Dansan'), findsOneWidget);
-
-      await s.notifications.setEnabled(ReminderKind.dailyHadith, true);
-      await tester.pumpAndSettle();
-      expect(find.text('Doorbid: maalin kasta 08:00 · weli lama diro'), findsOneWidget);
-      await tester.tap(find.text('Xasuusinta akhriska'));
-      await tester.pumpAndSettle();
-      expect(find.widgetWithText(AppBar, 'Ogeysiisyada'), findsOneWidget);
+      await _scrollTo(tester, find.text('Xifdinta maanta'));
+      expect(find.text('0 / ${s.memorization.plannedToday} la xifdiyey'), findsOneWidget);
     });
   });
 

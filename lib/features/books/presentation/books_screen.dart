@@ -32,11 +32,17 @@ class BooksScreen extends StatelessWidget {
               message: 'Weli kutub laguma darin app-ka.',
             )
           : ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-              // +1 for the notice at the top.
-              itemCount: books.length + 1,
+              padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xl),
+              // +1 for the notice at the top, +1 for the contents of a single collection.
+              itemCount: books.length + (books.length == 1 ? 2 : 1),
               separatorBuilder: (_, _) => AppSpacing.gapSm,
               itemBuilder: (context, i) {
+                if (i == books.length + 1) {
+                  return AppPageBody(
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+                    child: BookContents(bookId: books.first.id),
+                  );
+                }
                 if (i == 0) {
                   return AppPageBody(
                     child: Column(
@@ -72,8 +78,8 @@ class BooksScreen extends StatelessWidget {
                     badges: hadiths == 0
                         ? [MetaChip(label: 'Weli lama darin', icon: Icons.hourglass_empty_rounded, color: c.warning)]
                         : [
-                            MetaChip(label: '$chapters cutub'),
-                            MetaChip(label: '$hadiths xadiis'),
+                            if (chapters > 1) MetaChip(label: '$chapters cutub'),
+                            MetaChip(label: '$hadiths xadiis', icon: Icons.format_list_numbered_rounded),
                             if (book.isDemo) const DemoContentBadge(label: 'Tusaale'),
                           ],
                     onTap: () => context.go(AppRoutes.book(book.id)),
@@ -81,6 +87,54 @@ class BooksScreen extends StatelessWidget {
                 );
               },
             ),
+    );
+  }
+}
+
+/// "Tusmada": every hadith of a (single) collection by number and subject.
+/// Only shown when the subjects are known (study notes).
+class BookContents extends StatelessWidget {
+  const BookContents({super.key, required this.bookId});
+
+  static const title = 'Tusmada xadiisyada';
+
+  final String bookId;
+
+  @override
+  Widget build(BuildContext context) {
+    final repo = context.services.repository;
+    final items = [
+      for (final h in repo.readingOrderOf(bookId))
+        if (repo.studyOf(h.id) case final s?) (h, s.topic),
+    ];
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: title),
+        AppSpacing.gapXs,
+        AppCard(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+          child: Column(
+            children: [
+              for (var i = 0; i < items.length; i++) ...[
+                if (i > 0) const Divider(height: 1, indent: 64, endIndent: AppSpacing.md),
+                ListTile(
+                  leading: NumberBadge(items[i].$1.displayNumber, size: 32),
+                  title: Text(
+                    items[i].$2,
+                    style: context.textStyles.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Icon(Icons.chevron_right_rounded, color: context.appColors.textSecondary),
+                  onTap: () => context.push(AppRoutes.hadith(items[i].$1.id)),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

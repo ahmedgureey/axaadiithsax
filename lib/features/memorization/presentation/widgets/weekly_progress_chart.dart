@@ -21,7 +21,7 @@ class WeeklyProgressChart extends StatelessWidget {
     final quizzes = days.fold<int>(0, (s, d) => s + d.$2.quizzes);
     final activeDays = days.where((d) => !d.$2.isEmpty).length;
     final summary = activeDays == 0
-        ? 'Toddobaadkan weli wax dhaqdhaqaaq ah lama diiwaangelin.'
+        ? 'Toddobaadkan weli wax lama qabanin.'
         : 'Toddobaadkan: $memorized xifdin, $reviewed dib-u-eegis, $quizzes imtixaan — $activeDays maalmood oo firfircoon.';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

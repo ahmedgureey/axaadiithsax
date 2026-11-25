@@ -137,10 +137,19 @@ class HadithCard extends StatelessWidget {
     this.onCopy,
     this.onShare,
     this.previewLines,
+    this.title,
+    this.number,
   });
 
   final String arabicText;
   final String somaliText;
+
+  /// Short subject of the hadith; when set, the card shows a titled header
+  /// (number badge, title, "source · reference") instead of chips.
+  final String? title;
+
+  /// Position label shown in the badge (e.g. "35").
+  final String? number;
 
   /// Book (and optionally chapter) name, e.g. "Saxiix al-Bukhaari".
   final String source;
@@ -163,6 +172,7 @@ class HadithCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.appColors;
+    if (title != null) return _titled(context);
     final hasActions = onFavoriteToggle != null || onCopy != null || onShare != null;
     return AppCard(
       onTap: onTap,
@@ -210,6 +220,94 @@ class HadithCard extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+extension on HadithCard {
+  Widget _titled(BuildContext context) {
+    final c = context.appColors;
+    final meta = [source, ?reference].join(' · ');
+    return AppCard(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (number != null) ...[NumberBadge(number!), AppSpacing.gapSm],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title!, style: context.textStyles.titleSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text(meta, style: context.textStyles.labelSmall?.copyWith(color: c.goldText)),
+                  ],
+                ),
+              ),
+              if (onFavoriteToggle != null)
+                IconActionButton(
+                  icon: Icons.bookmark_border_rounded,
+                  selectedIcon: Icons.bookmark_rounded,
+                  isSelected: isFavorite,
+                  tooltip: isFavorite ? 'Ka saar kuwa la jecel yahay' : 'Ku dar kuwa la jecel yahay',
+                  onPressed: onFavoriteToggle,
+                ),
+            ],
+          ),
+          if (isVerified && grade != null || isDemo) ...[
+            AppSpacing.gapXs,
+            Wrap(
+              spacing: AppSpacing.xs,
+              children: [
+                if (isVerified && grade != null)
+                  MetaChip(label: grade!, icon: Icons.verified_rounded, color: c.success),
+                if (isDemo) const DemoContentBadge(),
+              ],
+            ),
+          ],
+          AppSpacing.gapSm,
+          ArabicText(arabicText, maxLines: previewLines == null ? null : 2),
+          AppSpacing.gapXs,
+          Text(
+            somaliText,
+            style: context.textStyles.bodyMedium?.copyWith(color: c.textSecondary),
+            maxLines: previewLines == null ? null : 2,
+            overflow: previewLines == null ? null : TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Round badge with a hadith's number (lists and card headers).
+class NumberBadge extends StatelessWidget {
+  const NumberBadge(this.label, {super.key, this.size = 36});
+
+  final String label;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.appColors;
+    return ExcludeSemantics(
+      child: Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: c.goldSubtle,
+          shape: BoxShape.circle,
+          border: Border.all(color: c.gold.withValues(alpha: 0.6)),
+        ),
+        child: Text(
+          label,
+          style: context.textStyles.labelMedium?.copyWith(color: c.goldText, fontWeight: FontWeight.w700),
+        ),
       ),
     );
   }
@@ -271,7 +369,6 @@ class DailyHadithCard extends StatelessWidget {
     final isDark = scheme.brightness == Brightness.dark;
     final onHero = isDark ? scheme.onSurface : scheme.onPrimary;
     final heroColor = isDark ? scheme.primaryContainer : scheme.tertiary;
-    final muted = onHero.withValues(alpha: 0.78);
     final hasActions = onRead != null || onBookmark != null || onShare != null;
 
     return Card(
@@ -322,18 +419,28 @@ class DailyHadithCard extends StatelessWidget {
                 AppSpacing.gapXs,
                 ArabicText(arabicText, color: onHero, maxLines: 5),
                 AppSpacing.gapMd,
-                Text('Tarjumaadda Af Soomaaliga:', style: context.textStyles.labelMedium?.copyWith(color: muted)),
-                AppSpacing.gapXxs,
-                Text(
-                  somaliText,
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.textStyles.bodyMedium?.copyWith(color: onHero.withValues(alpha: 0.92)),
-                ),
+                Divider(height: 1, color: c.gold.withValues(alpha: 0.35)),
                 AppSpacing.gapMd,
                 Text(
-                  reference == null ? 'Tixraac: $source' : 'Tixraac: $source · $reference',
-                  style: context.textStyles.labelMedium?.copyWith(color: c.gold),
+                  somaliText,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textStyles.bodyMedium?.copyWith(color: onHero.withValues(alpha: 0.92), height: 1.5),
+                ),
+                AppSpacing.gapMd,
+                Row(
+                  children: [
+                    Icon(Icons.menu_book_rounded, size: 16, color: c.gold),
+                    AppSpacing.gapXs,
+                    Expanded(
+                      child: Text(
+                        reference == null ? source : '$source · $reference',
+                        style: context.textStyles.labelMedium?.copyWith(color: c.gold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
                 if (isVerified && grade != null) ...[
                   AppSpacing.gapXs,
@@ -685,7 +792,7 @@ class MemorizationProgressCard extends StatelessWidget {
           AppSpacing.gapXs,
           Row(
             children: [
-              Expanded(child: Text('$memorized / $total xadiis la xifdiyay', style: context.textStyles.bodySmall)),
+              Expanded(child: Text('$memorized / $total la xifdiyey', style: context.textStyles.bodySmall)),
               if (streakDays != null) ...[
                 Icon(Icons.local_fire_department_rounded, size: 16, color: c.warning),
                 const SizedBox(width: AppSpacing.xxs),

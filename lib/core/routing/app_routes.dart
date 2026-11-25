@@ -36,7 +36,6 @@ abstract final class AppRoutes {
   static const settingsLanguage = '/settings/language';
   static const settingsAppearance = '/settings/appearance';
   static const settingsNotifications = '/settings/notifications';
-  static const settingsPrivacy = '/settings/privacy';
   static const settingsReading = '/settings/reading';
   static const help = '/settings/help';
   static const about = '/about';

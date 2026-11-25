@@ -30,6 +30,8 @@ class HadithPreviewCard extends StatelessWidget {
         isVerified: hadith.isVerified,
         isDemo: hadith.isDemo,
         previewLines: 3,
+        title: services.repository.studyOf(hadith.id)?.topic,
+        number: hadith.displayNumber,
         isFavorite: services.favorites.isFavorite(hadith.id),
         onFavoriteToggle: () => toggleFavoriteWithFeedback(context, hadith.id),
         onTap: () => context.push(AppRoutes.hadith(hadith.id)),

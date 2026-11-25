@@ -9,7 +9,7 @@ import 'widgets/reading_preferences_card.dart';
 class ReadingSettingsScreen extends StatelessWidget {
   const ReadingSettingsScreen({super.key});
 
-  static const title = 'Doorbidyada akhriska';
+  static const title = 'Habka akhriska';
 
   @override
   Widget build(BuildContext context) {

@@ -8,7 +8,6 @@ import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/widgets/widgets.dart';
 import 'package:xadiithapp/data/models/hadith.dart';
 import 'package:xadiithapp/data/repositories/hadith_repository.dart';
-import 'package:xadiithapp/features/home/presentation/widgets/featured_books_section.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/home_search_shortcut.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/recent_hadiths_section.dart';
 
@@ -59,10 +58,6 @@ Future<AppServices> _pumpHome(
 }
 
 Finder get _homeList => find.byType(Scrollable).first;
-Finder get _booksRow => find.descendant(
-  of: find.byType(FeaturedBooksSection),
-  matching: find.byWidgetPredicate((w) => w is Scrollable && w.axisDirection == AxisDirection.right),
-);
 
 Future<void> _scrollTo(WidgetTester tester, Finder finder) async {
   await tester.scrollUntilVisible(finder, 250, scrollable: _homeList);
@@ -85,8 +80,7 @@ void main() {
       expect(find.text(HomeSearchShortcut.hint), findsOneWidget);
       expect(find.text('XADIISKA MAALINTA'), findsOneWidget);
       for (final title in ['Si Degdeg ah u Gal', 'Kutubta Xadiithka']) {
-        await _scrollTo(tester, find.text(title));
-        expect(find.text(title), findsOneWidget);
+        expect(find.text(title), findsNothing, reason: 'removed from Home');
       }
       await _scrollTo(tester, find.text(RecentHadithsSection.featuredTitle));
       expect(find.byType(NavigationBar), findsOneWidget, reason: 'no duplicate bottom navigation');
@@ -103,7 +97,6 @@ void main() {
       expect(Directionality.of(tester.element(arabicText)), TextDirection.rtl);
       expect(find.descendant(of: card, matching: find.byType(DemoContentBadge)), findsOneWidget);
       expect(find.descendant(of: card, matching: find.textContaining('(tusaale)')), findsOneWidget);
-      expect(find.text('Tarjumaadda Af Soomaaliga:'), findsOneWidget);
     });
   });
 
@@ -187,47 +180,6 @@ void main() {
       expect(find.byType(AppSearchField), findsOneWidget);
     });
 
-    testWidgets('featured book opens its detail in the Kutubta tab', (tester) async {
-      await _pumpHome(tester);
-      await _scrollTo(tester, find.text('Kutubta Xadiithka'));
-      final muslim = find.descendant(of: find.byType(FeaturedBooksSection), matching: find.text('Saxiix Muslim'));
-      await tester.scrollUntilVisible(muslim, 200, scrollable: _booksRow);
-      await tester.tap(muslim);
-      await tester.pumpAndSettle();
-      expect(_tab(tester), 1);
-      expect(find.text('Cutubyada'), findsOneWidget);
-    });
-
-    testWidgets('book without content is labelled and opens a clear empty state', (tester) async {
-      await _pumpHome(tester);
-      await _scrollTo(tester, find.text('Kutubta Xadiithka'));
-      await tester.scrollUntilVisible(find.text('Sunan Abii Daawuud'), 200, scrollable: _booksRow);
-      await tester.pumpAndSettle();
-      expect(find.text('Weli lama darin'), findsWidgets);
-      await tester.tap(find.text('Sunan Abii Daawuud'));
-      await tester.pumpAndSettle();
-      expect(find.text('Cutub lama helin'), findsOneWidget);
-    });
-
-    final quickActions = {'Raadso Xadiis': 2, 'Qorshaha Xifdinta': 3};
-    for (final MapEntry(key: label, value: tab) in quickActions.entries) {
-      testWidgets('quick action "$label" opens tab $tab', (tester) async {
-        await _pumpHome(tester);
-        await _tap(tester, find.text(label));
-        expect(_tab(tester), tab);
-      });
-    }
-
-    testWidgets('quick actions open favorites and quiz screens', (tester) async {
-      await _pumpHome(tester);
-      await _tap(tester, find.text('Xadiisyada aan Kaydiyey'));
-      expect(find.text('Weli ma kaydin wax xadiis ah.'), findsOneWidget);
-      await tester.binding.handlePopRoute();
-      await tester.pumpAndSettle();
-      await _tap(tester, find.text('Imtixaanka Xadiiska'));
-      expect(find.widgetWithText(AppBar, 'Imtixaanka Xadiiska'), findsOneWidget);
-    });
-
     testWidgets('recent section switches from featured to real history', (tester) async {
       await _pumpHome(tester);
       await _scrollTo(tester, find.text(RecentHadithsSection.featuredTitle));
@@ -240,7 +192,7 @@ void main() {
 
       await _scrollTo(tester, find.text(RecentHadithsSection.recentTitle));
       expect(find.text(RecentHadithsSection.featuredTitle), findsNothing);
-      await _tap(tester, find.text('Eeg Dhammaan'));
+      await _tap(tester, find.text('Dhammaan'));
       expect(_tab(tester), 1);
     });
   });
@@ -253,7 +205,7 @@ void main() {
         size: const Size(390, 1800),
         repository: HadithRepository(books: [], chapters: [], hadiths: [], categories: []),
       );
-      for (final text in ['Xadiiska maalinta lama heli karo', 'Kutub lama helin.', 'Xadiis lama helin.']) {
+      for (final text in ['Xadiiska maalinta lama heli karo', 'Xadiis lama helin.']) {
         expect(find.text(text), findsOneWidget, reason: text);
       }
       expect(find.text('Mowduucyada'), findsNothing, reason: 'topics section removed from Home');
@@ -281,11 +233,6 @@ void main() {
         tester.platformDispatcher.textScaleFactorTestValue = scale;
         addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
         await _pumpHome(tester, size: size, theme: theme);
-        // Scroll the horizontal books row to its end while it is built…
-        await _scrollTo(tester, find.text('Kutubta Xadiithka'));
-        await tester.drag(_booksRow, const Offset(-2000, 0));
-        await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull);
         // …then the whole page.
         for (var i = 0; i < 12; i++) {
           await tester.drag(_homeList, const Offset(0, -400));

@@ -20,13 +20,11 @@ class ProfileScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
-          const AppPageBody(child: _DeviceNotice()),
-          AppSpacing.gapLg,
           const AppPageBody(child: _ProfileStatsCard()),
           AppSpacing.gapXl,
           AppPageBody(
             child: SettingsSection(
-              title: 'Akhriska',
+              title: 'Akhris',
               children: [
                 SettingsTile(
                   icon: Icons.bookmarks_outlined,
@@ -44,17 +42,12 @@ class ProfileScreen extends StatelessWidget {
           AppSpacing.gapLg,
           AppPageBody(
             child: SettingsSection(
-              title: 'Dejinta iyo macluumaad',
+              title: 'Guud',
               children: [
                 SettingsTile(
                   icon: Icons.settings_outlined,
                   title: context.tr(AppText.allSettings),
                   onTap: () => context.push(AppRoutes.settings),
-                ),
-                SettingsTile(
-                  icon: Icons.shield_outlined,
-                  title: context.tr(AppText.titlePrivacy),
-                  onTap: () => context.push(AppRoutes.settingsPrivacy),
                 ),
                 SettingsTile(
                   icon: Icons.help_outline_rounded,
@@ -75,39 +68,6 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-class _DeviceNotice extends StatelessWidget {
-  const _DeviceNotice();
-
-  @override
-  Widget build(BuildContext context) => AppCard(
-    child: Row(
-      children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: context.colors.primaryContainer,
-          foregroundColor: context.colors.onPrimaryContainer,
-          child: const Icon(Icons.phone_android_rounded),
-        ),
-        AppSpacing.gapMd,
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Ku soo dhowow!', style: context.textStyles.titleMedium),
-              AppSpacing.gapXxs,
-              Text(
-                'Akoon looma baahna. Kuwa aad keydisay, xifdintaada iyo imtixaannadu '
-                'waxay ku kaydsan yihiin qalabkan oo keliya.',
-                style: context.textStyles.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
 class _ProfileStatsCard extends StatelessWidget {
   const _ProfileStatsCard();
 
@@ -123,24 +83,38 @@ class _ProfileStatsCard extends StatelessWidget {
           (Icons.bookmarks_outlined, '${services.favorites.count}', 'La keydiyay'),
           (Icons.quiz_outlined, '${m.quizHistory.length}', 'Imtixaan'),
         ];
+        final c = context.appColors;
         return AppCard(
-          child: Row(
-            children: [
-              for (final (icon, value, label) in stats)
-                Expanded(
-                  child: Semantics(
-                    label: '$label: $value',
-                    excludeSemantics: true,
-                    child: Column(
-                      children: [
-                        Icon(icon, color: context.appColors.goldText),
-                        Text(value, style: context.textStyles.titleLarge),
-                        Text(label, style: context.textStyles.labelSmall, textAlign: TextAlign.center),
-                      ],
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                for (var i = 0; i < stats.length; i++) ...[
+                  if (i > 0) VerticalDivider(width: 1, color: context.colors.outlineVariant),
+                  Expanded(
+                    child: Semantics(
+                      label: '${stats[i].$3}: ${stats[i].$2}',
+                      excludeSemantics: true,
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.xs),
+                            decoration: BoxDecoration(color: c.goldSubtle, shape: BoxShape.circle),
+                            child: Icon(stats[i].$1, size: 20, color: c.goldText),
+                          ),
+                          AppSpacing.gapXs,
+                          Text(
+                            stats[i].$2,
+                            style: context.textStyles.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          Text(stats[i].$3, style: context.textStyles.labelSmall, textAlign: TextAlign.center),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-            ],
+                ],
+              ],
+            ),
           ),
         );
       },

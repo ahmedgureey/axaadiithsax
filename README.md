@@ -166,3 +166,17 @@ Xcode. iOS has not been built in this project's Windows environment.
 - On the web build Flutter may download CanvasKit and fallback fonts from
   Google's CDN; Android/iOS builds make no network requests from app code.
 - iOS bundle ID (`com.example.xadiithapp`) and iOS signing are not configured yet.
+
+## Forced / optional updates
+
+The Android app reads `update.json` from this repository at start-up
+(`https://raw.githubusercontent.com/ahmedgureey/axaadiithsax/main/update.json`).
+
+1. Build the new APK (bump `version:` in `pubspec.yaml`, e.g. `1.0.9+10`).
+2. Upload the APK to a GitHub Release (or any https download link).
+3. Edit `update.json` and push to `main`:
+   - `latest_build`: the new build number (`+10`) → older apps see an optional "Cusboonaysii".
+   - `min_build`: raise it to force: apps below it show a dialog that cannot be closed.
+   - `apk_url`: the download link (https).
+
+Offline phones are never blocked; the check is skipped.

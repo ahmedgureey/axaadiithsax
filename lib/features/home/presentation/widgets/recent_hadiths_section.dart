@@ -14,8 +14,8 @@ import '../../../hadith/presentation/hadith_preview_card.dart';
 class RecentHadithsSection extends StatelessWidget {
   const RecentHadithsSection({super.key, required this.featured});
 
-  static const recentTitle = 'Xadiisyadii Ugu Dambeeyey';
-  static const featuredTitle = 'Xadiisyo la soo Xulay';
+  static const recentTitle = 'Dhawaan la akhriyey';
+  static const featuredTitle = 'Xadiisyo la doortay';
 
   final List<Hadith> featured;
 
@@ -39,7 +39,7 @@ class RecentHadithsSection extends StatelessWidget {
             ),
             // Only call items "examples" when there are items to show.
             if (!hasHistory && items.isNotEmpty)
-              Text('Weli wax xadiis ah ma aadan akhrin — kuwan waa tusaalooyin.', style: context.textStyles.bodySmall),
+              Text('Ka bilow mid ka mid ah kuwan.', style: context.textStyles.bodySmall),
             AppSpacing.gapSm,
             if (items.isEmpty) ...[
               Text('Xadiis lama helin.', style: context.textStyles.bodySmall),

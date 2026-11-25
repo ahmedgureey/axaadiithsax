@@ -143,6 +143,13 @@ class MemorizationController extends ChangeNotifier {
 
   int get reviewsCompletedToday => _activity[today]?.reviewed ?? 0;
 
+  /// Memorised hadith that will be due for review on [day] (`yyyy-mm-dd`),
+  /// from the stored schedule (used to plan revision reminders).
+  int dueCountOn(String day) => _validRecords.where((r) => r.flagged || r.nextReviewOn.compareTo(day) <= 0).length;
+
+  /// Whether any hadith is left to memorise (a new day then has a plan).
+  bool get hasUnmemorizedLeft => _candidates.any((id) => !_records.containsKey(id) && _exists(id));
+
   /// Completes a due review and schedules the next one. Returns false if the
   /// item isn't due (prevents double counting).
   Future<bool> completeReview(String id) async {

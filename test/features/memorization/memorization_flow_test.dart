@@ -47,15 +47,15 @@ void main() {
     testWidgets('new user sees honest zeros, no fake streak or quiz history', (tester) async {
       final s = await _pump(tester, AppRoutes.memorization);
       expect(find.widgetWithText(AppBar, MemorizationScreen.title), findsOneWidget);
-      expect(find.text('0 / 3 xadiis ayaa la xifdiyey maanta'), findsOneWidget);
-      expect(find.text('Weli silsilad ma jirto'), findsOneWidget);
-      expect(find.text('0 / ${s.memorization.totalAvailable}'), findsOneWidget);
+      expect(find.text('0 / 3 la xifdiyey maanta'), findsOneWidget);
+      expect(find.text('Silsilad'), findsOneWidget);
+      expect(find.text('0/${s.memorization.totalAvailable}'), findsOneWidget);
       await tester.scrollUntilVisible(
-        find.text('Weli imtixaan ma aadan gelin.'),
+        find.text('Weli imtixaan ma jiro.'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Toddobaadkan weli wax dhaqdhaqaaq ah lama diiwaangelin.'), findsOneWidget);
+      expect(find.text('Toddobaadkan weli wax lama qabanin.'), findsOneWidget);
     });
 
     testWidgets('daily target can be changed from the dashboard', (tester) async {
@@ -64,7 +64,7 @@ void main() {
       await tester.tap(find.widgetWithText(ChoiceChip, '1'));
       await tester.pumpAndSettle();
       expect(s.memorization.dailyTarget, 1);
-      expect(find.text('0 / 1 xadiis ayaa la xifdiyey maanta'), findsOneWidget);
+      expect(find.text('0 / 1 la xifdiyey maanta'), findsOneWidget);
     });
   });
 
@@ -145,7 +145,7 @@ void main() {
       final s = await _pump(tester, AppRoutes.memorization, store: store);
       expect(s.memorization.dailyTarget, 5);
       expect(s.memorization.memorizedCount, 1);
-      expect(find.text('1 / 5 xadiis ayaa la xifdiyey maanta'), findsOneWidget);
+      expect(find.text('1 / 5 la xifdiyey maanta'), findsOneWidget);
     });
   });
 

@@ -30,7 +30,6 @@ import '../../features/settings/presentation/appearance_settings_screen.dart';
 import '../../features/settings/presentation/help_screen.dart';
 import '../../features/settings/presentation/language_settings_screen.dart';
 import '../../features/settings/presentation/notification_settings_screen.dart';
-import '../../features/settings/presentation/privacy_screen.dart';
 import '../../features/settings/presentation/reading_settings_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -183,7 +182,6 @@ GoRouter buildAppRouter(AppServices services, {String initialLocation = AppRoute
           GoRoute(path: 'language', builder: (_, _) => const LanguageSettingsScreen()),
           GoRoute(path: 'appearance', builder: (_, _) => const AppearanceSettingsScreen()),
           GoRoute(path: 'notifications', builder: (_, _) => const NotificationSettingsScreen()),
-          GoRoute(path: 'privacy', builder: (_, _) => const PrivacyScreen()),
           GoRoute(path: 'reading', builder: (_, _) => const ReadingSettingsScreen()),
           GoRoute(path: 'help', builder: (_, _) => const HelpScreen()),
         ],

@@ -6,11 +6,9 @@ import '../../../core/widgets/widgets.dart';
 import '../../../data/models/hadith.dart';
 import '../home_feed.dart';
 import 'widgets/daily_hadith_section.dart';
-import 'widgets/featured_books_section.dart';
 import 'widgets/home_app_bar.dart';
 import 'widgets/home_progress_section.dart';
 import 'widgets/home_search_shortcut.dart';
-import 'widgets/quick_actions_section.dart';
 import 'widgets/recent_hadiths_section.dart';
 
 /// Tab 1 — Guriga. The bottom navigation comes from the main shell.
@@ -101,14 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 AppSpacing.gapLg,
                 AppPageBody(child: DailyHadithSection(hadith: feed.daily)),
                 AppSpacing.gapXl,
-                const AppPageBody(child: ContinueReadingCard()),
-                const AppPageBody(child: QuickActionsSection()),
-                AppSpacing.gapXl,
                 const AppPageBody(child: HomeMemorizationSummary()),
-                AppSpacing.gapMd,
-                const AppPageBody(child: ReadingReminderCard()),
-                AppSpacing.gapXl,
-                FeaturedBooksSection(books: feed.books),
                 AppSpacing.gapXl,
                 AppPageBody(child: RecentHadithsSection(featured: feed.featuredHadiths)),
               ],

@@ -159,11 +159,11 @@ class SectionHeader extends StatelessWidget {
           children: [
             Container(
               width: 4,
-              height: 20,
+              height: 18,
               decoration: BoxDecoration(color: context.appColors.gold, borderRadius: AppRadius.pillAll),
             ),
             AppSpacing.gapXs,
-            Expanded(child: Text(title, style: context.textStyles.titleLarge)),
+            Expanded(child: Text(title, style: context.textStyles.titleMedium)),
             // The action keeps its natural width, capped at 45% of the row,
             // so it only ellipsizes on very narrow screens / very large text.
             if (actionLabel != null && onAction != null)

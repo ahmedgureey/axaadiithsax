@@ -64,11 +64,6 @@ class SettingsScreen extends StatelessWidget {
                     title: context.tr(AppText.settingsInfo),
                     children: [
                       SettingsTile(
-                        icon: Icons.shield_outlined,
-                        title: context.tr(AppText.titlePrivacy),
-                        onTap: () => context.push(AppRoutes.settingsPrivacy),
-                      ),
-                      SettingsTile(
                         icon: Icons.help_outline_rounded,
                         title: context.tr(AppText.titleHelp),
                         onTap: () => context.push(AppRoutes.help),

@@ -62,16 +62,32 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = destructive ? Theme.of(context).colorScheme.error : null;
+    final scheme = Theme.of(context).colorScheme;
     return ListTile(
       minTileHeight: AppSizes.minTouchTarget + AppSpacing.xs,
-      leading: Icon(icon, color: color ?? context.appColors.textSecondary),
-      title: Text(title, style: TextStyle(color: color)),
+      leading: Container(
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: (color ?? scheme.primary).withValues(alpha: 0.10),
+          borderRadius: AppRadius.smAll,
+        ),
+        child: Icon(icon, size: 20, color: color ?? scheme.primary),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(color: color, fontWeight: FontWeight.w500),
+      ),
       subtitle: subtitle == null ? null : Text(subtitle!),
       trailing:
           trailing ??
           (onTap == null
               ? null
-              : Icon(destructive ? Icons.warning_amber_rounded : Icons.chevron_right_rounded, color: color)),
+              : Icon(
+                  destructive ? Icons.warning_amber_rounded : Icons.chevron_right_rounded,
+                  color: color ?? context.appColors.textSecondary,
+                )),
       onTap: onTap,
     );
   }

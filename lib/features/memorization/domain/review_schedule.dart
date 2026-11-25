@@ -18,5 +18,5 @@ class ReviewSchedule {
   String nextDue(String day, int stage) => LocalDay.add(day, intervalForStage(stage));
 
   /// Human-readable description shown in the app.
-  String get description => 'Dib-u-eegistu waxay dhacdaa ${intervals.join(' → ')} maalmood kadib.';
+  String get description => 'Dib-u-eegis: ${intervals.join(' → ')} maalmood kadib.';
 }

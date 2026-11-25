@@ -255,7 +255,7 @@ void main() {
       expect(s.favorites.ids, ['muslim-c1-h1'], reason: 'undo');
 
       // Reading-actions button reflects the same state.
-      expect(find.text('La keydiyay'), findsOneWidget);
+      expect(find.byTooltip('Ka saar kuwa la keydiyay'), findsOneWidget);
     });
 
     testWidgets('bookmark from search appears in favorites', (tester) async {
@@ -278,7 +278,7 @@ void main() {
       });
       addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
       final s = await _pump(tester, AppRoutes.hadith('muslim-c1-h1'));
-      await _tap(tester, find.text('Koobiyee dhammaan'));
+      await _tap(tester, find.byTooltip('Koobiyee dhammaan'));
       final h = s.repository.hadithById('muslim-c1-h1')!;
       expect(copied.single, formatHadithText(h, s.repository));
       expect(find.text('Xadiiska waa la koobiyeeyay'), findsOneWidget);

@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.5+6
+version: 1.0.9+10
 
 environment:
   sdk: ^3.13.5
@@ -42,6 +42,10 @@ dependencies:
   supabase_flutter: ^2.18.3
   just_audio: ^0.10.6
   url_launcher: ^6.3.3
+  flutter_local_notifications: 22.0.0
+  timezone: ^0.11.2
+  flutter_timezone: ^5.1.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +58,8 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   crypto: ^3.0.8
+  flutter_launcher_icons: ^0.14.4
+  image: ^4.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -111,3 +117,15 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# App icon (logo supplied by the owner). Regenerate with:
+#   dart run tool/make_app_icon.dart assets/icon/source_logo.webp
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"

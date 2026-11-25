@@ -27,6 +27,13 @@ class _XadiisAppState extends State<XadiisApp> {
   late final GoRouter _router = buildAppRouter(widget.services, initialLocation: widget.initialLocation);
 
   @override
+  void initState() {
+    super.initState();
+    // Tapping a reminder opens its page (hadith, today's plan, reviews).
+    widget.services.reminders.attachNavigator((route) => _router.push(route));
+  }
+
+  @override
   void dispose() {
     _router.dispose();
     super.dispose();

@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 import '../core/audio/audio_engine.dart';
+import '../core/notifications/notification_gateway.dart';
+import '../core/notifications/reminder_service.dart';
+import '../core/update/update_checker.dart';
 import '../core/services/share_service.dart';
 import '../core/settings/app_settings_controller.dart';
 import '../data/remote/catalog_api.dart';
@@ -35,7 +38,14 @@ class AppServices {
     this.share = const PlatformShareService(),
     this.audioEngineFactory = JustAudioEngine.new,
     this.catalog,
-  });
+    NotificationGateway notificationGateway = const NoopNotificationGateway(),
+    this.updateChecker,
+  }) : reminders = ReminderService(
+         gateway: notificationGateway,
+         preferences: notifications,
+         memorization: memorization,
+         repository: repository,
+       );
 
   final AppSettingsController settings;
 
@@ -55,6 +65,15 @@ class AppServices {
   /// Reminder preferences (no notification service yet).
   final NotificationPreferencesController notifications;
 
+  /// Schedules device reminders from the real data (see ReminderService).
+  final ReminderService reminders;
+
+  /// Checks GitHub for a newer version (null: no check, e.g. web and tests).
+  final UpdateChecker? updateChecker;
+
+  /// The update check ran in this app session.
+  bool updateCheckDone = false;
+
   /// Supabase catalogue loader; null without a backend (bundled data).
   final CatalogService? catalog;
 
@@ -67,8 +86,6 @@ class AppServices {
   /// Creates the audio engine for each player (replaceable in tests).
   final AudioEngineFactory audioEngineFactory;
 
-  /// Creates the audio engine for each player (replaceable in tests).  final AudioEngineFactory audioEngineFactory;
-
   /// Creates and loads all services from [store].
   ///
   /// With [catalogApi] (Supabase) the repository starts EMPTY — never with
@@ -80,6 +97,8 @@ class AppServices {
     CatalogApi? catalogApi,
     ShareService? share,
     AudioEngineFactory? audioEngineFactory,
+    NotificationGateway? notificationGateway,
+    UpdateChecker? updateChecker,
     DateTime Function()? clock,
   }) async {
     final remote = catalogApi != null;
@@ -118,6 +137,8 @@ class AppServices {
       notifications: NotificationPreferencesController(store),
       share: share ?? const PlatformShareService(),
       audioEngineFactory: audioEngineFactory ?? JustAudioEngine.new,
+      notificationGateway: notificationGateway ?? const NoopNotificationGateway(),
+      updateChecker: updateChecker,
       catalog: catalog,
     );
     await Future.wait([

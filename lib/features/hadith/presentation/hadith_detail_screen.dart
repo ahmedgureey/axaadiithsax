@@ -180,14 +180,6 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                       ),
                       AppSpacing.gapXs,
                       ArabicText(hadith.arabicText, selectable: true),
-                      Align(
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: AppTextButton(
-                          label: context.tr(AppText.actionCopyArabic),
-                          icon: Icons.copy_rounded,
-                          onPressed: () => copyText(context, hadith.arabicText, 'Qoraalka Carabiga waa la koobiyeeyay'),
-                        ),
-                      ),
                       const OrnamentDivider(verticalPadding: AppSpacing.md),
                       Row(
                         children: [
@@ -207,14 +199,6 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                         _MissingText(context.tr(AppText.readerTranslationHidden))
                       else if (hadith.hasTranslation) ...[
                         SelectableText(hadith.somaliText!, style: ArabicTextStyles.somaliTranslation(context)),
-                        Align(
-                          alignment: AlignmentDirectional.centerEnd,
-                          child: AppTextButton(
-                            label: context.tr(AppText.actionCopyTranslation),
-                            icon: Icons.copy_rounded,
-                            onPressed: () => copyText(context, hadith.somaliText!, 'Tarjumaadda waa la koobiyeeyay'),
-                          ),
-                        ),
                       ] else
                         const _MissingText(missingTranslationText),
                       AppSpacing.gapMd,

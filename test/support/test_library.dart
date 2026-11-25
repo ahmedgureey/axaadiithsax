@@ -1,4 +1,6 @@
 import 'package:xadiithapp/core/audio/audio_engine.dart';
+import 'package:xadiithapp/core/notifications/notification_gateway.dart';
+import 'package:xadiithapp/core/update/update_checker.dart';
 import 'package:xadiithapp/app/app_services.dart';
 import 'package:xadiithapp/core/services/share_service.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
@@ -85,6 +87,8 @@ Future<AppServices> createTestServices(
   HadithRepository? repository,
   ShareService? share,
   AudioEngineFactory? audioEngineFactory,
+  NotificationGateway? notificationGateway,
+  UpdateChecker? updateChecker,
   DateTime Function()? clock,
 }) => AppServices.create(
   store,
@@ -92,4 +96,6 @@ Future<AppServices> createTestServices(
   share: share,
   clock: clock,
   audioEngineFactory: audioEngineFactory,
+  notificationGateway: notificationGateway,
+  updateChecker: updateChecker,
 );
