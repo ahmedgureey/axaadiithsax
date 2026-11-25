@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -7,6 +8,7 @@ import 'package:xadiithapp/app/app.dart';
 import 'package:xadiithapp/core/app_info.dart';
 import 'package:xadiithapp/core/routing/app_routes.dart';
 import 'package:xadiithapp/core/settings/app_settings_controller.dart';
+import 'package:xadiithapp/core/update/apk_installer.dart';
 import 'package:xadiithapp/core/update/update_checker.dart';
 import 'package:xadiithapp/core/update/update_prompt.dart';
 
@@ -103,6 +105,62 @@ void main() {
     });
   });
 
+  group('In-app download and install', () {
+    Future<void> pumpWith(WidgetTester tester, _FakeInstaller installer) async {
+      tester.view.physicalSize = const Size(390, 844) * 3;
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      final services = await createTestServices(
+        InMemorySettingsStore({'auth.onboardingSeen': true}),
+        updateChecker: UpdateChecker(fetch: (_) async => jsonEncode(_json()), currentBuild: 9),
+        apkInstaller: installer,
+      );
+      await tester.pumpWidget(XadiisApp(services: services, initialLocation: AppRoutes.home));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('"Cusboonaysii" downloads inside the app with progress, then opens the installer', (tester) async {
+      final installer = _FakeInstaller();
+      await pumpWith(tester, installer);
+      await tester.tap(find.text(UpdatePrompt.updateLabel));
+      await tester.pump();
+      installer.progress!(0.4);
+      await tester.pump();
+      expect(find.text('${UpdatePrompt.downloadingLabel} 40%'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      installer.finishDownload();
+      await tester.pumpAndSettle();
+      expect(installer.downloaded, [Uri.parse('https://example.invalid/app.apk')]);
+      expect(installer.installed, ['/cache/updates/app.apk']);
+      expect(find.text(UpdatePrompt.requiredTitle), findsOneWidget, reason: 'required dialog stays');
+    });
+
+    testWidgets('failed download: Somali error, retry and a browser fallback', (tester) async {
+      final installer = _FakeInstaller(fail: true);
+      await pumpWith(tester, installer);
+      await tester.tap(find.text(UpdatePrompt.updateLabel));
+      await tester.pumpAndSettle();
+      expect(find.text('Internet lama heli karo.'), findsOneWidget);
+      expect(find.text(UpdatePrompt.retryLabel), findsOneWidget);
+      expect(find.text(UpdatePrompt.browserLabel), findsOneWidget);
+      expect(installer.installed, isEmpty);
+    });
+
+    testWidgets('install permission: settings opened, next tap installs without downloading again', (tester) async {
+      final installer = _FakeInstaller(results: [ApkInstallResult.needsPermission, ApkInstallResult.started]);
+      await pumpWith(tester, installer);
+      await tester.tap(find.text(UpdatePrompt.updateLabel));
+      await tester.pump();
+      installer.finishDownload();
+      await tester.pumpAndSettle();
+      expect(find.text(UpdatePrompt.permissionMessage), findsOneWidget);
+      await tester.tap(find.text(UpdatePrompt.updateLabel));
+      await tester.pumpAndSettle();
+      expect(installer.downloaded, hasLength(1), reason: 'file reused');
+      expect(installer.installed, hasLength(2));
+    });
+  });
+
   group('Hubi cusboonaysiin (report)', () {
     test('reports build numbers and the outcome', () async {
       final r = await UpdateChecker(fetch: (_) async => jsonEncode(_json()), currentBuild: 9).report();
@@ -153,4 +211,33 @@ void main() {
       expect(find.text('App-kaaga (build)'), findsOneWidget);
     });
   });
+}
+
+class _FakeInstaller implements ApkInstaller {
+  _FakeInstaller({this.fail = false, List<ApkInstallResult>? results})
+    : _results = results ?? [ApkInstallResult.started];
+
+  final bool fail;
+  final List<ApkInstallResult> _results;
+  final downloaded = <Uri>[];
+  final installed = <String>[];
+  void Function(double?)? progress;
+  Completer<String>? _download;
+
+  void finishDownload() => _download?.complete('/cache/updates/app.apk');
+
+  @override
+  Future<String> download(Uri url, void Function(double? progress) onProgress) {
+    downloaded.add(url);
+    if (fail) return Future.error(const ApkInstallException('Internet lama heli karo.'));
+    progress = onProgress;
+    _download = Completer<String>();
+    return _download!.future;
+  }
+
+  @override
+  Future<ApkInstallResult> install(String path) async {
+    installed.add(path);
+    return _results.length > 1 ? _results.removeAt(0) : _results.first;
+  }
 }

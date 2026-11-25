@@ -6,6 +6,7 @@ import 'app/app.dart';
 import 'app/app_services.dart';
 import 'core/backend/supabase_backend.dart';
 import 'core/notifications/notification_gateway.dart';
+import 'core/update/apk_installer.dart';
 import 'core/update/update_checker.dart';
 import 'core/routing/app_routes.dart';
 import 'core/settings/app_settings_controller.dart';
@@ -29,6 +30,10 @@ Future<void> main() async {
 /// Device notifications on Android / iOS; none on the web.
 /// Update check on the phone app only (the APK is what gets updated).
 UpdateChecker? get _updateChecker => kIsWeb ? null : UpdateChecker();
+
+/// In-app download + install of updates (Android only).
+ApkInstaller? get _apkInstaller =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.android ? AndroidApkInstaller() : null;
 
 NotificationGateway get _notificationGateway =>
     !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)
@@ -58,6 +63,7 @@ Future<AppServices> _servicesFrom(SettingsStore store) async {
       repository: bundled,
       notificationGateway: _notificationGateway,
       updateChecker: _updateChecker,
+      apkInstaller: _apkInstaller,
     );
   }
   final client = SupabaseBackend.client;
@@ -66,6 +72,7 @@ Future<AppServices> _servicesFrom(SettingsStore store) async {
     catalogApi: client == null ? null : SupabaseCatalogApi(client),
     notificationGateway: _notificationGateway,
     updateChecker: _updateChecker,
+    apkInstaller: _apkInstaller,
   );
 }
 

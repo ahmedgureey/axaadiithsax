@@ -1,5 +1,6 @@
 import 'package:xadiithapp/core/audio/audio_engine.dart';
 import 'package:xadiithapp/core/notifications/notification_gateway.dart';
+import 'package:xadiithapp/core/update/apk_installer.dart';
 import 'package:xadiithapp/core/update/update_checker.dart';
 import 'package:xadiithapp/app/app_services.dart';
 import 'package:xadiithapp/core/services/share_service.dart';
@@ -89,6 +90,7 @@ Future<AppServices> createTestServices(
   AudioEngineFactory? audioEngineFactory,
   NotificationGateway? notificationGateway,
   UpdateChecker? updateChecker,
+  ApkInstaller? apkInstaller,
   DateTime Function()? clock,
 }) => AppServices.create(
   store,
@@ -98,4 +100,5 @@ Future<AppServices> createTestServices(
   audioEngineFactory: audioEngineFactory,
   notificationGateway: notificationGateway,
   updateChecker: updateChecker,
+  apkInstaller: apkInstaller,
 );

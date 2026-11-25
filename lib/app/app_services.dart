@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../core/audio/audio_engine.dart';
 import '../core/notifications/notification_gateway.dart';
 import '../core/notifications/reminder_service.dart';
+import '../core/update/apk_installer.dart';
 import '../core/update/update_checker.dart';
 import '../core/services/share_service.dart';
 import '../core/settings/app_settings_controller.dart';
@@ -40,6 +41,7 @@ class AppServices {
     this.catalog,
     NotificationGateway notificationGateway = const NoopNotificationGateway(),
     this.updateChecker,
+    this.apkInstaller,
   }) : reminders = ReminderService(
          gateway: notificationGateway,
          preferences: notifications,
@@ -71,6 +73,9 @@ class AppServices {
   /// Checks GitHub for a newer version (null: no check, e.g. web and tests).
   final UpdateChecker? updateChecker;
 
+  /// Downloads and installs the update inside the app (Android only).
+  final ApkInstaller? apkInstaller;
+
   /// The update check ran in this app session.
   bool updateCheckDone = false;
 
@@ -99,6 +104,7 @@ class AppServices {
     AudioEngineFactory? audioEngineFactory,
     NotificationGateway? notificationGateway,
     UpdateChecker? updateChecker,
+    ApkInstaller? apkInstaller,
     DateTime Function()? clock,
   }) async {
     final remote = catalogApi != null;
@@ -140,6 +146,7 @@ class AppServices {
       audioEngineFactory: audioEngineFactory ?? JustAudioEngine.new,
       notificationGateway: notificationGateway ?? const NoopNotificationGateway(),
       updateChecker: updateChecker,
+      apkInstaller: apkInstaller,
       catalog: catalog,
     );
     await Future.wait([
