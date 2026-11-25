@@ -189,7 +189,7 @@ class _ProgressCard extends StatelessWidget {
   }
 }
 
-/// App name, version and a reminder that progress stays on this phone.
+/// App name and version.
 class _Footer extends StatelessWidget {
   const _Footer();
 
@@ -201,7 +201,6 @@ class _Footer extends StatelessWidget {
         const IslamicStar(size: 16),
         AppSpacing.gapXs,
         Text('${AppInfo.name} · Nooca ${AppInfo.version}', style: style),
-        Text('Horumarkaagu wuxuu ku kaydsan yahay taleefankaaga.', style: style, textAlign: TextAlign.center),
       ],
     );
   }
