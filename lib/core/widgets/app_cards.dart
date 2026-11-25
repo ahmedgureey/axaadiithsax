@@ -333,6 +333,7 @@ class DailyHadithCard extends StatelessWidget {
     this.onShare,
     this.onBookmark,
     this.fontControls,
+    this.translationFontSize,
   });
 
   final String arabicText;
@@ -361,6 +362,9 @@ class DailyHadithCard extends StatelessWidget {
 
   /// Optional Arabic text-size control shown next to the title.
   final Widget? fontControls;
+
+  /// Somali text size (follows the A− / A+ control); null = theme size.
+  final double? translationFontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -425,7 +429,11 @@ class DailyHadithCard extends StatelessWidget {
                   somaliText,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: context.textStyles.bodyMedium?.copyWith(color: onHero.withValues(alpha: 0.92), height: 1.5),
+                  style: context.textStyles.bodyMedium?.copyWith(
+                    color: onHero.withValues(alpha: 0.92),
+                    height: 1.5,
+                    fontSize: translationFontSize,
+                  ),
                 ),
                 AppSpacing.gapMd,
                 Row(

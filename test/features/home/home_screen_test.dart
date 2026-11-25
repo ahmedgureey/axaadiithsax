@@ -8,6 +8,7 @@ import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/widgets/widgets.dart';
 import 'package:xadiithapp/data/models/hadith.dart';
 import 'package:xadiithapp/data/repositories/hadith_repository.dart';
+import 'package:xadiithapp/features/home/presentation/widgets/daily_hadith_section.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/home_search_shortcut.dart';
 import 'package:xadiithapp/features/home/presentation/widgets/recent_hadiths_section.dart';
 
@@ -137,6 +138,31 @@ void main() {
   });
 
   group('Daily hadith', () {
+    test('Somali text follows A− / A+ (smaller shows more text)', () {
+      expect(translationSizeFor(26), 15);
+      expect(translationSizeFor(19), lessThan(15));
+      expect(translationSizeFor(33), greaterThan(15));
+      expect(translationSizeFor(5), 9, reason: 'never unreadably small');
+      expect(translationSizeFor(40), lessThanOrEqualTo(24));
+    });
+
+    testWidgets('A− makes the Somali text on the card smaller', (tester) async {
+      final services = await _pumpHome(tester);
+      double somaliSize() => tester
+          .widget<Text>(
+            find.descendant(
+              of: find.byType(DailyHadithCard),
+              matching: find.byWidgetPredicate((w) => w is Text && (w.data ?? '').startsWith('Qoraal tusaale')),
+            ),
+          )
+          .style!
+          .fontSize!;
+      final before = somaliSize();
+      await services.settings.setArabicFontSize(services.settings.arabicFontSize - 6);
+      await tester.pumpAndSettle();
+      expect(somaliSize(), lessThan(before));
+    });
+
     testWidgets('"Akhri Xadiiska" opens the detail of a valid hadith', (tester) async {
       final services = await _pumpHome(tester);
       final daily = services.repository.dailyHadith(DateTime.now())!;

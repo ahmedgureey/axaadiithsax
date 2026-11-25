@@ -176,8 +176,17 @@ void main() {
       expect(_statSemantics('La keydiyay: 0'), findsOneWidget);
       expect(find.text('Xadiisyada kaydsan'), findsOneWidget);
       expect(find.text('Habka akhriska'), findsNothing);
+      expect(find.text('Horumarka xifdinta'), findsOneWidget);
+      expect(find.text('Imtixaan'), findsWidgets);
       await tester.scrollUntilVisible(find.text(HelpScreen.title), 200, scrollable: find.byType(Scrollable).first);
       expect(find.text('Dejinta'), findsOneWidget);
+      expect(find.text('Ogeysiisyada'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Xadiith App · Nooca ${AppInfo.version}'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('La wadaag app-ka'), findsOneWidget);
     });
 
     testWidgets('stats reflect real favourites', (tester) async {

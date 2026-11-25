@@ -66,14 +66,14 @@ class SettingsTile extends StatelessWidget {
     return ListTile(
       minTileHeight: AppSizes.minTouchTarget + AppSpacing.xs,
       leading: Container(
-        width: 36,
-        height: 36,
+        width: 32,
+        height: 32,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: (color ?? scheme.primary).withValues(alpha: 0.10),
           borderRadius: AppRadius.smAll,
         ),
-        child: Icon(icon, size: 20, color: color ?? scheme.primary),
+        child: Icon(icon, size: 18, color: color ?? scheme.primary),
       ),
       title: Text(
         title,

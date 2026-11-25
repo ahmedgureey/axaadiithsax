@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/app_services.dart';
 import '../../../../core/routing/app_routes.dart';
+import '../../../../core/theme/theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../data/models/hadith.dart';
 import '../../../favorites/favorite_actions.dart';
@@ -36,7 +37,7 @@ class DailyHadithSection extends StatelessWidget {
     void open() => context.push(AppRoutes.hadith(h.id));
 
     return ListenableBuilder(
-      listenable: services.favorites,
+      listenable: Listenable.merge([services.favorites, services.settings]),
       builder: (context, _) {
         final saved = services.favorites.isFavorite(h.id);
         return DailyHadithCard(
@@ -55,6 +56,7 @@ class DailyHadithSection extends StatelessWidget {
           onRead: open,
           onShare: () => shareHadith(context, h),
           onBookmark: () => toggleFavoriteWithFeedback(context, h.id),
+          translationFontSize: translationSizeFor(services.settings.arabicFontSize),
           fontControls: ListenableBuilder(
             listenable: services.settings,
             builder: (context, _) => ArabicFontControls(settings: services.settings, showReset: false),
@@ -64,3 +66,7 @@ class DailyHadithSection extends StatelessWidget {
     );
   }
 }
+
+/// Somali text size on the daily card: follows the Arabic A− / A+ size
+/// (15 at the default Arabic size 26), so smaller shows more of the text.
+double translationSizeFor(double arabicSize) => (15 * arabicSize / ArabicFontSize.defaultSize).clamp(9, 24).toDouble();
