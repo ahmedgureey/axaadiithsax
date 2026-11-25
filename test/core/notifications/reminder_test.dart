@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xadiithapp/app/app.dart';
+import 'package:xadiithapp/app/app_services.dart';
 import 'package:xadiithapp/core/notifications/notification_gateway.dart';
 import 'package:xadiithapp/core/notifications/reminder_planner.dart';
 import 'package:xadiithapp/core/notifications/reminder_service.dart';
@@ -88,11 +89,11 @@ void main() {
       final g = FakeGateway(granted: false, grantOnRequest: true);
       final (s, _, _, prefs) = await _setUp(gateway: g);
       expect(g.requests, 0, reason: 'never asked at app start');
-      expect(await s.enable(ReminderKind.dailyHadith), ReminderEnableResult.enabled);
+      expect(await s.enable(ReminderKind.memorization), ReminderEnableResult.enabled);
       await s.flush();
       expect(g.requests, 1);
       expect(prefs.permissionAsked, isTrue);
-      expect(g.of(ReminderKind.dailyHadith), isNotEmpty);
+      expect(g.of(ReminderKind.memorization), isNotEmpty);
     });
 
     test('denied → stays off, no repeated prompt, Settings offered by the UI', () async {
@@ -108,7 +109,7 @@ void main() {
 
     test('permission revoked in Settings → nothing scheduled', () async {
       final (s, g, _, _) = await _setUp();
-      await s.enable(ReminderKind.dailyHadith);
+      await s.enable(ReminderKind.memorization);
       await s.flush();
       expect(g.scheduled, isNotEmpty);
       g.granted = false;
@@ -117,35 +118,56 @@ void main() {
     });
   });
 
-  group('Hadith of the day', () {
-    test('one per day for 14 days at the chosen time, with that day\'s real hadith', () async {
-      final (s, g, _, _) = await _setUp();
+  group('Hadith of the day (shown in the app only)', () {
+    test('never sends a notification, even when asked to enable it', () async {
+      final (s, g, _, prefs) = await _setUp();
       await s.enable(ReminderKind.dailyHadith);
       await s.flush();
-      final daily = g.of(ReminderKind.dailyHadith);
-      expect(daily, hasLength(ReminderPlanner.days - 1), reason: '14-day window; 08:00 today has already passed');
-      expect(daily.first.at, DateTime(2026, 11, 19, 8));
-      final repo = testRepository();
-      for (final r in daily) {
-        final h = repo.dailyHadith(r.at)!;
-        expect(r.payload, AppRoutes.hadith(h.id));
-        expect(r.title, contains('Xadiiska maalinta'));
-        expect(r.body, isNotEmpty);
-      }
+      expect(prefs.isEnabled(ReminderKind.dailyHadith), isFalse);
+      expect(g.of(ReminderKind.dailyHadith), isEmpty);
+      expect(ReminderKind.offered, isNot(contains(ReminderKind.dailyHadith)));
     });
 
-    test('changing the time reschedules; disabling removes; enabling again restores', () async {
-      final (s, g, _, _) = await _setUp();
-      await s.enable(ReminderKind.dailyHadith);
-      await s.setTime(ReminderKind.dailyHadith, const TimeOfDay(hour: 21, minute: 30));
+    test('an "on" flag from an older version is switched off', () async {
+      final (s, g, _, prefs) = await _setUp(store: {'notifications.dailyHadith': true});
       await s.flush();
-      expect(g.of(ReminderKind.dailyHadith).first.at, DateTime(2026, 11, 18, 21, 30), reason: 'today, still ahead');
-      await s.disable(ReminderKind.dailyHadith);
-      await s.flush();
+      expect(prefs.isEnabled(ReminderKind.dailyHadith), isFalse);
       expect(g.of(ReminderKind.dailyHadith), isEmpty);
-      await s.enable(ReminderKind.dailyHadith);
+    });
+
+    test('memorization: changing the time reschedules; disabling removes; enabling again restores', () async {
+      final (s, g, _, _) = await _setUp();
+      await s.enable(ReminderKind.memorization);
+      await s.setTime(ReminderKind.memorization, const TimeOfDay(hour: 21, minute: 30));
       await s.flush();
-      expect(g.of(ReminderKind.dailyHadith), isNotEmpty);
+      expect(g.of(ReminderKind.memorization).first.at, DateTime(2026, 11, 18, 21, 30), reason: 'today, still ahead');
+      await s.disable(ReminderKind.memorization);
+      await s.flush();
+      expect(g.of(ReminderKind.memorization), isEmpty);
+      await s.enable(ReminderKind.memorization);
+      await s.flush();
+      expect(g.of(ReminderKind.memorization), isNotEmpty);
+    });
+  });
+
+  group('Daily hadith order', () {
+    test('first day → hadith 1, then 2, 3 … and back to 1 after the last', () {
+      final repo = testRepository();
+      final order = [for (final b in repo.books) ...repo.readingOrderOf(b.id)];
+      repo.dailyStart = DateTime(2026, 11, 18);
+      expect(repo.dailyHadith(DateTime(2026, 11, 18))!.id, order[0].id);
+      expect(repo.dailyHadith(DateTime(2026, 11, 19, 23, 59))!.id, order[1].id);
+      expect(repo.dailyHadith(DateTime(2026, 11, 20))!.id, order[2].id);
+      final afterLast = DateTime(2026, 11, 18 + order.length);
+      expect(repo.dailyHadith(afterLast)!.id, order[0].id, reason: 'starts again from hadith 1');
+    });
+
+    test('the first day is saved on first use and kept', () async {
+      final store = InMemorySettingsStore();
+      final first = await AppServices.loadDailyStart(store, DateTime(2026, 11, 18, 15));
+      expect(first, DateTime(2026, 11, 18));
+      final later = await AppServices.loadDailyStart(store, DateTime(2026, 12, 1));
+      expect(later, DateTime(2026, 11, 18), reason: 'not reset on later launches');
     });
   });
 
@@ -300,13 +322,13 @@ void main() {
     await tester.pumpWidget(XadiisApp(services: services, initialLocation: AppRoutes.settingsNotifications));
     await tester.pumpAndSettle();
     expect(find.text(NotificationSettingsScreen.unsupportedNotice), findsNothing);
-    await tester.tap(find.text(ReminderKind.dailyHadith.label));
+    await tester.tap(find.text(ReminderKind.memorization.label));
     await tester.pumpAndSettle();
     expect(find.text(NotificationSettingsScreen.deniedMessage), findsOneWidget);
     await tester.tap(find.widgetWithText(SnackBarAction, 'Settings'));
     await tester.pumpAndSettle();
     expect(g.settingsOpened, 1);
-    expect(services.notifications.isEnabled(ReminderKind.dailyHadith), isFalse);
+    expect(services.notifications.isEnabled(ReminderKind.memorization), isFalse);
     expect(find.byType(AppCard), findsWidgets);
   });
 }

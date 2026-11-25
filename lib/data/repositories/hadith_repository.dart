@@ -150,11 +150,22 @@ class HadithRepository extends ChangeNotifier {
   List<Hadith> relatedTo(Hadith hadith, {int limit = 3}) =>
       _hadiths.where((h) => h.id != hadith.id && h.categoryIds.any(hadith.categoryIds.contains)).take(limit).toList();
 
-  /// Deterministic "hadith of the day" from the local dataset.
+  /// First day of the user's "hadith of the day" sequence (set from the
+  /// device's first use). Null: counted from 1 January 1970.
+  DateTime? dailyStart;
+
+  static int _dayNumber(DateTime d) => DateTime.utc(d.year, d.month, d.day).millisecondsSinceEpoch ~/ 86400000;
+
+  /// "Hadith of the day": in reading order, one per day — hadith 1 on the
+  /// [dailyStart] day, hadith 2 the next day … and back to hadith 1 after
+  /// the last one.
   Hadith? dailyHadith(DateTime date) {
-    if (_hadiths.isEmpty) return null;
-    final dayIndex = DateTime.utc(date.year, date.month, date.day).millisecondsSinceEpoch ~/ 86400000;
-    return _hadiths[dayIndex % _hadiths.length];
+    final order = [for (final b in books) ...readingOrderOf(b.id)];
+    final list = order.isEmpty ? _hadiths : order;
+    if (list.isEmpty) return null;
+    final start = dailyStart;
+    final days = _dayNumber(date) - (start == null ? 0 : _dayNumber(start));
+    return list[days < 0 ? 0 : days % list.length];
   }
 
   /// Searches Arabic text, Somali translation and narrator.

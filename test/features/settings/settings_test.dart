@@ -254,14 +254,15 @@ void main() {
       expect(s.settings.readingIsDefault, isTrue);
     });
 
-    testWidgets('notifications: three reminders with their own time; unsupported platform says so', (tester) async {
+    testWidgets('notifications: two reminders with their own time (no daily-hadith notification)', (tester) async {
       final store = _guestStore();
       final s = await _pump(tester, AppRoutes.settingsNotifications, store: store);
       expect(find.text(NotificationSettingsScreen.unsupportedNotice), findsOneWidget, reason: 'tests use no device');
-      for (final k in ReminderKind.values) {
+      for (final k in ReminderKind.offered) {
         expect(find.text(k.label), findsOneWidget);
       }
-      expect(find.text('08:00'), findsOneWidget);
+      expect(find.text(ReminderKind.dailyHadith.label), findsNothing);
+      expect(find.text('08:00'), findsNothing);
       expect(find.text('19:00'), findsOneWidget);
       expect(find.text('17:00'), findsOneWidget);
       await tester.tap(find.text(ReminderKind.memorization.label));
@@ -273,7 +274,7 @@ void main() {
     testWidgets('about shows the real version and what the app offers (no warning, no library list)', (tester) async {
       await _pump(tester, AppRoutes.about);
       expect(find.text(AboutScreen.versionLabel), findsOneWidget);
-      expect(find.text('Nooca 1.0.11 (build 12)'), findsOneWidget);
+      expect(find.text('Nooca 1.0.12 (build 13)'), findsOneWidget);
       expect(find.textContaining('xadiisyo la xaqiijiyey'), findsNothing);
       expect(find.text('Waxyaabaha la isticmaalay'), findsNothing);
       expect(find.text('42 xadiis'), findsOneWidget);

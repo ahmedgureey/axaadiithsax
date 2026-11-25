@@ -51,7 +51,7 @@ class NotificationSettingsScreen extends StatelessWidget {
                     const FormValidationMessage(type: FormMessageType.info, message: unsupportedNotice),
                     AppSpacing.gapLg,
                   ],
-                  for (final kind in ReminderKind.values) ...[
+                  for (final kind in ReminderKind.offered) ...[
                     AppCard(
                       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
                       child: Column(

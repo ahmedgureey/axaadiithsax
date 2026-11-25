@@ -14,6 +14,15 @@ enum ReminderKind {
   final String label;
   final String description;
   final TimeOfDay defaultTime;
+
+  /// The hadith of the day is shown only inside the app (no notification).
+  bool get available => this != ReminderKind.dailyHadith;
+
+  /// Reminders offered in the settings.
+  static List<ReminderKind> get offered => [
+    for (final k in values)
+      if (k.available) k,
+  ];
 }
 
 /// Reminder preferences (on/off and time per reminder), persisted locally.
@@ -51,6 +60,11 @@ class NotificationPreferencesController extends ChangeNotifier {
         _times[k] = parseTime(await _store.getString(_timeKey(k))) ?? k.defaultTime;
       }
       _permissionAsked = await _store.getBool(permissionAskedKey) ?? false;
+      // The hadith of the day no longer sends a notification: switch it off.
+      if (_enabled[ReminderKind.dailyHadith] == true) {
+        _enabled[ReminderKind.dailyHadith] = false;
+        await _store.remove('$_prefix${ReminderKind.dailyHadith.name}');
+      }
       // The removed "app news" reminder needed a server; clear its old flag.
       await _store.remove('${_prefix}announcements');
     } catch (_) {
@@ -60,6 +74,7 @@ class NotificationPreferencesController extends ChangeNotifier {
   }
 
   Future<void> setEnabled(ReminderKind kind, bool value) async {
+    if (value && !kind.available) return;
     if (_enabled[kind] == value) return;
     _enabled[kind] = value;
     notifyListeners();

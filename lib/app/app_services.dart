@@ -107,6 +107,7 @@ class AppServices {
         (remote ? HadithRepository(books: const [], chapters: const [], hadiths: const []) : HadithRepository());
     final catalog = remote ? CatalogService(catalogApi, repo, store) : null;
     if (catalog != null) await catalog.start();
+    repo.dailyStart = await loadDailyStart(store, (clock ?? DateTime.now)());
 
     List<String> readingOrder() => [
       for (final b in repo.books)
@@ -165,6 +166,22 @@ class AppServices {
       );
     }
     return services;
+  }
+
+  /// Storage key: first day of the "hadith of the day" sequence (yyyy-mm-dd).
+  static const dailyStartKey = 'daily.startDay';
+
+  /// Day the hadith-of-the-day sequence starts (hadith 1): saved on first
+  /// use, so every user begins with the first hadith.
+  static Future<DateTime> loadDailyStart(SettingsStore store, DateTime today) async {
+    final saved = DateTime.tryParse(await store.getString(dailyStartKey) ?? '');
+    if (saved != null) return saved;
+    final day = DateTime(today.year, today.month, today.day);
+    final d =
+        '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-'
+        '${day.day.toString().padLeft(2, '0')}';
+    await store.setString(dailyStartKey, d);
+    return day;
   }
 
   /// Deletes ALL locally stored app data — bookmarks, memorisation progress,

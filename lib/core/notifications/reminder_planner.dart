@@ -93,7 +93,7 @@ abstract final class ReminderPlanner {
     for (var d = 0; d < days; d++) {
       final day = DateTime(today.year, today.month, today.day + d);
       for (final kind in ReminderKind.values) {
-        if (!enabled(kind)) continue;
+        if (!kind.available || !enabled(kind)) continue;
         final t = timeOf(kind);
         final at = DateTime(day.year, day.month, day.day, t.hour, t.minute);
         if (!at.isAfter(now)) continue; // never in the past
