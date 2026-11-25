@@ -169,9 +169,11 @@ class _HadithDetailScreenState extends State<HadithDetailScreen> {
                         ArabicText(hadith.narrator!, variant: ArabicTextVariant.narrator),
                         AppSpacing.gapMd,
                       ],
-                      // Recitation where the narrator line used to be.
-                      HadithAudioPlayer(key: ValueKey('audio-${hadith.id}'), hadith: hadith),
-                      AppSpacing.gapLg,
+                      // Recitation (only when a recording exists).
+                      if (hadith.audio != null) ...[
+                        HadithAudioPlayer(key: ValueKey('audio-${hadith.id}'), hadith: hadith),
+                        AppSpacing.gapLg,
+                      ],
                       Row(
                         children: [
                           Expanded(child: _SectionLabel(context.tr(AppText.readerArabic))),

@@ -110,15 +110,11 @@ void main() {
   });
 
   group('Hadith detail', () {
-    testWidgets('renders header, narrator, audio, Arabic (RTL), translation and a short reference', (tester) async {
+    testWidgets('renders header, narrator, Arabic (RTL), translation and a short reference', (tester) async {
       await _pump(tester, AppRoutes.hadith('bukhari-c1-h2'));
       expect(find.text('Cutub tusaale 1 · #2'), findsOneWidget);
       expect(find.text('Weriyaha'), findsWidgets);
-      expect(
-        find.text(HadithAudioPlayer.unavailableLabel),
-        findsOneWidget,
-        reason: 'audio where the narrator line was',
-      );
+      expect(find.byType(HadithAudioPlayer), findsNothing, reason: 'no recording, no audio card');
       expect(Directionality.of(tester.element(_arabicBody)), TextDirection.rtl);
       expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
       expect(find.byType(DemoContentBadge), findsOneWidget);
@@ -128,11 +124,11 @@ void main() {
       }
     });
 
-    testWidgets('missing translation and narrator: no narrator placeholder, audio card instead', (tester) async {
+    testWidgets('missing translation and narrator: no narrator placeholder, no empty audio card', (tester) async {
       await _pump(tester, AppRoutes.hadith('${TestLibrary.incompleteChapterId}-h3'));
       expect(find.text(missingTranslationText), findsOneWidget);
       expect(find.text('Weriyaha lama hayo.'), findsNothing);
-      expect(find.text(HadithAudioPlayer.unavailableLabel), findsOneWidget);
+      expect(find.byType(HadithAudioPlayer), findsNothing);
       expect(
         tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.copy_rounded)).onPressed,
         isNull,

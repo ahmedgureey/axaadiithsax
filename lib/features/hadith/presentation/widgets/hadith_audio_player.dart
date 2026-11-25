@@ -29,7 +29,8 @@ class HadithAudioPlayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final audio = hadith.audio;
-    if (audio == null) return const _UnavailablePlayer();
+    // No recording: nothing is shown (no empty player).
+    if (audio == null) return const SizedBox.shrink();
     return _StreamingPlayer(audio: audio, engineFactory: context.services.audioEngineFactory);
   }
 }
@@ -272,90 +273,6 @@ class _StreamingPlayerState extends State<_StreamingPlayer> {
           AppSpacing.gapXs,
           Text('Akhriyaha: ${audio.reciter} · Isha: ${audio.sourceName}', style: context.textStyles.bodySmall),
           if (!audio.verified) ...[AppSpacing.gapXxs, const DemoContentBadge(label: 'Codka lama xaqiijin')],
-        ],
-      ),
-    );
-  }
-}
-
-/// No recording: disabled controls, never fake progress.
-class _UnavailablePlayer extends StatelessWidget {
-  const _UnavailablePlayer();
-
-  @override
-  Widget build(BuildContext context) {
-    const message = 'Xadiiskan weli cod looma duubin.';
-    final c = context.appColors;
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Semantics(
-                button: true,
-                enabled: false,
-                label: 'Dhegeyso — ${HadithAudioPlayer.unavailableLabel}',
-                excludeSemantics: true,
-                child: IconButton.filled(
-                  onPressed: null,
-                  icon: const Icon(Icons.play_arrow_rounded),
-                  iconSize: AppSizes.iconLg,
-                ),
-              ),
-              AppSpacing.gapSm,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Dhegeyso', style: context.textStyles.titleSmall),
-                    Row(
-                      children: [
-                        Icon(Icons.volume_off_rounded, size: 16, color: c.textSecondary),
-                        const SizedBox(width: AppSpacing.xxs),
-                        Flexible(
-                          child: Text(
-                            HadithAudioPlayer.unavailableLabel,
-                            style: context.textStyles.labelMedium?.copyWith(color: c.textSecondary),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          AppSpacing.gapSm,
-          ExcludeSemantics(
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius: AppRadius.pillAll,
-                  child: LinearProgressIndicator(value: 0, minHeight: 4, backgroundColor: c.divider),
-                ),
-                AppSpacing.gapXxs,
-                Row(
-                  children: [
-                    Text('0:00', style: context.textStyles.labelSmall),
-                    const Spacer(),
-                    Text('--:--', style: context.textStyles.labelSmall),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          AppSpacing.gapXs,
-          Wrap(
-            spacing: AppSpacing.xxs,
-            runSpacing: AppSpacing.xxs,
-            children: [
-              for (final s in HadithAudioPlayer.speeds)
-                ChoiceChip(label: Text('${s}x'), selected: s == 1.0, onSelected: null),
-            ],
-          ),
-          AppSpacing.gapXs,
-          Text(message, style: context.textStyles.bodySmall),
         ],
       ),
     );

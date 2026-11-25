@@ -284,18 +284,11 @@ void main() {
       expect(find.text('Xadiiska waa la koobiyeeyay'), findsOneWidget);
     });
 
-    testWidgets('audio player shows an honest unavailable state', (tester) async {
+    testWidgets('no recording: no audio card, no fake player', (tester) async {
       await _pump(tester, AppRoutes.hadith('muslim-c1-h1'));
-      await tester.scrollUntilVisible(
-        find.text(HadithAudioPlayer.unavailableLabel),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      final play = tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.play_arrow_rounded));
-      expect(play.onPressed, isNull, reason: 'never pretends to play');
-      final speeds = tester.widgetList<ChoiceChip>(find.byType(ChoiceChip));
-      expect(speeds.every((c) => c.onSelected == null), isTrue);
-      expect(find.text('--:--'), findsOneWidget);
+      expect(find.byType(HadithAudioPlayer), findsNothing);
+      expect(find.text(HadithAudioPlayer.unavailableLabel), findsNothing);
+      expect(find.widgetWithIcon(IconButton, Icons.play_arrow_rounded), findsNothing);
     });
 
     testWidgets('offline status: bundled hadith vs book without content', (tester) async {
