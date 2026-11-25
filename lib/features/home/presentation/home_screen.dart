@@ -7,7 +7,6 @@ import '../../../data/models/hadith.dart';
 import '../home_feed.dart';
 import 'widgets/daily_hadith_section.dart';
 import 'widgets/home_app_bar.dart';
-import 'widgets/home_progress_section.dart';
 import 'widgets/home_search_shortcut.dart';
 import 'widgets/recent_hadiths_section.dart';
 
@@ -98,8 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 const AppPageBody(child: HomeSearchShortcut()),
                 AppSpacing.gapLg,
                 AppPageBody(child: DailyHadithSection(hadith: feed.daily)),
-                AppSpacing.gapXl,
-                const AppPageBody(child: HomeMemorizationSummary()),
                 AppSpacing.gapXl,
                 AppPageBody(child: RecentHadithsSection(featured: feed.featuredHadiths)),
               ],

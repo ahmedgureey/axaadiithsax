@@ -31,11 +31,6 @@ class ProfileScreen extends StatelessWidget {
                   title: context.tr(AppText.titleFavorites),
                   onTap: () => context.push(AppRoutes.favorites),
                 ),
-                SettingsTile(
-                  icon: Icons.text_fields_rounded,
-                  title: context.tr(AppText.titleReading),
-                  onTap: () => context.push(AppRoutes.settingsReading),
-                ),
               ],
             ),
           ),

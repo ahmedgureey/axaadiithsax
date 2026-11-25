@@ -175,7 +175,7 @@ void main() {
       expect(find.text('Arrimaha gaarka ah'), findsNothing);
       expect(_statSemantics('La keydiyay: 0'), findsOneWidget);
       expect(find.text('Xadiisyada kaydsan'), findsOneWidget);
-      expect(find.text('Habka akhriska'), findsOneWidget);
+      expect(find.text('Habka akhriska'), findsNothing);
       await tester.scrollUntilVisible(find.text(HelpScreen.title), 200, scrollable: find.byType(Scrollable).first);
       expect(find.text('Dejinta'), findsOneWidget);
     });
@@ -273,7 +273,7 @@ void main() {
     testWidgets('about shows the real version and what the app offers (no warning, no library list)', (tester) async {
       await _pump(tester, AppRoutes.about);
       expect(find.text(AboutScreen.versionLabel), findsOneWidget);
-      expect(find.text('Nooca 1.0.9 (build 10)'), findsOneWidget);
+      expect(find.text('Nooca 1.0.10 (build 11)'), findsOneWidget);
       expect(find.textContaining('xadiisyo la xaqiijiyey'), findsNothing);
       expect(find.text('Waxyaabaha la isticmaalay'), findsNothing);
       expect(find.text('42 xadiis'), findsOneWidget);

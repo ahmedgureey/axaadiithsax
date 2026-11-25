@@ -7,11 +7,11 @@ abstract final class AppInfo {
   static const name = 'Xadiith App';
   static const tagline = 'Axaadiista Nabiga ﷺ';
 
-  /// `version` part of pubspec `version: 1.0.9+10`.
-  static const version = '1.0.9';
+  /// `version` part of pubspec `version: 1.0.10+11`.
+  static const version = '1.0.10';
 
-  /// Build number part of pubspec `version: 1.0.9+10`.
-  static const buildNumber = '10';
+  /// Build number part of pubspec `version: 1.0.10+11`.
+  static const buildNumber = '11';
 
   static const pubspecVersion = '$version+$buildNumber';
 }

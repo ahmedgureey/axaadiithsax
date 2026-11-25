@@ -8,6 +8,7 @@ import 'package:xadiithapp/core/settings/app_settings_controller.dart';
 import 'package:xadiithapp/core/theme/app_typography.dart';
 import 'package:xadiithapp/data/models/hadith.dart';
 import 'package:xadiithapp/features/hadith/reading_history_controller.dart';
+import 'package:xadiithapp/features/home/presentation/widgets/recent_hadiths_section.dart';
 
 import '../support/test_library.dart';
 
@@ -97,15 +98,10 @@ void main() {
     testWidgets('no continue-reading or reminder card on Home, even after reading', (tester) async {
       final h = await _middleHadith();
       await _pump(tester, AppRoutes.home, store: _store(history: [h.id]));
-      await _scrollTo(tester, find.text('Xifdinta maanta'));
+      await _scrollTo(tester, find.text(RecentHadithsSection.recentTitle));
       expect(find.text('Sii wad akhriska'), findsNothing);
       expect(find.text('Xasuusinta akhriska'), findsNothing);
-    });
-
-    testWidgets('memorization summary uses real numbers', (tester) async {
-      final s = await _pump(tester, AppRoutes.home);
-      await _scrollTo(tester, find.text('Xifdinta maanta'));
-      expect(find.text('0 / ${s.memorization.plannedToday} la xifdiyey'), findsOneWidget);
+      expect(find.text('Xifdinta maanta'), findsNothing, reason: 'no memorization card on Home');
     });
   });
 
