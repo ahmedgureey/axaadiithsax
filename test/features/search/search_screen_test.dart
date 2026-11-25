@@ -108,24 +108,19 @@ void main() {
       expect(find.text('Eeg mowduucyada'), findsOneWidget);
     });
 
-    testWidgets('submitted terms appear in history; remove and reuse', (tester) async {
+    testWidgets('searches are not saved or shown again (no recent searches, no hints)', (tester) async {
       final s = await _pump(tester);
       await tester.enterText(_field, 'Muslim');
       await tester.testTextInput.receiveAction(TextInputAction.search);
       await tester.pumpAndSettle();
-      expect(s.searchHistory.terms, ['Muslim']);
-
-      await tester.tap(find.byTooltip('Tirtir raadinta'));
-      await tester.pumpAndSettle();
-      expect(find.text('Raadintii dhowayd'), findsOneWidget);
-      await _tap(tester, find.widgetWithText(InputChip, 'Muslim'));
-      expect(find.widgetWithText(TextField, 'Muslim'), findsOneWidget);
-      expect(_count(s.search.search(query: 'Muslim').length), findsOneWidget);
-
-      await tester.tap(find.byTooltip('Tirtir raadinta'));
-      await tester.pumpAndSettle();
-      await _tap(tester, find.byTooltip('Ka saar "Muslim"'));
       expect(s.searchHistory.terms, isEmpty);
+
+      await tester.tap(find.byTooltip('Tirtir raadinta'));
+      await tester.pumpAndSettle();
+      expect(find.text('Raadintii dhowayd'), findsNothing);
+      expect(find.byType(InputChip), findsNothing);
+      expect(find.text('Erayo la raadiyo'), findsNothing);
+      expect(find.text('Qor eray Carabi ama Soomaali ah.'), findsNothing);
     });
 
     testWidgets('filter sheet: apply book + topic, query preserved, chips removable', (tester) async {
@@ -188,7 +183,7 @@ void main() {
       await _type(tester, 'Muslim');
       await _tap(tester, find.byType(SearchResultCard).first);
       expect(find.text('Tarjumaadda Af Soomaaliga'), findsOneWidget);
-      expect(s.searchHistory.terms, ['Muslim'], reason: 'opening a result saves the term');
+      expect(s.searchHistory.terms, isEmpty, reason: 'searches are not saved');
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(find.widgetWithText(TextField, 'Muslim'), findsOneWidget);

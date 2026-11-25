@@ -93,12 +93,6 @@ class _SearchScreenState extends State<SearchScreen> {
   void _onSubmitted(String value) {
     _debounceTimer?.cancel();
     setState(() => _query = value);
-    context.services.searchHistory.add(value);
-  }
-
-  void _useTerm(String term) {
-    _controller.text = term;
-    _onSubmitted(term);
   }
 
   void _clearQuery() {
@@ -169,7 +163,6 @@ class _SearchScreenState extends State<SearchScreen> {
           Expanded(
             child: !_hasCriteria
                 ? SearchInitialView(
-                    onTerm: _useTerm,
                     onCategory: (id) => setState(() => _filters = SearchFilters(categoryIds: {id})),
                     onBrowseCategories: _browseCategories,
                   )
@@ -222,11 +215,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           return AppPageBody(
                             key: ValueKey(h.id),
                             padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
-                            child: SearchResultCard(
-                              hadith: h,
-                              tokens: tokens,
-                              onOpen: () => services.searchHistory.add(_query),
-                            ),
+                            child: SearchResultCard(hadith: h, tokens: tokens),
                           );
                         },
                       );
@@ -560,11 +549,7 @@ class _RemoteResultsState extends State<_RemoteResults> {
               return AppPageBody(
                 key: ValueKey(h.id),
                 padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
-                child: SearchResultCard(
-                  hadith: h,
-                  tokens: tokens,
-                  onOpen: () => services.searchHistory.add(widget.query),
-                ),
+                child: SearchResultCard(hadith: h, tokens: tokens),
               );
             },
           ),
